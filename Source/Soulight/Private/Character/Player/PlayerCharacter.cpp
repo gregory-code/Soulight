@@ -18,7 +18,7 @@ APlayerCharacter::APlayerCharacter()
 
 	cameraBoom->bUsePawnControlRotation = true;
 	cameraBoom->TargetArmLength = 500.0f;
-	cameraBoom->TargetOffset = FVector(0, 0, 1000);
+	cameraBoom->TargetOffset = FVector(0, 0, 1200);
 
 
 	bUseControllerRotationYaw = false;
