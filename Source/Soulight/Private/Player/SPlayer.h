@@ -28,6 +28,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	class ASPlayerController* PlayerController;
 
+	UPROPERTY(visibleAnywhere, Category = "Camera")
+	class USpringArmComponent* CameraBoom;
+
 	UPROPERTY(visibleAnywhere, Category = "View")
 	class UCameraComponent* MainCamera;
 
