@@ -14,4 +14,13 @@ class ASoulightGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+public:
+
+protected:
+
+	virtual void BeginPlay() override;
+
+private:
+
+	
 };

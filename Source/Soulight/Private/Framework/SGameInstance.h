@@ -14,4 +14,11 @@ class USGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 	
+public:
+
+	UFUNCTION()
+	void CreateFog();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Fog")
+	TSubclassOf<class ASFog> mFogClass;
 };

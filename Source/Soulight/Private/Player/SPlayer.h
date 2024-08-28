@@ -28,14 +28,25 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	class ASPlayerController* PlayerController;
 
+	///////////////////////////////
+	/*         Camera           */
+	/////////////////////////////
+	UPROPERTY(visibleAnywhere, Category = "Camera")
+	class USceneComponent* MainCameraPivot;
+
 	UPROPERTY(visibleAnywhere, Category = "Camera")
 	class USceneComponent* FullHealthView;
 
 	UPROPERTY(visibleAnywhere, Category = "Camera")
 	class USceneComponent* EmptyHealthView;
 
-	UPROPERTY(visibleAnywhere, Category = "View")
+	UPROPERTY(visibleAnywhere, Category = "Camera")
 	class UCameraComponent* MainCamera;
+
+	FTimerHandle CameraTimerHandle;
+	float CameraMoveSpeed = 5.0f;
+	void MoveCameraToLocalOffset(const FVector& LocalOffset);
+	void ProcessCameraMove(FVector Goal);
 
 	virtual void PawnClientRestart() override;
 
@@ -109,4 +120,11 @@ private:
 	FVector GetMoveFwdDir() const;
 	FVector GetMoveRightDir() const;
 	FVector previousDir;
+
+	///////////////////////////////
+	/*       Health             */
+	/////////////////////////////
+
+	UFUNCTION()
+	void HealthUpdated(const float newHealth);
 };
