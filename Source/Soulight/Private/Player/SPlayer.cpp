@@ -6,6 +6,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "Player/SPlayerController.h"
+#include "InputCoreTypes.h"
+#include "GameFramework/PlayerInput.h"
 
 #include "Animation/AnimInstance.h"
 
@@ -18,23 +20,25 @@
 
 ASPlayer::ASPlayer()
 {
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>("Camera Boom");
+	FullHealthView = CreateDefaultSubobject<USceneComponent>("Full Health Pos");
+	EmptyHealthView = CreateDefaultSubobject<USceneComponent>("Empty Health Pos");
 	MainCamera = CreateDefaultSubobject<UCameraComponent>("Main Camera");
 
-	CameraBoom->SetupAttachment(GetRootComponent());
-	MainCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	MainCamera->SetWorldRotation(FRotator(0, -65.0f, 0));
+	FullHealthView->SetupAttachment(GetRootComponent());
 
-	CameraBoom->bUsePawnControlRotation = true;
-	CameraBoom->TargetArmLength = 500.0;
-	CameraBoom->TargetOffset = FVector(0, 0, 1000);
+	EmptyHealthView->SetupAttachment(GetRootComponent());
+	MainCamera->SetupAttachment(GetRootComponent());
+	MainCamera->SetWorldRotation(FRotator(0, -60.0f, 0));
+
+	//CameraBoom->bUsePawnControlRotation = true;
+	//CameraBoom->TargetArmLength = 600.0f;
+	//CameraBoom->TargetOffset = FVector(0, 0, 1000);
 
 	bUseControllerRotationYaw = false;
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(1080.0f);
 	GetCharacterMovement()->JumpZVelocity = 600.0f;
-
 }
 
 void ASPlayer::Tick(float DeltaTime)
@@ -86,11 +90,28 @@ void ASPlayer::Move(const FInputActionValue& InputValue)
 	FVector2D input = InputValue.Get<FVector2D>();
 	input.Normalize();
 
+	if (previousDir != FVector(0.0f, 0.0f, 0.0f))
+	{
+		previousDir = FVector(0.0f, 0.0f, 0.0f);
+	}
+	else
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+	}
+
 	AddMovementInput(input.Y * GetMoveFwdDir() + input.X * GetMoveRightDir());
 }
 
 void ASPlayer::Aim(const FInputActionValue& InputValue)
 {
+	FVector2D input = InputValue.Get<FVector2D>();
+	input.Normalize();
+
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+
+	previousDir = FVector(input.X, input.Y, 0.0f);
+
+	SetActorRotation(FVector(input.X, input.Y, 0.0f).ToOrientationRotator());
 }
 
 void ASPlayer::Interact()

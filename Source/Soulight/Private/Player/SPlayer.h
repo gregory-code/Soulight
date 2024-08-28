@@ -29,7 +29,10 @@ private:
 	class ASPlayerController* PlayerController;
 
 	UPROPERTY(visibleAnywhere, Category = "Camera")
-	class USpringArmComponent* CameraBoom;
+	class USceneComponent* FullHealthView;
+
+	UPROPERTY(visibleAnywhere, Category = "Camera")
+	class USceneComponent* EmptyHealthView;
 
 	UPROPERTY(visibleAnywhere, Category = "View")
 	class UCameraComponent* MainCamera;
@@ -99,6 +102,11 @@ private:
 	UFUNCTION()
 	void Settings();
 
+	///////////////////////////////
+	/*       Movement           */
+	/////////////////////////////
+
 	FVector GetMoveFwdDir() const;
 	FVector GetMoveRightDir() const;
+	FVector previousDir;
 };
