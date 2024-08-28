@@ -21,4 +21,16 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Fog")
 	TSubclassOf<class ASFog> mFogClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Fog")
+	FVector FogSpawnPosition;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Fog")
+	int FogRows;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Fog")
+	int FogColumns;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Fog")
+	int FogSpacing;
 };

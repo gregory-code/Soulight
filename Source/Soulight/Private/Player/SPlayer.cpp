@@ -61,9 +61,9 @@ void ASPlayer::PawnClientRestart()
 	PlayerController = GetController<ASPlayerController>();
 	if (PlayerController)
 	{
-		UEnhancedInputLocalPlayerSubsystem* InputSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
-		InputSystem->ClearAllMappings();
-		InputSystem->AddMappingContext(InputMapping, 0);
+		UEnhancedInputLocalPlayerSubsystem* inputSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+		inputSystem->ClearAllMappings();
+		inputSystem->AddMappingContext(InputMapping, 0);
 	}
 
 }
@@ -72,24 +72,24 @@ void ASPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
-	if (EnhancedInputComponent)
+	UEnhancedInputComponent* enhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	if (enhancedInputComponent)
 	{
-		EnhancedInputComponent->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Move);
-		EnhancedInputComponent->BindAction(AimInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Aim);
-		EnhancedInputComponent->BindAction(AttackInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Attack);
-		EnhancedInputComponent->BindAction(DodgeInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Dodge);
-		EnhancedInputComponent->BindAction(SkillInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Skill);
-		EnhancedInputComponent->BindAction(SpellInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Spell);
-		EnhancedInputComponent->BindAction(HUDInputAction, ETriggerEvent::Triggered, this, &ASPlayer::HUD);
-		EnhancedInputComponent->BindAction(SettingsInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Settings);
+		enhancedInputComponent->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Move);
+		enhancedInputComponent->BindAction(AimInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Aim);
+		enhancedInputComponent->BindAction(AttackInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Attack);
+		enhancedInputComponent->BindAction(DodgeInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Dodge);
+		enhancedInputComponent->BindAction(SkillInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Skill);
+		enhancedInputComponent->BindAction(SpellInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Spell);
+		enhancedInputComponent->BindAction(HUDInputAction, ETriggerEvent::Triggered, this, &ASPlayer::HUD);
+		enhancedInputComponent->BindAction(SettingsInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Settings);
 	}
 }
 
 void ASPlayer::Move(const FInputActionValue& InputValue)
 {
-	FVector2D Input = InputValue.Get<FVector2D>();
-	Input.Normalize();
+	FVector2D input = InputValue.Get<FVector2D>();
+	input.Normalize();
 
 	if (previousDir != FVector(0.0f, 0.0f, 0.0f))
 	{
@@ -100,19 +100,19 @@ void ASPlayer::Move(const FInputActionValue& InputValue)
 		GetCharacterMovement()->bOrientRotationToMovement = true;
 	}
 
-	AddMovementInput(Input.Y * GetMoveFwdDir() + Input.X * GetMoveRightDir());
+	AddMovementInput(input.Y * GetMoveFwdDir() + input.X * GetMoveRightDir());
 }
 
 void ASPlayer::Aim(const FInputActionValue& InputValue)
 {
-	FVector2D Input = InputValue.Get<FVector2D>();
-	Input.Normalize();
+	FVector2D input = InputValue.Get<FVector2D>();
+	input.Normalize();
 
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 
-	previousDir = FVector(Input.X, Input.Y, 0.0f);
+	previousDir = FVector(input.X, input.Y, 0.0f);
 
-	SetActorRotation(FVector(Input.X, Input.Y, 0.0f).ToOrientationRotator());
+	SetActorRotation(FVector(input.X, input.Y, 0.0f).ToOrientationRotator());
 }
 
 void ASPlayer::Interact()
@@ -157,15 +157,15 @@ void ASPlayer::MoveCameraToLocalOffset(const FVector& LocalOffset)
 
 void ASPlayer::ProcessCameraMove(FVector Goal)
 {
-	FVector CurrentLocalOffset = MainCamera->GetRelativeLocation();
-	if (FVector::Dist(CurrentLocalOffset, Goal) < 1)
+	FVector currentLocalOffset = MainCamera->GetRelativeLocation();
+	if (FVector::Dist(currentLocalOffset, Goal) < 1)
 	{
 		MainCamera->SetRelativeLocation(Goal);
 		return;
 	}
 
-	FVector NewLocalOffset = FMath::Lerp(CurrentLocalOffset, Goal, GetWorld()->GetDeltaSeconds() * CameraMoveSpeed);
-	MainCamera->SetRelativeLocation(NewLocalOffset);
+	FVector newLocalOffset = FMath::Lerp(currentLocalOffset, Goal, GetWorld()->GetDeltaSeconds() * CameraMoveSpeed);
+	MainCamera->SetRelativeLocation(newLocalOffset);
 	CameraTimerHandle = GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateUObject(this, &ASPlayer::ProcessCameraMove, Goal));
 }
 

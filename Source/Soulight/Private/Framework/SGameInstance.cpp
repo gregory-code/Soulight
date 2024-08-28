@@ -14,7 +14,17 @@ void USGameInstance::CreateFog()
 	if (mFogClass == nullptr)
 		return;
 
-	FActorSpawnParameters SpawnParams;
+	FActorSpawnParameters spawnParam;
 
-	ASFog* newFog = GetWorld()->SpawnActor<ASFog>(mFogClass, FVector(0, 0, 0), FRotator(0, 0, 0), SpawnParams);
+	/*for (int i = 0; i < FogRows; i++)
+	{
+		for (int x = 0; x < FogColumns; i++)
+		{
+			FVector spawnAdjustments = FVector((FogRows * FogSpacing), (FogColumns * FogSpacing), 0);
+			FVector spawnPos = FogSpawnPosition + spawnAdjustments;
+
+			ASFog* newFog = GetWorld()->SpawnActor<ASFog>(mFogClass, spawnPos, FRotator(0, 0, 0), spawnParam);
+		}
+	}*/
+
 }
