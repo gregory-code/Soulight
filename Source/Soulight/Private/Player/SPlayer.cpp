@@ -23,6 +23,7 @@ ASPlayer::ASPlayer()
 
 	CameraBoom->SetupAttachment(GetRootComponent());
 	MainCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	MainCamera->SetWorldRotation(FRotator(0, -65.0f, 0));
 
 	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->TargetArmLength = 500.0;
@@ -32,8 +33,8 @@ ASPlayer::ASPlayer()
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(1080.0f);
-
 	GetCharacterMovement()->JumpZVelocity = 600.0f;
+
 }
 
 void ASPlayer::Tick(float DeltaTime)
@@ -52,8 +53,8 @@ void ASPlayer::PawnClientRestart()
 {
 	Super::PawnClientRestart();
 
-	ASPlayerController* playerController = GetController<ASPlayerController>();
-	if (playerController)
+	PlayerController = GetController<ASPlayerController>();
+	if (PlayerController)
 	{
 		UEnhancedInputLocalPlayerSubsystem* inputSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
 		inputSystem->ClearAllMappings();
@@ -70,6 +71,13 @@ void ASPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	if (enhancedInputComponent)
 	{
 		enhancedInputComponent->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Move);
+		enhancedInputComponent->BindAction(AimInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Aim);
+		enhancedInputComponent->BindAction(AttackInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Attack);
+		enhancedInputComponent->BindAction(DodgeInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Dodge);
+		enhancedInputComponent->BindAction(SkillInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Skill);
+		enhancedInputComponent->BindAction(SpellInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Spell);
+		enhancedInputComponent->BindAction(HUDInputAction, ETriggerEvent::Triggered, this, &ASPlayer::HUD);
+		enhancedInputComponent->BindAction(SettingsInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Settings);
 	}
 }
 
@@ -83,17 +91,34 @@ void ASPlayer::Move(const FInputActionValue& InputValue)
 
 void ASPlayer::Aim(const FInputActionValue& InputValue)
 {
-
 }
 
 void ASPlayer::Interact()
 {
-
 }
 
 void ASPlayer::Attack()
 {
+}
 
+void ASPlayer::Dodge()
+{
+}
+
+void ASPlayer::Skill()
+{
+}
+
+void ASPlayer::Spell()
+{
+}
+
+void ASPlayer::HUD()
+{
+}
+
+void ASPlayer::Settings()
+{
 }
 
 FVector ASPlayer::GetMoveFwdDir() const

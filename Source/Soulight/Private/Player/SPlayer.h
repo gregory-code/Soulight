@@ -36,9 +36,9 @@ private:
 
 	virtual void PawnClientRestart() override;
 
-	//////////////////////////////
+	///////////////////////////////
 	/*         Inputs           */
-	//////////////////////////////
+	/////////////////////////////
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputMappingContext* InputMapping;
@@ -83,6 +83,21 @@ private:
 
 	UFUNCTION()
 	void Attack();
+
+	UFUNCTION()
+	void Dodge();
+
+	UFUNCTION()
+	void Skill();
+
+	UFUNCTION()
+	void Spell();
+
+	UFUNCTION()
+	void HUD();
+
+	UFUNCTION()
+	void Settings();
 
 	FVector GetMoveFwdDir() const;
 	FVector GetMoveRightDir() const;

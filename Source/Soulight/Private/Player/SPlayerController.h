@@ -14,4 +14,16 @@ class ASPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void OnPossess(APawn* NewPawn) override;
+
+	virtual void AcknowledgePossession(APawn* NewPawn) override;
+
+private:
+	void PostPossessionSetup(APawn* NewPawn);
+
+	void SpawnGameplayUI();
+
+	UPROPERTY()
+	class ASPlayer* PlayerCharacter;
 };
