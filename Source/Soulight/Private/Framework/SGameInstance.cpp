@@ -16,15 +16,15 @@ void USGameInstance::CreateFog()
 
 	FActorSpawnParameters spawnParam;
 
-	/*for (int i = 0; i < FogRows; i++)
+	for (int i = 0; i < FogRows; i++)
 	{
-		for (int x = 0; x < FogColumns; i++)
+		for (int x = 0; x < FogColumns; x++)
 		{
-			FVector spawnAdjustments = FVector((FogRows * FogSpacing), (FogColumns * FogSpacing), 0);
+			FVector spawnAdjustments = FVector((i * FogSpacing), (x * FogSpacing), 0);
 			FVector spawnPos = FogSpawnPosition + spawnAdjustments;
 
 			ASFog* newFog = GetWorld()->SpawnActor<ASFog>(mFogClass, spawnPos, FRotator(0, 0, 0), spawnParam);
 		}
-	}*/
+	}
 
 }
