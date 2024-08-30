@@ -16,6 +16,10 @@ class USGameInstance : public UGameInstance
 	
 public:
 
+	///////////////////////////////
+	/*            Fog           */
+	/////////////////////////////
+
 	UFUNCTION()
 	void CreateFog();
 
@@ -24,6 +28,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Fog")
 	FVector FogSpawnPosition;
+
+	FTimerHandle FogTimerHandle;
+	void ProcessSpawningFog(int rowPos, int columns, const FActorSpawnParameters spawnParam);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Fog")
 	int FogRows;

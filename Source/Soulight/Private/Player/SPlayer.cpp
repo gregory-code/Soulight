@@ -14,6 +14,10 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
+#include "Framework/SFogCleaner.h"
+
+#include "Components/StaticMeshComponent.h"
+
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/SceneComponent.h"
@@ -47,11 +51,21 @@ void ASPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	MainCameraPivot->SetRelativeLocation(GetActorLocation());
+
+	if (FogCleaner)
+	{
+		FogCleaner->SetActorRelativeLocation(GetActorLocation());
+	}
 }
 
 void ASPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+	FActorSpawnParameters spawnParam;
+	FVector spawnPos = GetActorLocation();
+
+	FogCleaner = GetWorld()->SpawnActor<ASFogCleaner>(mFogCleanerClass, spawnPos, FRotator(0, 0, 0), spawnParam);
 }
 
 void ASPlayer::PawnClientRestart()
@@ -183,6 +197,9 @@ FVector ASPlayer::GetMoveRightDir() const
 
 void ASPlayer::HealthUpdated(const float newHealth)
 {
+	//This value of newHeath is nomalized from 0 - 1
+	FogCleaner->SetColliderRadius((newHealth + 0.1f) * 600.0f);
+
 	FVector interpolatedPos = FMath::Lerp(EmptyHealthView->GetRelativeLocation(), FullHealthView->GetRelativeLocation(), newHealth);
 	MoveCameraToLocalOffset(interpolatedPos);
 }

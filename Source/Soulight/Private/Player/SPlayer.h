@@ -127,4 +127,14 @@ private:
 
 	UFUNCTION()
 	void HealthUpdated(const float newHealth);
+
+	///////////////////////////////
+	/*       Fog Comp           */
+	/////////////////////////////
+
+	UPROPERTY(EditAnywhere, Category = "Fog Cleaner")
+	TSubclassOf<class ASFogCleaner> mFogCleanerClass;
+
+	UPROPERTY(visibleAnywhere, Category = "Fog Cleaner")
+	class ASFogCleaner* FogCleaner;
 };

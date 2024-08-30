@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "SFog.generated.h"
+#include "SFogCleaner.generated.h"
 
 UCLASS()
-class ASFog : public AActor
+class ASFogCleaner : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ASFog();
+	ASFogCleaner();
 
 protected:
 	// Called when the game starts or when spawned
@@ -22,12 +22,15 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+	UFUNCTION()
+	void SetColliderRadius(const float newRadius);
 
 private:
 
-	UPROPERTY(VisibleAnywhere, Category = "Particles")
-	class UStaticMeshComponent* VolumeFogComponent;
+	UPROPERTY(VisibleAnywhere, Category = "Cleaner")
+	class USphereComponent* SphereCollider;
 
-	UPROPERTY(VisibleAnywhere, Category = "Particles")
-	class UStaticMesh* VolumeFogMesh;
+	UFUNCTION(BlueprintCallable, Category = "Cleaner")
+	void OnOverlapBegin(AActor* overlappedActor, AActor* otherActor);
 };
