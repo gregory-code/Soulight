@@ -9,6 +9,10 @@
 #include "InputCoreTypes.h"
 #include "GameFramework/PlayerInput.h"
 
+#include "Engine/StaticMesh.h"
+#include "UObject/ConstructorHelpers.h"
+#include "Components/StaticMeshComponent.h"
+
 #include "Animation/AnimInstance.h"
 
 #include "Kismet/KismetSystemLibrary.h"
@@ -17,6 +21,8 @@
 #include "Framework/SFogCleaner.h"
 
 #include "Components/StaticMeshComponent.h"
+
+#include "Components/SceneCaptureComponent2D.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -31,13 +37,33 @@ ASPlayer::ASPlayer()
 
 	FullHealthView->SetupAttachment(GetRootComponent());
 	FullHealthView->SetWorldLocation(FVector(-600, 0, 1000));
-	FullHealthView->SetWorldRotation(FRotator(0, -60.0f, 0));
 
 	EmptyHealthView->SetupAttachment(GetRootComponent());
 	EmptyHealthView->SetWorldLocation(FVector(-300, 0, 400));
-	EmptyHealthView->SetWorldRotation(FRotator(0, -60.0f, 0));
 
 	MainCamera->SetupAttachment(MainCameraPivot, USpringArmComponent::SocketName);
+	MainCamera->SetWorldLocation(FullHealthView->GetRelativeLocation());
+	MainCamera->SetWorldRotation(FRotator(0, -62.0f, 0));
+
+	MiniMapView = CreateDefaultSubobject<USceneComponent>("Mini Map Pos");
+	MiniMapView->SetupAttachment(GetRootComponent());
+	MiniMapView->SetWorldLocation(FVector(0, 0, 1500.0));
+
+	MiniMapCamera = CreateDefaultSubobject<USceneCaptureComponent2D>("Mini Map Camera");
+	MiniMapCamera->SetWorldRotation(FRotator(0, -90.0f, 0));
+
+	MinimapPlayerIcon = CreateDefaultSubobject<UStaticMeshComponent>("Minimap Player Icon");
+	MinimapPlayerIcon->CastShadow = false;
+	MinimapPlayerIcon->SetupAttachment(GetRootComponent());
+	MinimapPlayerIcon->SetAutoActivate(true);
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> PlaneMeshAsset(TEXT("StaticMesh'/Engine/BasicShapes/Plane.Plane'"));
+	if (PlaneMeshAsset.Succeeded())
+	{
+		MinimapPlayerIcon->SetStaticMesh(PlaneMeshAsset.Object);
+		MinimapPlayerIcon->SetWorldLocation(FVector(15, 0, 1000.0));
+		MinimapPlayerIcon->SetWorldRotation(FRotator(0, 0, 90.0f));
+		MinimapPlayerIcon->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
+	}
 
 	bUseControllerRotationYaw = false;
 
@@ -50,6 +76,7 @@ void ASPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	MiniMapCamera->SetRelativeLocation(MiniMapView->GetComponentLocation());
 	MainCameraPivot->SetRelativeLocation(GetActorLocation());
 
 	if (FogCleaner)
@@ -61,6 +88,12 @@ void ASPlayer::Tick(float DeltaTime)
 void ASPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+	HUDInputAction->bTriggerWhenPaused = true;
+	SettingsInputAction->bTriggerWhenPaused = true;
+
+	FInputModeGameOnly input;
+	GetWorld()->GetFirstPlayerController()->SetInputMode(input);
 
 	FActorSpawnParameters spawnParam;
 	FVector spawnPos = GetActorLocation();
@@ -95,8 +128,8 @@ void ASPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		enhancedInputComponent->BindAction(DodgeInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Dodge);
 		enhancedInputComponent->BindAction(SkillInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Skill);
 		enhancedInputComponent->BindAction(SpellInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Spell);
-		enhancedInputComponent->BindAction(HUDInputAction, ETriggerEvent::Triggered, this, &ASPlayer::HUD);
-		enhancedInputComponent->BindAction(SettingsInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Settings);
+		enhancedInputComponent->BindAction(HUDInputAction, ETriggerEvent::Started, this, &ASPlayer::HUD);
+		enhancedInputComponent->BindAction(SettingsInputAction, ETriggerEvent::Started, this, &ASPlayer::Settings);
 	}
 }
 
@@ -157,6 +190,12 @@ void ASPlayer::Spell()
 
 void ASPlayer::HUD()
 {
+	if (PlayerController)
+	{
+		bHUDEnabled = !bHUDEnabled;
+		PlayerController->GameplayUIState(bHUDEnabled);
+
+	}
 }
 
 void ASPlayer::Settings()
@@ -198,7 +237,7 @@ FVector ASPlayer::GetMoveRightDir() const
 void ASPlayer::HealthUpdated(const float newHealth)
 {
 	//This value of newHeath is nomalized from 0 - 1
-	FogCleaner->SetColliderRadius((newHealth + 0.1f) * 600.0f);
+	FogCleaner->SetColliderRadius((newHealth + 0.2f) * 600.0f);
 
 	FVector interpolatedPos = FMath::Lerp(EmptyHealthView->GetRelativeLocation(), FullHealthView->GetRelativeLocation(), newHealth);
 	MoveCameraToLocalOffset(interpolatedPos);

@@ -43,6 +43,15 @@ private:
 	UPROPERTY(visibleAnywhere, Category = "Camera")
 	class UCameraComponent* MainCamera;
 
+	UPROPERTY(visibleAnywhere, Category = "Camera")
+	class USceneCaptureComponent2D* MiniMapCamera;
+
+	UPROPERTY(visibleAnywhere, Category = "Camera")
+	class USceneComponent* MiniMapView;
+
+	UPROPERTY(VisibleAnywhere, Category = "Camera")
+	class UStaticMeshComponent* MinimapPlayerIcon;
+
 	FTimerHandle CameraTimerHandle;
 	float CameraMoveSpeed = 5.0f;
 	void MoveCameraToLocalOffset(const FVector& LocalOffset);
@@ -109,6 +118,7 @@ private:
 
 	UFUNCTION()
 	void HUD();
+	bool bHUDEnabled;
 
 	UFUNCTION()
 	void Settings();

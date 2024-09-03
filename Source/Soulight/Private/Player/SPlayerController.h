@@ -19,6 +19,8 @@ public:
 
 	virtual void AcknowledgePossession(APawn* NewPawn) override;
 
+	void GameplayUIState(bool state);
+
 private:
 	void PostPossessionSetup(APawn* NewPawn);
 
@@ -26,4 +28,10 @@ private:
 
 	UPROPERTY()
 	class ASPlayer* PlayerCharacter;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class USGameplayUI> GameplayUIWidgetClass;
+
+	UPROPERTY()
+	class USGameplayUI* GameplayUI;
 };

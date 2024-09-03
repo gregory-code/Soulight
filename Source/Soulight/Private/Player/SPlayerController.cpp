@@ -3,6 +3,8 @@
 
 #include "Player/SPlayerController.h"
 #include "Player/SPlayer.h"
+#include "Kismet/GameplayStatics.h"
+#include "Widgets/SGameplayUI.h"
 
 void ASPlayerController::OnPossess(APawn* NewPawn)
 {
@@ -20,6 +22,22 @@ void ASPlayerController::AcknowledgePossession(APawn* NewPawn)
 	if (!HasAuthority())
 	{
 		PostPossessionSetup(NewPawn);
+	}
+}
+
+void ASPlayerController::GameplayUIState(bool state)
+{
+	UGameplayStatics::SetGamePaused(GetWorld(), state);
+	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(state);
+	GetWorld()->GetFirstPlayerController()->bEnableClickEvents = state;
+
+	if (state)
+	{
+		GameplayUI->RemoveFromParent();
+	}
+	else
+	{
+		GameplayUI->AddToViewport();
 	}
 }
 
@@ -41,4 +59,14 @@ void ASPlayerController::SpawnGameplayUI()
 	{
 		return;
 	}
+
+	GameplayUI = CreateWidget<USGameplayUI>(this, GameplayUIWidgetClass);
+
+	if (GameplayUI == nullptr)
+	{
+		return;
+	}
+
+	GameplayUI->AddToViewport();
+	//GameplayUI->RemoveFromParent(); //hides it, useful for certain buttons dealing with UI
 }
