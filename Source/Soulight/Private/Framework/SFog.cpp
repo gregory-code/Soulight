@@ -46,3 +46,8 @@ void ASFog::Tick(float DeltaTime)
 
 }
 
+bool ASFog::IsCursedFog()
+{
+	return bCursedFog;
+}
+

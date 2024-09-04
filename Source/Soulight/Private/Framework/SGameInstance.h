@@ -27,10 +27,16 @@ public:
 	TSubclassOf<class ASFog> mFogClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Fog")
+	TSubclassOf<class ASFog> mCursedFogClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Fog")
 	FVector FogSpawnPosition;
 
 	FTimerHandle FogTimerHandle;
-	void ProcessSpawningFog(int rowPos, int columns, const FActorSpawnParameters spawnParam);
+	void ProcessSpawningFog(int rowPos, int columns, TSubclassOf<class ASFog> classToSpawn, const FActorSpawnParameters spawnParam);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Fog")
+	int CursedFogAmount;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Fog")
 	int FogRows;

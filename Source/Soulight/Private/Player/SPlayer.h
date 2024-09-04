@@ -23,6 +23,9 @@ public:
 
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void GetGrabbed();
+
 private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Input")
@@ -63,8 +66,16 @@ private:
 	/*         Inputs           */
 	/////////////////////////////
 
+	bool bInteractOnly;
+	bool bGrabbedInactionable;
+
+	void SetInputMapping(bool bPlayerMapping);
+
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	class UInputMappingContext* InputMapping;
+	class UInputMappingContext* InputPlayerMapping;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputMappingContext* InputInteractionMapping;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* MoveInputAction;

@@ -23,6 +23,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Fog")
+	bool bCursedFog;
+
+	UFUNCTION()
+	bool IsCursedFog();
+
 private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Particles")

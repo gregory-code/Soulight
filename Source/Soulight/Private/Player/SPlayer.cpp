@@ -106,13 +106,17 @@ void ASPlayer::PawnClientRestart()
 	Super::PawnClientRestart();
 
 	PlayerController = GetController<ASPlayerController>();
+	SetInputMapping(true);
+}
+
+void ASPlayer::SetInputMapping(bool bPlayerMapping)
+{
 	if (PlayerController)
 	{
 		UEnhancedInputLocalPlayerSubsystem* inputSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
 		inputSystem->ClearAllMappings();
-		inputSystem->AddMappingContext(InputMapping, 0);
+		inputSystem->AddMappingContext((bPlayerMapping) ? InputPlayerMapping : InputInteractionMapping, 0); // terinary if/else condition
 	}
-
 }
 
 void ASPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -193,13 +197,19 @@ void ASPlayer::HUD()
 	if (PlayerController)
 	{
 		bHUDEnabled = !bHUDEnabled;
-		PlayerController->GameplayUIState(bHUDEnabled);
 
+		PlayerController->GameplayUIState(bHUDEnabled);
 	}
 }
 
 void ASPlayer::Settings()
 {
+
+}
+
+void ASPlayer::GetGrabbed()
+{
+	SetInputMapping(false);
 }
 
 void ASPlayer::MoveCameraToLocalOffset(const FVector& LocalOffset)

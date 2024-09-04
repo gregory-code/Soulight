@@ -43,7 +43,10 @@ void ASFogCleaner::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
 	ASFog* nearbyFog = Cast<ASFog>(otherActor);
 	if (nearbyFog)
 	{
-		nearbyFog->Destroy();
+		if (!nearbyFog->IsCursedFog())
+		{
+			nearbyFog->Destroy();
+		}
 	}
 }
 
