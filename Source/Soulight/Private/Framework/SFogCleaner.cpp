@@ -24,6 +24,7 @@ void ASFogCleaner::BeginPlay()
 	Super::BeginPlay();
 	
 	OnActorBeginOverlap.AddDynamic(this, &ASFogCleaner::OnOverlapBegin);
+	OnActorEndOverlap.AddDynamic(this, &ASFogCleaner::OnOverlapEnd);
 }
 
 // Called every frame
@@ -43,10 +44,17 @@ void ASFogCleaner::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
 	ASFog* nearbyFog = Cast<ASFog>(otherActor);
 	if (nearbyFog)
 	{
-		if (!nearbyFog->IsCursedFog())
-		{
-			nearbyFog->Destroy();
-		}
+		nearbyFog->SetIsCleaning(true);
+		nearbyFog->TryClean();
+	}
+}
+
+void ASFogCleaner::OnOverlapEnd(AActor* overlappedActor, AActor* otherActor)
+{
+	ASFog* nearbyFog = Cast<ASFog>(otherActor);
+	if (nearbyFog)
+	{
+		nearbyFog->SetIsCleaning(false);
 	}
 }
 

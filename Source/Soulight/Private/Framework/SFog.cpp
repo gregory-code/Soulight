@@ -7,6 +7,7 @@
 #include "NiagaraSystem.h"
 #include "Engine/StaticMesh.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Engine/World.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/Actor.h"
 
@@ -29,6 +30,8 @@ ASFog::ASFog()
 	{
 		VolumeFogComponent->SetStaticMesh(SphereMeshAsset.Object);
 	}
+
+	VolumeFogComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
 // Called when the game starts or when spawned
@@ -46,8 +49,34 @@ void ASFog::Tick(float DeltaTime)
 
 }
 
-bool ASFog::IsCursedFog()
+void ASFog::SetIsCleaning(bool state)
 {
-	return bCursedFog;
+	bIsCleaning = state;
 }
 
+void ASFog::TryClean()
+{
+	if (bCursedFog)
+	{
+		// Get grabbed by misthand if this is cursed fog
+	}
+	else
+	{
+		GetWorld()->GetTimerManager().SetTimer(ReappearTimerHandle, this, &ASFog::Reappear, 10, false);
+		VolumeFogComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision); // this is turning off the collision so that it's not cleaning properly
+		VolumeFogComponent->SetVisibility(false);
+	}
+}
+
+void ASFog::Reappear()
+{
+	if (bIsCleaning)
+	{
+		GetWorld()->GetTimerManager().SetTimer(ReappearTimerHandle, this, &ASFog::Reappear, 10, false);
+	}
+	else
+	{
+		//VolumeFogComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		//VolumeFogComponent->SetVisibility(true);
+	}
+}

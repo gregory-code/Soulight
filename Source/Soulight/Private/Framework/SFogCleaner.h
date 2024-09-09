@@ -33,4 +33,7 @@ private:
 
 	UFUNCTION(BlueprintCallable, Category = "Cleaner")
 	void OnOverlapBegin(AActor* overlappedActor, AActor* otherActor);
+
+	UFUNCTION(BlueprintCallable, Category = "Cleaner")
+	void OnOverlapEnd(AActor* overlappedActor, AActor* otherActor);
 };

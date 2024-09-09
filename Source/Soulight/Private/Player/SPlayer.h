@@ -34,6 +34,7 @@ private:
 	///////////////////////////////
 	/*         Camera           */
 	/////////////////////////////
+
 	UPROPERTY(visibleAnywhere, Category = "Camera")
 	class USceneComponent* MainCameraPivot;
 
@@ -158,4 +159,11 @@ private:
 
 	UPROPERTY(visibleAnywhere, Category = "Fog Cleaner")
 	class ASFogCleaner* FogCleaner;
+
+	///////////////////////////////
+	/*         Skills           */
+	/////////////////////////////
+
+	//UPROPERTY(EditDefaultsOnly, Category = "Skills")
+	//class ASSkill* 
 };

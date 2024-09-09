@@ -26,8 +26,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Fog")
 	bool bCursedFog;
 
+	UPROPERTY(VisibleAnywhere, Category = "Fog")
+	bool bIsCleaning;
+
+
 	UFUNCTION()
-	bool IsCursedFog();
+	void SetIsCleaning(bool state);
+
+	UFUNCTION()
+	void TryClean();
 
 private:
 
@@ -36,4 +43,8 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Particles")
 	class UStaticMesh* VolumeFogMesh;
+
+	void Reappear();
+
+	FTimerHandle ReappearTimerHandle;
 };
