@@ -4,7 +4,6 @@
 #include "Framework/SDungeonGenerationComponent.h"
 
 #include "Engine/World.h"
-#include "Engine/StaticMeshActor.h"
 
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
@@ -52,18 +51,18 @@ void USDungeonGenerationComponent::GenerateDungeon(const int32& NumRooms)
 	{
 		for (int j = 0; j < GridSize.Y; j++) 
 		{
-			GenerateRoom(StartingRoom, FVector(i * GridOffset, j * GridOffset, -1500.0f));
+			GenerateRoom(StartingRoom, FVector(i * GridOffset, j * GridOffset, -100));
 		}
 	}
 
 }
 
-void USDungeonGenerationComponent::GenerateRoom(TSubclassOf<AStaticMeshActor> Room, const FVector& Position)
+void USDungeonGenerationComponent::GenerateRoom(TSubclassOf<AActor> Room, const FVector& Position)
 {
 	if (Room == nullptr) return;
 
 	FActorSpawnParameters SpawnParams;
-	AStaticMeshActor* InstancedRoom = GetWorld()->SpawnActor<AStaticMeshActor>(Room, Position, FRotator::ZeroRotator, SpawnParams);
+	AActor* InstancedRoom = GetWorld()->SpawnActor<AActor>(Room, Position, FRotator::ZeroRotator, SpawnParams);
 	if (InstancedRoom) 
 	{
 		// Do Something, prolly check for spawn points and spawn other shit

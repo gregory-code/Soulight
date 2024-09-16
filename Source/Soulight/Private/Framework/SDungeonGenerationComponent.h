@@ -35,12 +35,12 @@ private:
 	FVector2D GridSize;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
-	TSubclassOf<AStaticMeshActor> StartingRoom;
+	TSubclassOf<AActor> StartingRoom;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
-	TSubclassOf<AStaticMeshActor> BossRoom;
+	TSubclassOf<AActor> BossRoom;
 
 	void GenerateDungeon(const int32& NumRooms);
-	void GenerateRoom(TSubclassOf<AStaticMeshActor> Room, const FVector& Position);
+	void GenerateRoom(TSubclassOf<AActor> Room, const FVector& Position);
 
 };
