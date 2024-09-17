@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "SDungeonGenerationComponent.generated.h"
 
+class ASDungeonRoom;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class USDungeonGenerationComponent : public UActorComponent
@@ -35,12 +36,16 @@ private:
 	FVector2D GridSize;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
-	TSubclassOf<AActor> StartingRoom;
+	TSubclassOf<ASDungeonRoom> StartingRoomClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
-	TSubclassOf<AActor> BossRoom;
+	TSubclassOf<ASDungeonRoom> BossRoomClass;
+
+	void DepthFirstSearch(ASDungeonRoom* CurrentRoom, ASDungeonRoom* EndRoom, int32& RoomCount, const int32& NumRooms);
 
 	void GenerateDungeon(const int32& NumRooms);
-	void GenerateRoom(TSubclassOf<AActor> Room, const FVector& Position);
+	ASDungeonRoom* GenerateRoom(TSubclassOf<ASDungeonRoom> RoomClass, const FVector& Position);
 
+	bool IsRoomAlreadyGenerated(const FVector& RoomPosition);
+	void Shuffle(TArray<FVector>& Array);
 };
