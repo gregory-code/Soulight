@@ -41,10 +41,23 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TSubclassOf<ASDungeonRoom> BossRoomClass;
 
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
+	TSubclassOf<AActor> ChestClass;
+	TArray<FTransform> ChestSpawnPoints;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
+	int32 MaxNumChests = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
+	int32 MaxNumRoom = 0;
+
 	void DepthFirstSearch(ASDungeonRoom* CurrentRoom, ASDungeonRoom* EndRoom, int32& RoomCount, const int32& NumRooms);
 
 	void GenerateDungeon(const int32& NumRooms);
 	ASDungeonRoom* GenerateRoom(TSubclassOf<ASDungeonRoom> RoomClass, const FVector& Position);
+
+	void GenerateChests(const int32& NumChests);
 
 	bool IsRoomAlreadyGenerated(const FVector& RoomPosition);
 	void Shuffle(TArray<FVector>& Array);

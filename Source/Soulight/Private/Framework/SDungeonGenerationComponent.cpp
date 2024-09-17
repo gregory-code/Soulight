@@ -29,7 +29,9 @@ void USDungeonGenerationComponent::BeginPlay()
 
 	// ...
 	
-	GenerateDungeon(15);
+	GenerateDungeon(MaxNumRoom);
+
+    GenerateChests(MaxNumChests);
 }
 
 
@@ -99,8 +101,12 @@ void USDungeonGenerationComponent::DepthFirstSearch(ASDungeonRoom* CurrentRoom, 
     }
 }
 
+#pragma region Procedural Generation Functions
+
 void USDungeonGenerationComponent::GenerateDungeon(const int32& NumRooms)
 {
+    if (StartingRoomClass == nullptr || BossRoomClass == nullptr) return;
+
     FVector StartRoomPos = FVector(0, 0, -100.0f);
     ASDungeonRoom* StartRoom = GenerateRoom(StartingRoomClass, StartRoomPos);
 
@@ -134,6 +140,35 @@ ASDungeonRoom* USDungeonGenerationComponent::GenerateRoom(TSubclassOf<ASDungeonR
 	return nullptr;
 }
 
+void USDungeonGenerationComponent::GenerateChests(const int32& NumChests)
+{
+    if (ChestClass == nullptr) return;
+
+    if (NumChests == 0 && ChestSpawnPoints.Num() == 0) return;
+
+    for (int i = NumChests;  i > 0; i--) 
+    {
+        if (ChestSpawnPoints.Num() == 0) return;
+
+        int32 RandomIndex = FMath::RandRange(0, ChestSpawnPoints.Num());
+        
+        FActorSpawnParameters SpawnParams;
+        AActor* InstancedChest = GetWorld()->SpawnActor<AActor>
+            (
+                ChestClass, 
+                ChestSpawnPoints[RandomIndex].GetLocation(),
+                ChestSpawnPoints[RandomIndex].Rotator(),
+                SpawnParams
+            );
+
+        ChestSpawnPoints.RemoveAt(RandomIndex);
+    }
+}
+
+#pragma endregion
+
+#pragma region Helper Functions
+
 bool USDungeonGenerationComponent::IsRoomAlreadyGenerated(const FVector& RoomPosition)
 {
     for (TActorIterator<ASDungeonRoom> It(GetWorld()); It; ++It)
@@ -161,3 +196,4 @@ void USDungeonGenerationComponent::Shuffle(TArray<FVector>& Array)
     }
 }
 
+#pragma endregion

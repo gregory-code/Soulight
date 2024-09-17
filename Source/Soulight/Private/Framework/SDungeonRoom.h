@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/SceneComponent.h"
 #include "SDungeonRoom.generated.h"
 
 UCLASS()
@@ -27,9 +28,14 @@ public:
 	void AddChildRoom(ASDungeonRoom* ChildRoom);
 	void RemoveChildRoom(ASDungeonRoom* RoomToRemove);
 
+	TArray<FTransform> GetChestSpawnPoints();
+
 	FORCEINLINE TArray<ASDungeonRoom*> GetChildrenRoom() { return ChildrenRoom; }
 
 private:
+	UPROPERTY(VisibleAnywhere, Category = "Room Details")
+	TArray<USceneComponent*> ChestSpawnPoint;
+
 	TArray<ASDungeonRoom*> ChildrenRoom;
 
 	ASDungeonRoom* Parent;

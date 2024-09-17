@@ -40,3 +40,16 @@ void ASDungeonRoom::RemoveChildRoom(ASDungeonRoom* RoomToRemove)
 	ChildrenRoom.Remove(RoomToRemove);
 }
 
+TArray<FTransform> ASDungeonRoom::GetChestSpawnPoints()
+{
+	
+	TArray<FTransform> ChestSpawnPositions;
+	/*
+	for (AActor* Chest : ChestSpawnPoint) {
+		ChestSpawnPositions.Add(Chest->GetActorTransform());
+	}
+	*/
+
+	return ChestSpawnPositions;
+}
+
