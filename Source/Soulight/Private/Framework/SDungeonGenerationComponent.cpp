@@ -134,6 +134,10 @@ ASDungeonRoom* USDungeonGenerationComponent::GenerateRoom(TSubclassOf<ASDungeonR
 	{
 		// Do Something, prolly check for spawn points and spawn other shit
 		UE_LOG(LogTemp, Log, TEXT("Room spawned at position: %s"), *Position.ToString());
+
+        if(InstancedRoom->GetChestSpawnPoints().Num() > 0)
+            ChestSpawnPoints.Append(InstancedRoom->GetChestSpawnPoints());
+
 		return InstancedRoom;
 	}
 
@@ -150,7 +154,7 @@ void USDungeonGenerationComponent::GenerateChests(const int32& NumChests)
     {
         if (ChestSpawnPoints.Num() == 0) return;
 
-        int32 RandomIndex = FMath::RandRange(0, ChestSpawnPoints.Num());
+        int32 RandomIndex = FMath::RandRange(0, ChestSpawnPoints.Num() - 1);
         
         FActorSpawnParameters SpawnParams;
         AActor* InstancedChest = GetWorld()->SpawnActor<AActor>

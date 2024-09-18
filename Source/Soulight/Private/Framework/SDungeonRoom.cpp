@@ -42,13 +42,24 @@ void ASDungeonRoom::RemoveChildRoom(ASDungeonRoom* RoomToRemove)
 
 TArray<FTransform> ASDungeonRoom::GetChestSpawnPoints()
 {
-	
 	TArray<FTransform> ChestSpawnPositions;
-	/*
-	for (AActor* Chest : ChestSpawnPoint) {
-		ChestSpawnPositions.Add(Chest->GetActorTransform());
-	}
-	*/
+	
+    USceneComponent* RootComp = GetRootComponent();
+    if (!RootComp)
+    {
+        return ChestSpawnPositions;
+    }
+
+    const int32 NumChildren = RootComp->GetNumChildrenComponents();
+    for (int32 ChildIndex = 0; ChildIndex < NumChildren; ++ChildIndex)
+    {
+        USceneComponent* ChildComponent = RootComp->GetChildComponent(ChildIndex);
+
+        if (ChildComponent && ChildComponent->IsA<USceneComponent>())
+        {
+            ChestSpawnPositions.Add(ChildComponent->GetComponentTransform());
+        }
+    }
 
 	return ChestSpawnPositions;
 }
