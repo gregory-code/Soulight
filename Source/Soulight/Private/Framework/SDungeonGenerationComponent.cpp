@@ -55,20 +55,18 @@ void USDungeonGenerationComponent::DepthFirstSearch(ASDungeonRoom* CurrentRoom, 
     ToEndRoomDirection.Normalize();
 
     // Prioritize directions that move towards the boss room
-    TArray<FVector> PossibleDirections = {
-        FVector(GridOffset, 0, 0),
-        FVector(-GridOffset, 0, 0),
-        FVector(0, GridOffset, 0),
-        FVector(0, -GridOffset, 0)
-    };
+    TArray<FVector> RoomDirections;
+    RoomDirections.Append(TryGetPossibleDirections(CurrentRoom));
+
+    if (RoomDirections.Num() == 0) return;
 
     // Sort directions based on their alignment with the direction to the boss room
-    PossibleDirections.Sort([&](const FVector& A, const FVector& B) {
+    RoomDirections.Sort([&](const FVector& A, const FVector& B) {
         return FVector::DotProduct(A, ToEndRoomDirection) > FVector::DotProduct(B, ToEndRoomDirection);
         });
 
     // Try each direction to generate new rooms
-    for (const FVector& Direction : PossibleDirections)
+    for (const FVector& Direction : RoomDirections)
     {
         FVector NewRoomPosition = CurrentRoom->GetActorLocation() + Direction;
 
@@ -132,7 +130,6 @@ ASDungeonRoom* USDungeonGenerationComponent::GenerateRoom(TSubclassOf<ASDungeonR
 	ASDungeonRoom* InstancedRoom = GetWorld()->SpawnActor<ASDungeonRoom>(RoomClass, Position, FRotator::ZeroRotator, SpawnParams);
 	if (InstancedRoom) 
 	{
-		// Do Something, prolly check for spawn points and spawn other shit
 		UE_LOG(LogTemp, Log, TEXT("Room spawned at position: %s"), *Position.ToString());
 
         if(InstancedRoom->GetChestSpawnPoints().Num() > 0)
@@ -198,6 +195,22 @@ void USDungeonGenerationComponent::Shuffle(TArray<FVector>& Array)
         // Swap the current element with the random one
         Array.Swap(i, RandomIndex);
     }
+}
+
+TArray<FVector> USDungeonGenerationComponent::TryGetPossibleDirections(ASDungeonRoom* CurrentRoom)
+{
+    TArray<FVector> Directions;
+
+    if (CurrentRoom->GetUpOpening())
+        Directions.Add(PossibleDirections[0]);
+    if (CurrentRoom->GetDownOpening())
+        Directions.Add(PossibleDirections[1]);
+    if (CurrentRoom->GetRightOpening())
+        Directions.Add(PossibleDirections[2]);
+    if (CurrentRoom->GetLeftOpening())
+        Directions.Add(PossibleDirections[3]);
+
+    return Directions;
 }
 
 #pragma endregion

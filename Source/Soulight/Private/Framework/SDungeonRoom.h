@@ -32,7 +32,25 @@ public:
 
 	FORCEINLINE TArray<ASDungeonRoom*> GetChildrenRoom() { return ChildrenRoom; }
 
+	FORCEINLINE bool GetUpOpening() { return UpOpening; }
+	FORCEINLINE bool GetDownOpening() { return DownOpening; }
+	FORCEINLINE bool GetRightOpening() { return RightOpening; }
+	FORCEINLINE bool GetLeftOpening() { return LeftOpening; }
+
+
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "Room Details")
+	bool UpOpening;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Room Details")
+	bool DownOpening;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Room Details")
+	bool RightOpening;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Room Details")
+	bool LeftOpening;
+
 	UPROPERTY(VisibleAnywhere, Category = "Room Details")
 	TArray<USceneComponent*> ChestSpawnPoint;
 

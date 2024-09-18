@@ -61,4 +61,14 @@ private:
 
 	bool IsRoomAlreadyGenerated(const FVector& RoomPosition);
 	void Shuffle(TArray<FVector>& Array);
+
+	TArray<FVector> TryGetPossibleDirections(ASDungeonRoom* CurrentRoom);
+
+	TArray<FVector> PossibleDirections = {
+		FVector(0, GridOffset, 0),
+		FVector(0, -GridOffset, 0),
+		FVector(GridOffset, 0, 0),
+		FVector(-GridOffset, 0, 0)
+	};
+
 };
