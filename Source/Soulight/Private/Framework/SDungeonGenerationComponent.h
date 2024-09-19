@@ -41,7 +41,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TSubclassOf<ASDungeonRoom> BossRoomClass;
 
-
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TSubclassOf<AActor> ChestClass;
 	TArray<FTransform> ChestSpawnPoints;
@@ -60,8 +59,7 @@ private:
 	void GenerateChests(const int32& NumChests);
 
 	bool IsRoomAlreadyGenerated(const FVector& RoomPosition);
-	void Shuffle(TArray<FVector>& Array);
-
+	
 	TArray<FVector> TryGetPossibleDirections(ASDungeonRoom* CurrentRoom);
 
 	TArray<FVector> PossibleDirections = {

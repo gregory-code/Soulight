@@ -45,56 +45,45 @@ void USDungeonGenerationComponent::TickComponent(float DeltaTime, ELevelTick Tic
 
 void USDungeonGenerationComponent::DepthFirstSearch(ASDungeonRoom* CurrentRoom, ASDungeonRoom* EndRoom, int32& RoomCount, const int32& NumRooms)
 {
-    // Terminate if we have generated enough rooms or reached the end room
     if (RoomCount >= NumRooms || CurrentRoom == EndRoom) return;
 
     CurrentRoom->bVisited = true;
 
-    // Calculate the direction vector to the boss room
     FVector ToEndRoomDirection = EndRoom->GetActorLocation() - CurrentRoom->GetActorLocation();
     ToEndRoomDirection.Normalize();
 
-    // Prioritize directions that move towards the boss room
     TArray<FVector> RoomDirections;
     RoomDirections.Append(TryGetPossibleDirections(CurrentRoom));
 
     if (RoomDirections.Num() == 0) return;
 
-    // Sort directions based on their alignment with the direction to the boss room
     RoomDirections.Sort([&](const FVector& A, const FVector& B) {
         return FVector::DotProduct(A, ToEndRoomDirection) > FVector::DotProduct(B, ToEndRoomDirection);
         });
 
-    // Try each direction to generate new rooms
     for (const FVector& Direction : RoomDirections)
     {
         FVector NewRoomPosition = CurrentRoom->GetActorLocation() + Direction;
 
-        // Check if the room in the new direction has already been visited or placed (ensure it's within bounds)
         if (!IsRoomAlreadyGenerated(NewRoomPosition))
         {
-            // Generate the room in the new direction
             ASDungeonRoom* NewRoom = GenerateRoom(StartingRoomClass, NewRoomPosition);
 
             if (NewRoom)
             {
                 CurrentRoom->AddChildRoom(NewRoom);
 
-                // Increase room count
                 RoomCount++;
 
-                // If we reached the boss room, stop further generation
                 if (NewRoom == EndRoom)
                 {
-                    return;  // End DFS when boss room is reached
+                    return; 
                 }
 
-                // Continue DFS from this new room
                 DepthFirstSearch(NewRoom, EndRoom, RoomCount, NumRooms);
             }
         }
 
-        // Exit if the desired number of rooms is reached
         if (RoomCount >= NumRooms) break;
     }
 }
@@ -114,7 +103,6 @@ void USDungeonGenerationComponent::GenerateDungeon(const int32& NumRooms)
     int32 RoomCount = 0;
     DepthFirstSearch(StartRoom, BossRoom, RoomCount, NumRooms);
 
-    // If the DFS did not connect the boss room, force a connection
     if (!BossRoom->bVisited)
     {
         StartRoom->AddChildRoom(BossRoom);
@@ -181,20 +169,6 @@ bool USDungeonGenerationComponent::IsRoomAlreadyGenerated(const FVector& RoomPos
     }
 
     return false;
-}
-
-void USDungeonGenerationComponent::Shuffle(TArray<FVector>& Array)
-{
-    // Iterate from the last element to the first
-    int32 LastIndex = Array.Num() - 1;
-    for (int32 i = LastIndex; i > 0; --i)
-    {
-        // Pick a random index from 0 to i
-        int32 RandomIndex = FMath::RandRange(0, i);
-
-        // Swap the current element with the random one
-        Array.Swap(i, RandomIndex);
-    }
 }
 
 TArray<FVector> USDungeonGenerationComponent::TryGetPossibleDirections(ASDungeonRoom* CurrentRoom)

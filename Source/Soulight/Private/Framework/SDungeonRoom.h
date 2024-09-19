@@ -7,6 +7,15 @@
 #include "Components/SceneComponent.h"
 #include "SDungeonRoom.generated.h"
 
+UENUM(BlueprintType)
+enum class ERoomOpeningDirection : uint8
+{
+	Up			UMETA(DisplayName = "Up"),
+	Down		UMETA(DisplayName = "Down"),
+	Left		UMETA(DisplayName = "Left"),
+	Right		UMETA(DisplayName = "Right")
+};
+
 UCLASS()
 class ASDungeonRoom : public AActor
 {
@@ -29,6 +38,9 @@ public:
 	void RemoveChildRoom(ASDungeonRoom* RoomToRemove);
 
 	TArray<FTransform> GetChestSpawnPoints();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Room Settings")
+	TArray<ERoomOpeningDirection> Openings;
 
 	FORCEINLINE TArray<ASDungeonRoom*> GetChildrenRoom() { return ChildrenRoom; }
 
