@@ -21,13 +21,51 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+private:
+	const int32 GridSize = 6;  // 6x6 grid
+	const float TileSize = 1500.0f;
 
+	TArray<TArray<bool>> Grid; // 2D array representing the grid (0 = empty, 1 = start room, 2 = boss room)
+
+	void InitializeGrid();
+	void PlaceStartRoom();
+	void PlaceBossRoom();
+
+	void GenerateRooms(const int32& NumRooms);
+
+	void GenerateHallways(const int32& Index);
+	void SpawnHallways(const FVector& Location, const FRotator& Rotation);
+	
+	void SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, FVector Location);
+
+	void GenerateChests(const int32& NumChests);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
+	TSubclassOf<ASDungeonRoom> StartingRoomClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
+	TArray<TSubclassOf<ASDungeonRoom>> RoomClasses;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
+	TSubclassOf<ASDungeonRoom> BossRoomClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
+	TSubclassOf<ASDungeonRoom> HallwayClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
+	TSubclassOf<AActor> ChestClass;
+	TArray<FTransform> ChestSpawnPoints;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
+	int32 MaxNumChests = 0;
+
+	TArray<ASDungeonRoom*> InstancedRooms;
+
+/*
+* 
 private:
 	///////////////////////////////////////////
-	/*         Dungeon Generation           */
+	//         Dungeon Generation           //
 	/////////////////////////////////////////
 
 	const float GridOffset = 1500.0f;
@@ -62,11 +100,14 @@ private:
 	
 	TArray<FVector> TryGetPossibleDirections(ASDungeonRoom* CurrentRoom);
 
+	void RotateRoomBasedOnDirection(ERoomOpeningDirection Direction, ASDungeonRoom* Room);
+
 	TArray<FVector> PossibleDirections = {
 		FVector(0, GridOffset, 0),
 		FVector(0, -GridOffset, 0),
 		FVector(GridOffset, 0, 0),
 		FVector(-GridOffset, 0, 0)
 	};
+*/
 
 };
