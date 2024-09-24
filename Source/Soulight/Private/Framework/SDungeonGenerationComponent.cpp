@@ -23,7 +23,7 @@ void ASDungeonGenerationComponent::BeginPlay()
 	// ...
 	
     // 3 is hard coded then +2 for start and boss room
-    InstancedRooms.SetNum(5);
+    StartingRooms.SetNum(5);
 
     InitializeGrid();
 
@@ -32,9 +32,9 @@ void ASDungeonGenerationComponent::BeginPlay()
 
     GenerateRooms(3);
 
-    for (int32 i = 0; i < InstancedRooms.Num(); i++)
+    for (int32 i = 0; i < StartingRooms.Num(); i++)
     {
-        ASDungeonRoom* Room = InstancedRooms[i];
+        ASDungeonRoom* Room = StartingRooms[i];
         if (Room)
         {
             // Log the index and the name of the room (or any relevant property)
@@ -46,7 +46,7 @@ void ASDungeonGenerationComponent::BeginPlay()
         }
     }
 
-    for (int i = 0; i < InstancedRooms.Num() - 1; i++)
+    for (int i = 0; i < StartingRooms.Num() - 1; i++)
     {
         GenerateHallways(i);
     }
@@ -73,9 +73,9 @@ void ASDungeonGenerationComponent::PlaceStartRoom()
     Grid[0][0] = true; // Mark start room in the grid
 
     FVector StartRoomLocation = FVector(0 * TileSize, 0 * TileSize, -100.0f);
-    ASDungeonRoom* Room = GetWorld()->SpawnActor<ASDungeonRoom>(StartingRoomClass, StartRoomLocation, FRotator::ZeroRotator);
+    ASDungeonRoom* Room = GetWorld()->SpawnActor<ASDungeonRoom>(StartingRoomClass, StartRoomLocation, FRotator(0, -90.0f,0));
     if (Room) {
-        InstancedRooms[0] = Room;
+        StartingRooms[0] = Room;
     }
 
     UE_LOG(LogTemp, Warning, TEXT("Start Room spawned at (0, 0)"));
@@ -92,7 +92,7 @@ void ASDungeonGenerationComponent::PlaceBossRoom()
 
     FVector BossRoomLocation = FVector(4 * TileSize, 4 * TileSize, -100.0f);
     ASDungeonRoom* Room = GetWorld()->SpawnActor<ASDungeonRoom>(BossRoomClass, BossRoomLocation, FRotator::ZeroRotator);
-    InstancedRooms[InstancedRooms.Num() - 1] = Room;
+    StartingRooms[StartingRooms.Num() - 1] = Room;
 
     UE_LOG(LogTemp, Warning, TEXT("Boss Room placed from (4, 4) to (5, 5)"));
 }
@@ -110,8 +110,8 @@ void ASDungeonGenerationComponent::GenerateRooms(const int32& NumRooms)
             if (Grid[X][Y] == false)
             {
                 FVector RoomLocation = FVector(X * TileSize, Y * TileSize, -100.0f);
-                ASDungeonRoom* SpawnedRoom = GetWorld()->SpawnActor<ASDungeonRoom>(StartingRoomClass, RoomLocation, FRotator::ZeroRotator);
-                InstancedRooms[RoomCount + 1] = SpawnedRoom;
+                ASDungeonRoom* SpawnedRoom = GetWorld()->SpawnActor<ASDungeonRoom>(GetRandomRoom(), RoomLocation, FRotator::ZeroRotator);
+                StartingRooms[RoomCount + 1] = SpawnedRoom;
 
                 UE_LOG(LogTemp, Warning, TEXT("Cell Assigned: %d, %d"), X, Y);
 
@@ -124,15 +124,15 @@ void ASDungeonGenerationComponent::GenerateRooms(const int32& NumRooms)
 
 void ASDungeonGenerationComponent::GenerateHallways(const int32& Index)
 {
-    if (InstancedRooms.Num() < 2) return;
+    if (StartingRooms.Num() < 2) return;
 
-    int32 CurrentRoomX = InstancedRooms[Index]->GetActorLocation().X / TileSize;
-    int32 CurrentRoomY = InstancedRooms[Index]->GetActorLocation().Y / TileSize;
+    int32 CurrentRoomX = StartingRooms[Index]->GetActorLocation().X / TileSize;
+    int32 CurrentRoomY = StartingRooms[Index]->GetActorLocation().Y / TileSize;
 
-    if (Index + 1 >= InstancedRooms.Num()) return;
+    if (Index + 1 >= StartingRooms.Num()) return;
 
-    int32 TargetRoomX = InstancedRooms[Index + 1]->GetActorLocation().X / TileSize;
-    int32 TargetRoomY = InstancedRooms[Index + 1]->GetActorLocation().Y / TileSize;
+    int32 TargetRoomX = StartingRooms[Index + 1]->GetActorLocation().X / TileSize;
+    int32 TargetRoomY = StartingRooms[Index + 1]->GetActorLocation().Y / TileSize;
 
     int32 RoomDistanceX = FMath::Abs(CurrentRoomX - TargetRoomX);
     int32 RoomDistanceY = FMath::Abs(CurrentRoomY - TargetRoomY);
@@ -144,8 +144,13 @@ void ASDungeonGenerationComponent::GenerateHallways(const int32& Index)
 
     if (RoomDistanceX == 1 && RoomDistanceY == 1)
     {
-        FVector CornerLocation = FVector(TargetRoomX * TileSize, TargetRoomY * TileSize, -100.0f);
-        SpawnRoom(StartingRoomClass, CornerLocation);
+        FVector CornerLocation = FVector(TargetRoomX * TileSize, CurrentRoomY * TileSize, -100.0f);
+
+        if (!Grid[TargetRoomX][CurrentRoomY])
+        {
+            SpawnRoom(GetRandomRoom(), CornerLocation);
+        }
+
         return;
     }
 
@@ -154,13 +159,22 @@ void ASDungeonGenerationComponent::GenerateHallways(const int32& Index)
         for (int32 i = 0; i < RoomDistanceX; i++)
         {
             FVector HallwayLocation = FVector((CurrentRoomX + i * XDirection) * TileSize, CurrentRoomY * TileSize, -100.0f);
-            SpawnHallways(HallwayLocation, FRotator(0.0f, 0.0f, 0.0f));
+
+            if (!Grid[CurrentRoomX + i * XDirection][CurrentRoomY])
+            {
+                SpawnHallways(HallwayLocation, FRotator(0.0f, 0.0f, 0.0f));
+                Grid[CurrentRoomX + i * XDirection][CurrentRoomY] = true;
+            }
         }
 
         if (RoomDistanceY > 0)
         {
             FVector CornerLocation = FVector(TargetRoomX * TileSize, CurrentRoomY * TileSize, -100.0f);
-            SpawnRoom(StartingRoomClass, CornerLocation); 
+            if (!Grid[TargetRoomX][CurrentRoomY])
+            {
+                SpawnRoom(GetRandomRoom(), CornerLocation);
+                Grid[TargetRoomX][CurrentRoomY] = true;
+            }
         }
     }
 
@@ -169,17 +183,30 @@ void ASDungeonGenerationComponent::GenerateHallways(const int32& Index)
         for (int32 i = 0; i < RoomDistanceY; i++)
         {
             FVector HallwayLocation = FVector(TargetRoomX * TileSize, (CurrentRoomY + i * YDirection) * TileSize, -100.0f);
-            SpawnHallways(HallwayLocation, FRotator(0.0f, 90.0f, 0.0f));
+
+            if (!Grid[TargetRoomX][CurrentRoomY + i * YDirection])
+            {
+                SpawnHallways(HallwayLocation, FRotator(0.0f, 90.0f, 0.0f));
+                Grid[TargetRoomX][CurrentRoomY + i * YDirection] = true;
+            }
         }
 
         if (RoomDistanceX > 0)
         {
             FVector CornerLocation = FVector(TargetRoomX * TileSize, TargetRoomY * TileSize, -100.0f);
-            SpawnRoom(StartingRoomClass, CornerLocation);
+            if (!Grid[TargetRoomX][TargetRoomY])
+            {
+                SpawnRoom(GetRandomRoom(), CornerLocation);
+                Grid[TargetRoomX][TargetRoomY] = true;
+            }
         }
     }
 
-    SpawnRoom(StartingRoomClass, FVector(TargetRoomX * TileSize, TargetRoomY * TileSize, -100.0f));
+    if (!Grid[TargetRoomX][TargetRoomY])
+    {
+        SpawnRoom(GetRandomRoom(), FVector(TargetRoomX * TileSize, TargetRoomY * TileSize, -100.0f));
+        Grid[TargetRoomX][TargetRoomY] = true;
+    }
 }
 
 void ASDungeonGenerationComponent::SpawnHallways(const FVector& Location, const FRotator& Rotation)
@@ -222,19 +249,24 @@ void ASDungeonGenerationComponent::SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClas
             return;
         }
 
+        // Check if grid cell is already taken
         if (Grid[X][Y])
         {
             UE_LOG(LogTemp, Warning, TEXT("Cell Taken: %d, %d"), X, Y);
             return;
         }
 
+        // Mark grid as occupied before spawning
+        Grid[X][Y] = true;
+
+        // Now spawn the room
         ASDungeonRoom* Room = GetWorld()->SpawnActor<ASDungeonRoom>(RoomClass, Location, FRotator::ZeroRotator);
         if (Room)
         {
-            Grid[X][Y] = true;
-
             if (Room->GetChestSpawnPoints().Num() > 0)
+            {
                 ChestSpawnPoints.Append(Room->GetChestSpawnPoints());
+            }
         }
     }
 }
@@ -262,4 +294,13 @@ void ASDungeonGenerationComponent::GenerateChests(const int32& NumChests)
 
         ChestSpawnPoints.RemoveAt(RandomIndex);
     }
-} 
+}
+
+TSubclassOf<ASDungeonRoom> ASDungeonGenerationComponent::GetRandomRoom()
+{
+    if (RoomClasses.Num() == 0) return nullptr;
+
+    int32 RandomNumber = FMath::RandRange(0, RoomClasses.Num() - 1);
+
+    return RoomClasses[RandomNumber];
+}

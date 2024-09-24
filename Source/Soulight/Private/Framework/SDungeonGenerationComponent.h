@@ -40,6 +40,8 @@ private:
 
 	void GenerateChests(const int32& NumChests);
 
+	TSubclassOf<ASDungeonRoom> GetRandomRoom();
+
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TSubclassOf<ASDungeonRoom> StartingRoomClass;
 
@@ -59,6 +61,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	int32 MaxNumChests = 0;
 
-	TArray<ASDungeonRoom*> InstancedRooms;
+	TArray<ASDungeonRoom*> StartingRooms;
+
+	TArray<ASDungeonRoom*> AllRooms;
 
 };
