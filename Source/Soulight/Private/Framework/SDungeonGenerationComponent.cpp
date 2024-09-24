@@ -32,26 +32,24 @@ void ASDungeonGenerationComponent::BeginPlay()
 
     GenerateRooms(3);
 
-    for (int32 i = 0; i < StartingRooms.Num(); i++)
-    {
-        ASDungeonRoom* Room = StartingRooms[i];
-        if (Room)
-        {
-            // Log the index and the name of the room (or any relevant property)
-            UE_LOG(LogTemp, Warning, TEXT("Room %d: %s"), i, *Room->GetName());
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Room %d: nullptr"), i);
-        }
-    }
+    // Add Start Room Before Hallway Generation
+    AllRooms.Add(StartingRooms[0]);
 
+    // Start Hallway Generation
     for (int i = 0; i < StartingRooms.Num() - 1; i++)
     {
         GenerateHallways(i);
     }
 
+    // Add Boss Room As Last Room in Generation
+    AllRooms.Add(StartingRooms[StartingRooms.Num() - 1]);
+
     GenerateChests(MaxNumChests);
+
+    for (int i = 1; i < AllRooms.Num() - 1; i++) 
+    {
+        FindBestRoomTilePiece(AllRooms[i]);
+    }
 }
 
 void ASDungeonGenerationComponent::InitializeGrid()
@@ -249,24 +247,33 @@ void ASDungeonGenerationComponent::SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClas
             return;
         }
 
-        // Check if grid cell is already taken
         if (Grid[X][Y])
         {
             UE_LOG(LogTemp, Warning, TEXT("Cell Taken: %d, %d"), X, Y);
             return;
         }
 
-        // Mark grid as occupied before spawning
         Grid[X][Y] = true;
 
-        // Now spawn the room
         ASDungeonRoom* Room = GetWorld()->SpawnActor<ASDungeonRoom>(RoomClass, Location, FRotator::ZeroRotator);
-        if (Room)
+        if (Room == nullptr) return;
+
+        // Add Neighbors
+        if (AllRooms.Num() > 0)
         {
-            if (Room->GetChestSpawnPoints().Num() > 0)
-            {
-                ChestSpawnPoints.Append(Room->GetChestSpawnPoints());
+            ASDungeonRoom* PreviousRoom = AllRooms[AllRooms.Num() - 1];
+            if (PreviousRoom) {
+                PreviousRoom->AddChildRoom(Room);
+                Room->AddChildRoom(PreviousRoom);
             }
+        }
+
+        // Then Add Room to List
+        AllRooms.Add(Room);
+
+        if (Room->GetChestSpawnPoints().Num() > 0)
+        {
+            ChestSpawnPoints.Append(Room->GetChestSpawnPoints());
         }
     }
 }
@@ -294,6 +301,112 @@ void ASDungeonGenerationComponent::GenerateChests(const int32& NumChests)
 
         ChestSpawnPoints.RemoveAt(RandomIndex);
     }
+}
+
+void ASDungeonGenerationComponent::FindBestRoomTilePiece(ASDungeonRoom* TargetRoom)
+{
+    if (TargetRoom == nullptr) return;
+
+    int32 RoomOpenings = TargetRoom->Openings.Num();
+    int32 RoomNeighbors = TargetRoom->GetChildrenRoom().Num();
+
+    if (RoomOpenings <= RoomNeighbors) 
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Not Enough Opening For Neighbors, Generate New Tile Piece!"));
+
+        // TODO: v This Right Here v
+        GenerateNewTilePiece(TargetRoom);
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("Finding Rotation!"));
+
+    FQuat TargetRot = FQuat::MakeFromRotator(CalculateRoomRotation(TargetRoom));
+    TargetRoom->SetActorRotation(TargetRot);
+}
+
+ASDungeonRoom* ASDungeonGenerationComponent::GenerateNewTilePiece(ASDungeonRoom* TargetRoom)
+{
+    return nullptr;
+}
+
+FRotator ASDungeonGenerationComponent::CalculateRoomRotation(ASDungeonRoom* TargetRoom)
+{
+    FRotator Target = FRotator::ZeroRotator;
+
+    if (TargetRoom->GetChildrenRoom().Num() == 0 || TargetRoom->Openings.Num() == 0)
+        return Target;
+
+    if (TargetRoom->Openings.Num() == 4)
+        return Target;
+
+    // Example logic to determine rotation based on openings
+    if (TargetRoom->Openings.Contains(ERoomOpeningDirection::Up))
+    {
+        Target.Yaw = 0.0f;
+    }
+    else if (TargetRoom->Openings.Contains(ERoomOpeningDirection::Down))
+    {
+        Target.Yaw = 180.0f;
+    }
+    else if (TargetRoom->Openings.Contains(ERoomOpeningDirection::Left))
+    {
+        Target.Yaw = -90.0f;
+    }
+    else if (TargetRoom->Openings.Contains(ERoomOpeningDirection::Right))
+    {
+        Target.Yaw = 90.0f;
+    }
+
+    // Adjust rotation based on neighbors
+    int32 UpNeighbors = 0;
+    int32 DownNeighbors = 0;
+    int32 LeftNeighbors = 0;
+    int32 RightNeighbors = 0;
+
+    for (ASDungeonRoom* Neighbor : TargetRoom->GetChildrenRoom())
+    {
+        if (Neighbor)
+        {
+            FVector NeighborPos = Neighbor->GetActorLocation();
+
+            if (NeighborPos.X > TargetRoom->GetActorLocation().X)
+            {
+                RightNeighbors++;
+            }
+            else if (NeighborPos.X < TargetRoom->GetActorLocation().X)
+            {
+                LeftNeighbors++;
+            }
+            else if (NeighborPos.Y > TargetRoom->GetActorLocation().Y)
+            {
+                UpNeighbors++;
+            }
+            else if (NeighborPos.Y < TargetRoom->GetActorLocation().Y)
+            {
+                DownNeighbors++;
+            }
+        }
+    }
+
+    // Determine the dominant direction based on neighbors
+    if (UpNeighbors >= DownNeighbors && UpNeighbors >= LeftNeighbors && UpNeighbors >= RightNeighbors)
+    {
+        Target.Yaw = 0.0f;
+    }
+    else if (DownNeighbors >= UpNeighbors && DownNeighbors >= LeftNeighbors && DownNeighbors >= RightNeighbors)
+    {
+        Target.Yaw = 180.0f;
+    }
+    else if (LeftNeighbors >= UpNeighbors && LeftNeighbors >= DownNeighbors && LeftNeighbors >= RightNeighbors)
+    {
+        Target.Yaw = -90.0f;
+    }
+    else if (RightNeighbors >= UpNeighbors && RightNeighbors >= DownNeighbors && RightNeighbors >= LeftNeighbors)
+    {
+        Target.Yaw = 90.0f;
+    }
+
+    return Target;
 }
 
 TSubclassOf<ASDungeonRoom> ASDungeonGenerationComponent::GetRandomRoom()

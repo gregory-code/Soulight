@@ -40,6 +40,12 @@ private:
 
 	void GenerateChests(const int32& NumChests);
 
+	void FindBestRoomTilePiece(ASDungeonRoom* TargetRoom);
+
+	ASDungeonRoom* GenerateNewTilePiece(ASDungeonRoom* TargetRoom);
+
+	FRotator CalculateRoomRotation(ASDungeonRoom* TargetRoom);
+
 	TSubclassOf<ASDungeonRoom> GetRandomRoom();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
