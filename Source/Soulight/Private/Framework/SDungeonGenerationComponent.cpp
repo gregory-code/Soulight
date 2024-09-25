@@ -160,7 +160,7 @@ void ASDungeonGenerationComponent::GenerateHallways(const int32& Index)
 
             if (!Grid[CurrentRoomX + i * XDirection][CurrentRoomY])
             {
-                SpawnHallways(HallwayLocation, FRotator(0.0f, 0.0f, 0.0f));
+                SpawnHallways(Index, HallwayLocation, FRotator(0.0f, 0.0f, 0.0f));
                 Grid[CurrentRoomX + i * XDirection][CurrentRoomY] = true;
             }
         }
@@ -184,7 +184,7 @@ void ASDungeonGenerationComponent::GenerateHallways(const int32& Index)
 
             if (!Grid[TargetRoomX][CurrentRoomY + i * YDirection])
             {
-                SpawnHallways(HallwayLocation, FRotator(0.0f, 90.0f, 0.0f));
+                SpawnHallways(Index, HallwayLocation, FRotator(0.0f, 90.0f, 0.0f));
                 Grid[TargetRoomX][CurrentRoomY + i * YDirection] = true;
             }
         }
@@ -207,7 +207,7 @@ void ASDungeonGenerationComponent::GenerateHallways(const int32& Index)
     }
 }
 
-void ASDungeonGenerationComponent::SpawnHallways(const FVector& Location, const FRotator& Rotation)
+void ASDungeonGenerationComponent::SpawnHallways(const int32& Index, const FVector& Location, const FRotator& Rotation)
 {
     if (HallwayClass)
     {
@@ -229,6 +229,23 @@ void ASDungeonGenerationComponent::SpawnHallways(const FVector& Location, const 
         ASDungeonRoom* Hallway = GetWorld()->SpawnActor<ASDungeonRoom>(HallwayClass, Location, Rotation);
         if (Hallway)
         {
+            // If (HallwayList.Num() == 0) I am the start of the list, add me to it
+            // Also add hallway to the starting room neighbor
+
+            if (HallwayList.Num() == 0)
+            {
+
+            }
+
+            // also check if list is not 0
+            if (Index != 0)
+            {
+                // Add Hallway to hallways list or something
+                // Add Hallway Neighbors
+            }
+
+            // If end piece, Add self to room neighbors
+
             Grid[X][Y] = true;
         }
     }
@@ -322,6 +339,13 @@ void ASDungeonGenerationComponent::FindBestRoomTilePiece(ASDungeonRoom* TargetRo
 
     FQuat TargetRot = FQuat::MakeFromRotator(CalculateRoomRotation(TargetRoom));
     TargetRoom->SetActorRotation(TargetRot);
+}
+
+bool ASDungeonGenerationComponent::IsCornerRoom(ASDungeonRoom* TargetRoom)
+{
+
+
+    return false;
 }
 
 ASDungeonRoom* ASDungeonGenerationComponent::GenerateNewTilePiece(ASDungeonRoom* TargetRoom)

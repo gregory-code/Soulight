@@ -34,13 +34,14 @@ private:
 	void GenerateRooms(const int32& NumRooms);
 
 	void GenerateHallways(const int32& Index);
-	void SpawnHallways(const FVector& Location, const FRotator& Rotation);
+	void SpawnHallways(const int32& Index, const FVector& Location, const FRotator& Rotation);
 	
 	void SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, FVector Location);
 
 	void GenerateChests(const int32& NumChests);
 
 	void FindBestRoomTilePiece(ASDungeonRoom* TargetRoom);
+	bool IsCornerRoom(ASDungeonRoom* TargetRoom);
 
 	ASDungeonRoom* GenerateNewTilePiece(ASDungeonRoom* TargetRoom);
 
@@ -68,6 +69,8 @@ private:
 	int32 MaxNumChests = 0;
 
 	TArray<ASDungeonRoom*> StartingRooms;
+
+	TArray<ASDungeonRoom*> HallwayList;
 
 	TArray<ASDungeonRoom*> AllRooms;
 
