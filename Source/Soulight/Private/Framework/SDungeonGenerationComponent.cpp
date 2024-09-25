@@ -160,7 +160,7 @@ void ASDungeonGenerationComponent::GenerateHallways(const int32& Index)
 
             if (!Grid[CurrentRoomX + i * XDirection][CurrentRoomY])
             {
-                SpawnHallways(Index, HallwayLocation, FRotator(0.0f, 0.0f, 0.0f));
+                SpawnHallways(Index, i, HallwayLocation, FRotator(0.0f, 0.0f, 0.0f));
                 Grid[CurrentRoomX + i * XDirection][CurrentRoomY] = true;
             }
         }
@@ -184,8 +184,8 @@ void ASDungeonGenerationComponent::GenerateHallways(const int32& Index)
 
             if (!Grid[TargetRoomX][CurrentRoomY + i * YDirection])
             {
-                SpawnHallways(Index, HallwayLocation, FRotator(0.0f, 90.0f, 0.0f));
-                Grid[TargetRoomX][CurrentRoomY + i * YDirection] = true;
+                SpawnHallways(Index, i, HallwayLocation, FRotator(0.0f, 90.0f, 0.0f)); // Probably here
+                Grid[TargetRoomX][CurrentRoomY + i * YDirection] = true; // Crash error on this line
             }
         }
 
@@ -207,47 +207,53 @@ void ASDungeonGenerationComponent::GenerateHallways(const int32& Index)
     }
 }
 
-void ASDungeonGenerationComponent::SpawnHallways(const int32& Index, const FVector& Location, const FRotator& Rotation)
+void ASDungeonGenerationComponent::SpawnHallways(const int32& RoomIndex, const int32& HallwayIndex, const FVector& Location, const FRotator& Rotation)
 {
-    if (HallwayClass)
+    if (HallwayClass == nullptr) return;
+
+    int32 X = Location.X / TileSize;
+    int32 Y = Location.Y / TileSize;
+
+    if (X < 0 || Y < 0 || X >= GridSize || Y >= GridSize)
     {
-        int32 X = Location.X / TileSize;
-        int32 Y = Location.Y / TileSize;
+        UE_LOG(LogTemp, Warning, TEXT("Out Of Range!"));
+        return;
+    }
 
-        if (X < 0 || Y < 0 || X >= GridSize || Y >= GridSize)
+    if (Grid[X][Y])
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Cell Taken: %d, %d"), X, Y);
+        return;
+    }
+
+    ASDungeonRoom* Hallway = GetWorld()->SpawnActor<ASDungeonRoom>(HallwayClass, Location, Rotation);
+    if (Hallway)
+    {
+        // If (HallwayList.Num() == 0) I am the start of the list, add me to it
+        // Also add hallway to the starting room neighbor
+
+        if (HallwayList.Num() == 0)
         {
-            UE_LOG(LogTemp, Warning, TEXT("Out Of Range!"));
-            return;
+            HallwayList.Add(Hallway);
         }
 
-        if (Grid[X][Y])
+        // also check if list is not 0
+        if (HallwayIndex != 0)
         {
-            UE_LOG(LogTemp, Warning, TEXT("Cell Taken: %d, %d"), X, Y);
-            return;
+            Hallway->AddChildRoom(HallwayList[HallwayIndex - 1]);
+            HallwayList[HallwayIndex - 1]->AddChildRoom(Hallway);
+        }
+        else // Hallway Index <= 0
+        {
+            int32 Index = RoomIndex <= 0 ? 0 : RoomIndex;
+
+            Hallway->AddChildRoom(AllRooms[Index]);
+            AllRooms[Index]->AddChildRoom(Hallway);
         }
 
-        ASDungeonRoom* Hallway = GetWorld()->SpawnActor<ASDungeonRoom>(HallwayClass, Location, Rotation);
-        if (Hallway)
-        {
-            // If (HallwayList.Num() == 0) I am the start of the list, add me to it
-            // Also add hallway to the starting room neighbor
+        // If end piece, Add self to room neighbors
 
-            if (HallwayList.Num() == 0)
-            {
-
-            }
-
-            // also check if list is not 0
-            if (Index != 0)
-            {
-                // Add Hallway to hallways list or something
-                // Add Hallway Neighbors
-            }
-
-            // If end piece, Add self to room neighbors
-
-            Grid[X][Y] = true;
-        }
+        Grid[X][Y] = true;
     }
 }
 

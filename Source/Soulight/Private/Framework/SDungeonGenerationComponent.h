@@ -34,7 +34,7 @@ private:
 	void GenerateRooms(const int32& NumRooms);
 
 	void GenerateHallways(const int32& Index);
-	void SpawnHallways(const int32& Index, const FVector& Location, const FRotator& Rotation);
+	void SpawnHallways(const int32& RoomIndex, const int32& HallwayIndex, const FVector& Location, const FRotator& Rotation);
 	
 	void SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, FVector Location);
 
