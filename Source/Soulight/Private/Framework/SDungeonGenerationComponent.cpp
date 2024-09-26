@@ -160,6 +160,8 @@ void ASDungeonGenerationComponent::GenerateHallways(const int32& Index)
 
             if (!Grid[CurrentRoomX + i * XDirection][CurrentRoomY])
             {
+                //UE_LOG(LogTemp, Warning, TEXT("Room Index: %d, Hallway Index: %d"), Index, i);
+
                 SpawnHallways(Index, i, HallwayLocation, FRotator(0.0f, 0.0f, 0.0f));
                 Grid[CurrentRoomX + i * XDirection][CurrentRoomY] = true;
             }
@@ -184,6 +186,8 @@ void ASDungeonGenerationComponent::GenerateHallways(const int32& Index)
 
             if (!Grid[TargetRoomX][CurrentRoomY + i * YDirection])
             {
+                //UE_LOG(LogTemp, Warning, TEXT("Room Index: %d, Hallway Index: %d"), Index, i);
+
                 SpawnHallways(Index, i, HallwayLocation, FRotator(0.0f, 90.0f, 0.0f)); // Probably here
                 Grid[TargetRoomX][CurrentRoomY + i * YDirection] = true; // Crash error on this line
             }
@@ -232,25 +236,24 @@ void ASDungeonGenerationComponent::SpawnHallways(const int32& RoomIndex, const i
         // If (HallwayList.Num() == 0) I am the start of the list, add me to it
         // Also add hallway to the starting room neighbor
 
-        if (HallwayList.Num() == 0)
-        {
-            HallwayList.Add(Hallway);
-        }
+        HallwayList.Add(Hallway);
+
+        UE_LOG(LogTemp, Warning, TEXT("Hallway Index: %d, List Num: %d"), HallwayIndex - 1, HallwayList.Num());
 
         // also check if list is not 0
-        if (HallwayIndex != 0)
+        if (HallwayIndex > 0 && HallwayIndex < HallwayList.Num())
         {
             Hallway->AddChildRoom(HallwayList[HallwayIndex - 1]);
             HallwayList[HallwayIndex - 1]->AddChildRoom(Hallway);
         }
-        else // Hallway Index <= 0
+        else if (HallwayIndex == 0) // Hallway Index <= 0
         {
             int32 Index = RoomIndex <= 0 ? 0 : RoomIndex;
 
             Hallway->AddChildRoom(AllRooms[Index]);
             AllRooms[Index]->AddChildRoom(Hallway);
         }
-
+        
         // If end piece, Add self to room neighbors
 
         Grid[X][Y] = true;
