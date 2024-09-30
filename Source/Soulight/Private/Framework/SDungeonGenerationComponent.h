@@ -33,6 +33,8 @@ private:
 
 	void GenerateRooms(const int32& NumRooms);
 
+	void WalkTowardsEnd(const int32& Steps);
+
 	void GenerateHallways(const int32& Index);
 	void SpawnHallway(const int32& RoomIndex, const int32& HallwayIndex, const FVector& Location, const FRotator& Rotation);
 	

@@ -10,6 +10,7 @@
 
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // IDEAS
 // I could make the generation mark grid cells for rooms, then make hallways connecting them, after I then place the proper rooms
@@ -34,6 +35,10 @@ void ASDungeonGenerationComponent::BeginPlay()
 
     PlaceStartRoom();
     PlaceBossRoom();
+
+    WalkTowardsEnd(15);
+
+    return;
 
     GenerateRooms(3);
 
@@ -64,13 +69,140 @@ void ASDungeonGenerationComponent::BeginPlay()
     */
 }
 
+void ASDungeonGenerationComponent::WalkTowardsEnd(const int32& Steps)
+{
+    FVector2D CurrentPosition(0, 0);
+    int32 StepsTaken = 0;
+
+    // Ensure the start room exists
+    if (!RoomGrid.Contains(CurrentPosition) || RoomGrid[CurrentPosition] == nullptr)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Start room is not valid at (0, 0)"));
+        return; // Exit if start room is invalid
+    }
+
+    FVector2D BossRoomPosition(5, 5);
+
+    // Randomly walk towards the end
+    while (StepsTaken < Steps)
+    {
+        FVector2D MoveDirection(0, 0);
+        bool bMoved = false;
+
+        // Randomly decide to move right or up, favoring towards the boss room
+        if (CurrentPosition.X < BossRoomPosition.X && FMath::RandBool())
+        {
+            MoveDirection = FVector2D(1, 0); // Move right
+        }
+        else if (CurrentPosition.Y < BossRoomPosition.Y)
+        {
+            MoveDirection = FVector2D(0, 1); // Move up
+        }
+        else if (CurrentPosition.Y < BossRoomPosition.Y && FMath::RandBool())
+        {
+            MoveDirection = FVector2D(0, 1); // Move up if not moving right
+        }
+        else if (CurrentPosition.X < BossRoomPosition.X)
+        {
+            MoveDirection = FVector2D(1, 0); // Move right if not moving up
+        }
+
+        FVector2D NextPosition = CurrentPosition + MoveDirection;
+
+        // Ensure the next position is not the boss room
+        if (NextPosition != BossRoomPosition)
+        {
+            // Check if the next position exists in the RoomGrid
+            if (RoomGrid.Contains(NextPosition))
+            {
+                ASDungeonRoom* CurrentRoom = RoomGrid[NextPosition];
+
+                // If the room doesn't exist, attempt to spawn a new room
+                if (CurrentRoom == nullptr)
+                {
+                    FVector SpawnLocation = FVector(NextPosition.X * TileSize, NextPosition.Y * TileSize, -100.0f);
+                    CurrentRoom = SpawnRoom(RoomMap[4], SpawnLocation);
+
+                    if (CurrentRoom != nullptr)
+                    {
+                        RoomGrid[NextPosition] = CurrentRoom; // Store the new room in the grid
+                        CurrentPosition = NextPosition; // Move to the new room
+                        StepsTaken++;
+                        bMoved = true;
+                    }
+                }
+                else
+                {
+                    // Move to the existing room
+                    CurrentPosition = NextPosition;
+                    StepsTaken++;
+                    bMoved = true;
+                }
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("NextPosition (%d, %d) not found in RoomGrid!"), NextPosition.X, NextPosition.Y);
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Avoiding generation in boss room at (%d, %d)"), NextPosition.X, NextPosition.Y);
+        }
+
+        // If no movement was made in this iteration, exit the loop to prevent infinite looping
+        if (!bMoved)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("No valid moves available, breaking out of loop."));
+            break; // Exit the loop if no valid movement was made
+        }
+    }
+
+    // Ensure we complete the connection to the boss room
+    while (CurrentPosition != BossRoomPosition)
+    {
+        // Move horizontally towards the boss room
+        if (CurrentPosition.X < BossRoomPosition.X)
+        {
+            CurrentPosition.X++; // Move right
+        }
+        // Move vertically towards the boss room
+        else if (CurrentPosition.Y < BossRoomPosition.Y)
+        {
+            CurrentPosition.Y++; // Move up
+        }
+
+        // Check if the current position is the boss room
+        if (CurrentPosition != BossRoomPosition)
+        {
+            ASDungeonRoom* CurrentRoom = RoomGrid.FindRef(CurrentPosition);
+            if (CurrentRoom == nullptr)
+            {
+                FVector SpawnLocation = FVector(CurrentPosition.X * TileSize, CurrentPosition.Y * TileSize, -100.0f);
+                CurrentRoom = SpawnRoom(RoomMap[4], SpawnLocation);
+                if (CurrentRoom != nullptr)
+                {
+                    RoomGrid[CurrentPosition] = CurrentRoom; // Store the new room in the grid
+                }
+            }
+        }
+    }
+
+    // Optionally mark the boss room if needed
+    ASDungeonRoom* BossRoom = RoomGrid.FindRef(BossRoomPosition);
+    if (BossRoom)
+    {
+        // Mark as the end room or perform any additional logic for the boss room
+        // BossRoom->SetAsEnd();
+    }
+}
+
 void ASDungeonGenerationComponent::InitializeGrid()
 {
     RoomGrid.Reserve(GridSize * GridSize);
 
-    for (int32 i = 0; i < GridSize; i++)
+    for (int32 i = 0; i <= GridSize; i++)
     {
-        for (int32 j = 0; j < GridSize; j++)
+        for (int32 j = 0; j <= GridSize; j++)
         {
             FVector2D Cell = FVector2D(i, j);
 
@@ -99,14 +231,14 @@ void ASDungeonGenerationComponent::PlaceBossRoom()
 {
     if (BossRoomClass == nullptr) return;
 
-    FVector BossRoomLocation = FVector(4 * TileSize, 4 * TileSize, -600.0f);
+    FVector BossRoomLocation = FVector(4 * TileSize, 5 * TileSize, -600.0f);
     ASDungeonRoom* Room = GetWorld()->SpawnActor<ASDungeonRoom>(BossRoomClass, BossRoomLocation, FRotator::ZeroRotator);
     if (Room == nullptr) return;
 
-    RoomGrid[FVector2D(4, 4)] = Room;
-    RoomGrid[FVector2D(4, 5)] = Room;
-    RoomGrid[FVector2D(5, 4)] = Room;
     RoomGrid[FVector2D(5, 5)] = Room;
+    RoomGrid[FVector2D(5, 6)] = Room;
+    RoomGrid[FVector2D(6, 5)] = Room;
+    RoomGrid[FVector2D(6, 6)] = Room;
 
     StartingRooms[StartingRooms.Num() - 1] = Room;
 
