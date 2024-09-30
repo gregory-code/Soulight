@@ -25,7 +25,7 @@ private:
 	const int32 GridSize = 6; 
 	const float TileSize = 1500.0f;
 
-	TArray<TArray<bool>> Grid;
+	TMap<FVector2D, ASDungeonRoom*> RoomGrid;
 
 	void InitializeGrid();
 	void PlaceStartRoom();
@@ -34,13 +34,13 @@ private:
 	void GenerateRooms(const int32& NumRooms);
 
 	void GenerateHallways(const int32& Index);
-	void SpawnHallways(const int32& RoomIndex, const int32& HallwayIndex, const FVector& Location, const FRotator& Rotation);
+	void SpawnHallway(const int32& RoomIndex, const int32& HallwayIndex, const FVector& Location, const FRotator& Rotation);
 	
-	void SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, FVector Location);
+	ASDungeonRoom* SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, FVector Location);
 
 	void GenerateChests(const int32& NumChests);
 
-	void AddRoomNeighbors();
+	void AddRoomNeighbors(ASDungeonRoom* TargetRoom);
 
 	void FindBestRoomTilePiece(ASDungeonRoom* TargetRoom);
 	bool IsCornerRoom(ASDungeonRoom* TargetRoom);
