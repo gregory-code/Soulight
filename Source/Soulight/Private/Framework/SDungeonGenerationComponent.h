@@ -40,10 +40,12 @@ private:
 
 	void GenerateChests(const int32& NumChests);
 
+	void AddRoomNeighbors();
+
 	void FindBestRoomTilePiece(ASDungeonRoom* TargetRoom);
 	bool IsCornerRoom(ASDungeonRoom* TargetRoom);
 
-	ASDungeonRoom* GenerateNewTilePiece(ASDungeonRoom* TargetRoom);
+	ASDungeonRoom* GenerateNewTilePiece(ASDungeonRoom* TargetRoom, const int32& RoomNeighbors);
 
 	FRotator CalculateRoomRotation(ASDungeonRoom* TargetRoom);
 
@@ -53,6 +55,9 @@ private:
 	TSubclassOf<ASDungeonRoom> StartingRoomClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
+	TSubclassOf<ASDungeonRoom> CornerRoomClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TArray<TSubclassOf<ASDungeonRoom>> RoomClasses;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
@@ -60,6 +65,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TSubclassOf<ASDungeonRoom> HallwayClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
+	TMap<int32, TSubclassOf<ASDungeonRoom>> RoomMap;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TSubclassOf<AActor> ChestClass;
