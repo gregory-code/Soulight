@@ -69,6 +69,8 @@ void ASDungeonGenerationComponent::BeginPlay()
     */
 }
 
+#pragma region Initial Setup Walking Functions
+
 void ASDungeonGenerationComponent::WalkTowardsEnd(const int32& Steps)
 {
     FVector2D CurrentPosition(0, 0);
@@ -195,6 +197,8 @@ void ASDungeonGenerationComponent::WalkTowardsEnd(const int32& Steps)
         // BossRoom->SetAsEnd();
     }
 }
+
+#pragma endregion
 
 void ASDungeonGenerationComponent::InitializeGrid()
 {

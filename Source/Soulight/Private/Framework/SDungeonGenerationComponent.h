@@ -22,6 +22,13 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	void WalkTowardsEnd(const int32& Steps);
+	//bool IsRoomValid(const FVector2D& Position);
+	//FVector2D GetRandomMoveDirection(const FVector2D& CurrentPos, const FVector2D& BossRoomPosition);
+	//bool TryMove(FVector2D& CurrentPosition, const FVector2D& MoveDirection);
+	//void ConnectToBossRoom(FVector2D& CurrentPosition, const FVector2D& BossRoomPosition);
+
+private:
 	const int32 GridSize = 6; 
 	const float TileSize = 1500.0f;
 
@@ -32,8 +39,6 @@ private:
 	void PlaceBossRoom();
 
 	void GenerateRooms(const int32& NumRooms);
-
-	void WalkTowardsEnd(const int32& Steps);
 
 	void GenerateHallways(const int32& Index);
 	void SpawnHallway(const int32& RoomIndex, const int32& HallwayIndex, const FVector& Location, const FRotator& Rotation);
