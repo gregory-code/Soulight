@@ -164,6 +164,12 @@ private:
 	/*         Skills           */
 	/////////////////////////////
 
-	//UPROPERTY(EditDefaultsOnly, Category = "Skills")
-	//class ASSkill* 
+	UPROPERTY(EditDefaultsOnly, Category = "Ability")
+	class USAbilityDataBase* CurrentSkill;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ability")
+	class USAbilityDataBase* CurrentSpell;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ability")
+	class USAbilityDataBase* CurrentPassive;
 };

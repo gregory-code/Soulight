@@ -3,9 +3,17 @@
 
 #include "Player/Abilities/SAbilityDataBase.h"
 
-void USAbilityDataBase::LevelUp()
+bool USAbilityDataBase::LevelUp()
 {
+	level++;
 
+	if (level >= 3)
+	{
+		level = 0;
+		return false;
+	}
+
+	return true;
 }
 
 FString USAbilityDataBase::GetAbilityName()
@@ -15,10 +23,10 @@ FString USAbilityDataBase::GetAbilityName()
 
 float USAbilityDataBase::GetBaseDamage()
 {
-	return 0.0f;
+	return BaseDamage[level];
 }
 
 float USAbilityDataBase::GetAnimSpeedMultiplier()
 {
-	return 0.0f;
+	return AnimSpeedMultiplier[level];
 }

@@ -24,7 +24,7 @@ class USAbilityDataBase : public UPrimaryDataAsset
 
 public:
 	UFUNCTION()
-	void LevelUp();
+	bool LevelUp();
 
 	UFUNCTION()
 	FString GetAbilityName();
@@ -37,14 +37,20 @@ public:
 	
 private:
 
-	int level;
+	int level = 0;
 
 	UPROPERTY(EditDefaultsOnly)
 	EType AbilityType;
 
 
-	UPROPERTY(EditDefaultsOnly, Category = "Values")
+	UPROPERTY(EditDefaultsOnly, Category = "Style")
 	FString AbilityName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Style")
+	UTexture* AbilityIcon;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Style")
+	FString AbilityDescription;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Anim")
 	class UAnimMontage* AbilityAnimation;
@@ -54,5 +60,4 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Values")
 	TArray<float> AnimSpeedMultiplier = { 0,0,0 };
-
 };
