@@ -24,7 +24,10 @@ protected:
 private:
 	void WalkTowardsEnd(const int32& Steps);
 	//bool IsRoomValid(const FVector2D& Position);
-	//FVector2D GetRandomMoveDirection(const FVector2D& CurrentPos, const FVector2D& BossRoomPosition);
+	FVector2D GetRandomMoveDirection(const FVector2D& CurrentPos, const FVector2D& BossRoomPosition, float& OutRotation);
+	TArray<ASDungeonRoom*> WalkingGeneration(const int32& Steps, const FVector2D& StartingPosition, const FVector2D& EndPosition);
+	void ReplaceRoomsWithHallways(TArray<ASDungeonRoom*>& Rooms, const int32& NumRoomsToKeep);
+
 	//bool TryMove(FVector2D& CurrentPosition, const FVector2D& MoveDirection);
 	//void ConnectToBossRoom(FVector2D& CurrentPosition, const FVector2D& BossRoomPosition);
 
@@ -43,7 +46,8 @@ private:
 	void GenerateHallways(const int32& Index);
 	void SpawnHallway(const int32& RoomIndex, const int32& HallwayIndex, const FVector& Location, const FRotator& Rotation);
 	
-	ASDungeonRoom* SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, FVector Location);
+	ASDungeonRoom* SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, const FVector& Location);
+	ASDungeonRoom* SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, const FVector& Location, const FRotator& Rotation);
 
 	void GenerateChests(const int32& NumChests);
 
@@ -65,13 +69,13 @@ private:
 	TSubclassOf<ASDungeonRoom> CornerRoomClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
-	TArray<TSubclassOf<ASDungeonRoom>> RoomClasses;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TSubclassOf<ASDungeonRoom> BossRoomClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TSubclassOf<ASDungeonRoom> HallwayClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
+	TSubclassOf<ASDungeonRoom> CornerHallwayClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TMap<int32, TSubclassOf<ASDungeonRoom>> RoomMap;
