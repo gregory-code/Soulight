@@ -36,8 +36,25 @@ void ASDungeonGenerationComponent::BeginPlay()
     PlaceStartRoom();
     PlaceBossRoom();
 
+    FVector2D StartRoomPosition(0, 0);
+    FVector2D BossRoomPosition(5, 5);
+
     int32 Steps = 15;
-    WalkTowardsEnd(Steps);
+
+    TArray<ASDungeonRoom*> IntermediatePath;
+    IntermediatePath.Append(WalkTowardsEnd(StartRoomPosition, BossRoomPosition, Steps));
+
+    GenerateBranches(IntermediatePath);
+
+    FRotator TargetRotation(0, -90.0f, 0);
+
+    FQuat TargetQuat;
+    TargetQuat = FQuat::MakeFromRotator(TargetRotation);
+    StartingRooms[0]->SetActorRotation(TargetQuat);
+
+    TargetRotation = FRotator(0, 0, 0);
+    TargetQuat = FQuat::MakeFromRotator(TargetRotation);
+    StartingRooms[1]->SetActorRotation(TargetQuat);
 
     return;
 
@@ -49,24 +66,20 @@ void ASDungeonGenerationComponent::BeginPlay()
 #pragma region Initial Setup Walking Functions
 //
 
-void ASDungeonGenerationComponent::WalkTowardsEnd(const int32& Steps)
+TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkTowardsEnd(const FVector2D StartPosition, const FVector2D EndPosition, const int32& Steps)
 {
-    FVector2D StartRoomPosition(0, 0);
-    FVector2D BossRoomPosition(5, 5);
-
     TArray<ASDungeonRoom*> GeneratedRooms;
 
-    GeneratedRooms.Append(WalkingGeneration(Steps, StartRoomPosition, BossRoomPosition));
+    GeneratedRooms.Append(WalkingGeneration(Steps, StartPosition, EndPosition));
 
     ReplaceRoomsWithHallways(GeneratedRooms, 2);
 
-    GeneratedRooms.Insert(StartingRooms[0], 0);
-    GeneratedRooms.Add(StartingRooms[1]);
+    //GeneratedRooms.Insert(StartingRooms[0], 0);
+    //GeneratedRooms.Add(StartingRooms[1]);
 
     // TODO: Logic to handle corners, T Rooms, and Intersections. Then Start Generating Dead Ends and Branches.
     // ALSO TODO: Figure out why the ReplaceRoomsWithHallways() function isn't working as intended.\
 
-    // Check for corners in Generated Rooms
     CheckForCorners(GeneratedRooms);
 
     for (ASDungeonRoom* Room : GeneratedRooms)
@@ -80,20 +93,26 @@ void ASDungeonGenerationComponent::WalkTowardsEnd(const int32& Steps)
         Room->SetActorRotation(TargetQuat);
     }
 
-    FRotator TargetRotation(0, -90.0f, 0);
-
-    FQuat TargetQuat;
-    TargetQuat = FQuat::MakeFromRotator(TargetRotation);
-    StartingRooms[0]->SetActorRotation(TargetQuat);
-
-    TargetRotation = FRotator(0, 0, 0);
-    TargetQuat = FQuat::MakeFromRotator(TargetRotation);
-    StartingRooms[1]->SetActorRotation(TargetQuat);
+    return GeneratedRooms;
 }
 
 FVector2D ASDungeonGenerationComponent::GetRandomMoveDirection(const FVector2D& CurrentPos, const FVector2D& EndRoomPosition, float& OutRotation)
 {
+    /*
+
     // Randomly decide to move right or up, favoring towards the boss room
+    TArray<FVector2D> NeighborCells;
+    NeighborCells.Append(GetPossibleNeighborCells(CurrentPos));
+
+    if (NeighborCells.Num() <= 0)
+    {
+        OutRotation = 0.0f;
+        return FVector2D(0, 0);
+    }
+    */
+
+    // Get Random Direction IF I don't have that anything in that direction
+
     if (CurrentPos.X < EndRoomPosition.X && FMath::RandBool())
     {
         OutRotation = 0.0f;
@@ -183,15 +202,28 @@ void ASDungeonGenerationComponent::ReplaceRoomsWithHallways(TArray<ASDungeonRoom
     TempRooms.Append(Rooms);
 
     TSet<int32> UniqueIndexes;
-    while (UniqueIndexes.Num() < NumRoomsToKeep)
-    {
-        int32 RandomIndex = FMath::RandRange(0, TempRooms.Num() - 1);
-        UniqueIndexes.Add(RandomIndex);
+    TArray<int32> RoomsToKeep;
 
-        TempRooms.RemoveAt(RandomIndex);
+    if (Rooms.Num() > 2) 
+    {
+        while (UniqueIndexes.Num() < NumRoomsToKeep)
+        {
+            if (TempRooms.Num() - 1 <= 0) 
+            {
+                UniqueIndexes.Add(0);
+                break;
+            }
+
+            int32 RandomIndex = FMath::RandRange(0, TempRooms.Num() - 1);
+            UniqueIndexes.Add(RandomIndex);
+
+            TempRooms.RemoveAt(RandomIndex);
+        }
     }
 
-    TArray<int32> RoomsToKeep = UniqueIndexes.Array();
+    RoomsToKeep.Append(UniqueIndexes.Array());
+
+    if (RoomsToKeep.Num() <= 0) return;
 
     for (int32 i = 0; i < Rooms.Num(); i++)
     {
@@ -311,6 +343,52 @@ TArray<FVector2D> ASDungeonGenerationComponent::GetPossibleNeighborCells(const F
     }
 
     return NeighborCells;
+}
+
+void ASDungeonGenerationComponent::GenerateBranches(TArray<ASDungeonRoom*> Path)
+{
+    if (Path.Num() <= 0) return;
+
+    for (ASDungeonRoom* Room : Path) 
+    {
+        if (IsValid(Room) && Room->GetIsHallway() == false) 
+        {            
+            const FVector2D* Cell = RoomGrid.FindKey(Room);
+            if (Cell == nullptr) return;
+
+            int32 GridLimit = GridSize;
+            int32 X = 0;
+            int32 Y = 0;
+
+            X = FMath::RandRange(0, GridLimit);
+            if (X > 4)
+                GridLimit = 4;
+            Y = FMath::RandRange(0, GridLimit);
+
+            FVector2D RandomCell(X, Y);
+
+            int32 Attempts = 0;
+            while (IsValid(RoomGrid[RandomCell]))
+            {
+                X = FMath::RandRange(0, GridLimit);
+
+                if (X > 4)
+                    GridLimit = 4;
+
+                Y = FMath::RandRange(0, GridLimit);
+
+                RandomCell = FVector2D(X, Y);
+                Attempts++;
+
+                if (Attempts > 3) {
+                    break;
+                }
+            }
+
+            WalkTowardsEnd(*Cell, FVector2D(X, Y), 5);
+        }
+    }
+
 }
 
 //
