@@ -5,6 +5,8 @@
 #include "Player/SPlayer.h"
 #include "Kismet/GameplayStatics.h"
 #include "Widgets/SGameplayUI.h"
+#include "Widgets/SPlayerHUDUI.h"
+#include "Widgets/SStatsUI.h"
 
 void ASPlayerController::OnPossess(APawn* NewPawn)
 {
@@ -34,10 +36,12 @@ void ASPlayerController::GameplayUIState(bool state)
 	if (state)
 	{
 		GameplayUI->RemoveFromParent();
+		PlayerHUDUI->AddToViewport();
 	}
 	else
 	{
 		GameplayUI->AddToViewport();
+		PlayerHUDUI->RemoveFromParent();
 	}
 }
 
@@ -67,6 +71,14 @@ void ASPlayerController::SpawnGameplayUI()
 		return;
 	}
 
+	PlayerHUDUI = CreateWidget<USPlayerHUDUI>(this, PlayerHUDUIWidgetClass);
+
+	if (PlayerHUDUI == nullptr)
+	{
+		return;
+	}
+
 	GameplayUI->AddToViewport();
-	//GameplayUI->RemoveFromParent(); //hides it, useful for certain buttons dealing with UI
+	PlayerHUDUI->AddToViewport();
+	PlayerHUDUI->RemoveFromParent(); //hides it, useful for certain buttons dealing with UI
 }

@@ -34,4 +34,10 @@ private:
 
 	UPROPERTY()
 	class USGameplayUI* GameplayUI;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class USPlayerHUDUI> PlayerHUDUIWidgetClass;
+
+	UPROPERTY()
+	class USPlayerHUDUI* PlayerHUDUI;
 };
