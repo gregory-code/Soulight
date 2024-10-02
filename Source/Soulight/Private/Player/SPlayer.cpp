@@ -132,6 +132,7 @@ void ASPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		enhancedInputComponent->BindAction(DodgeInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Dodge);
 		enhancedInputComponent->BindAction(SkillInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Skill);
 		enhancedInputComponent->BindAction(SpellInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Spell);
+		enhancedInputComponent->BindAction(InteractInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Interact);
 		enhancedInputComponent->BindAction(HUDInputAction, ETriggerEvent::Started, this, &ASPlayer::HUD);
 		enhancedInputComponent->BindAction(SettingsInputAction, ETriggerEvent::Started, this, &ASPlayer::Settings);
 	}
@@ -168,7 +169,8 @@ void ASPlayer::Aim(const FInputActionValue& InputValue)
 
 void ASPlayer::Interact()
 {
-
+	UE_LOG(LogTemp, Warning, TEXT("Interacted"));
+	OnInteract.Broadcast(true);
 }
 
 void ASPlayer::Attack()
@@ -190,6 +192,7 @@ void ASPlayer::Skill()
 
 void ASPlayer::Spell()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Spell"));
 }
 
 void ASPlayer::HUD()

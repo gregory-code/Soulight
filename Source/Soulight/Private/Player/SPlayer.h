@@ -6,6 +6,7 @@
 #include "Framework/SCharacterBase.h"
 #include "SPlayer.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteract, bool, bActionable);
 /**
  * 
  */
@@ -18,6 +19,8 @@ public:
 	ASPlayer();
 
 public:
+	FOnInteract OnInteract;
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 

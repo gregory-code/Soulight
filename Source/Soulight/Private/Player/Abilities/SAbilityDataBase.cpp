@@ -16,9 +16,24 @@ bool USAbilityDataBase::LevelUp()
 	return true;
 }
 
+EType USAbilityDataBase::GetType()
+{
+	return AbilityType;
+}
+
 FString USAbilityDataBase::GetAbilityName()
 {
 	return AbilityName;
+}
+
+FString USAbilityDataBase::GetAbilityDescription()
+{
+	return AbilityDescription;
+}
+
+UTexture* USAbilityDataBase::GetAbilityIcon()
+{
+	return AbilityIcon;
 }
 
 float USAbilityDataBase::GetBaseDamage()

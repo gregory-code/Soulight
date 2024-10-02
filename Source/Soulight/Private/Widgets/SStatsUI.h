@@ -20,6 +20,11 @@ public:
 	
 private:
 
+	void ApplyAbilityToType(class USAbilityDataBase* newSkill, class UTextBlock* targetName, class UTextBlock* targetDescription, class UImage* targetImage);
+
+	UPROPERTY(EditDefaultsOnly)
+	FName IconMaterialParameterName{ "Icon" };
+
 	UPROPERTY(EditDefaultsOnly)
 	UTexture* EmptyStarTexture;
 

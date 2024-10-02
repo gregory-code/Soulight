@@ -27,7 +27,16 @@ public:
 	bool LevelUp();
 
 	UFUNCTION()
+	EType GetType();
+
+	UFUNCTION()
 	FString GetAbilityName();
+
+	UFUNCTION()
+	FString GetAbilityDescription();
+
+	UFUNCTION()
+	UTexture* GetAbilityIcon();
 
 	UFUNCTION()
 	float GetBaseDamage();
