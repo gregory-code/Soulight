@@ -42,11 +42,17 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Room Settings")
 	TArray<ERoomOpeningDirection> Openings;
 
+	UFUNCTION()
+	bool GetIsHallway();
+
 	FORCEINLINE TArray<ASDungeonRoom*> GetChildrenRoom() { return ChildrenRoom; }
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Room Details")
 	TArray<USceneComponent*> ChestSpawnPoint;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Room Details")
+	bool bIsHallway = false;
 
 	TArray<ASDungeonRoom*> ChildrenRoom;
 

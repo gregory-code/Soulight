@@ -24,7 +24,15 @@ protected:
 private:
 	void WalkTowardsEnd(const int32& Steps);
 	//bool IsRoomValid(const FVector2D& Position);
-	//FVector2D GetRandomMoveDirection(const FVector2D& CurrentPos, const FVector2D& BossRoomPosition);
+	FVector2D GetRandomMoveDirection(const FVector2D& CurrentPos, const FVector2D& BossRoomPosition, float& OutRotation);
+	TArray<ASDungeonRoom*> WalkingGeneration(const int32& Steps, const FVector2D& StartingPosition, const FVector2D& EndPosition);
+	void ReplaceRoomsWithHallways(TArray<ASDungeonRoom*>& Rooms, const int32& NumRoomsToKeep);
+
+	void CheckForCorners(TArray<ASDungeonRoom*>& Rooms);
+	void CheckIsIndexCorner(TArray<ASDungeonRoom*>& Rooms, const int32& Index);
+
+	TArray<FVector2D> GetPossibleNeighborCells(const FVector2D& CurrentCell);
+
 	//bool TryMove(FVector2D& CurrentPosition, const FVector2D& MoveDirection);
 	//void ConnectToBossRoom(FVector2D& CurrentPosition, const FVector2D& BossRoomPosition);
 
@@ -38,25 +46,16 @@ private:
 	void PlaceStartRoom();
 	void PlaceBossRoom();
 
-	void GenerateRooms(const int32& NumRooms);
-
-	void GenerateHallways(const int32& Index);
 	void SpawnHallway(const int32& RoomIndex, const int32& HallwayIndex, const FVector& Location, const FRotator& Rotation);
 	
-	ASDungeonRoom* SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, FVector Location);
+	ASDungeonRoom* SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, const FVector& Location);
+	ASDungeonRoom* SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, const FVector& Location, const FRotator& Rotation);
 
 	void GenerateChests(const int32& NumChests);
 
-	void AddRoomNeighbors(ASDungeonRoom* TargetRoom);
-
-	void FindBestRoomTilePiece(ASDungeonRoom* TargetRoom);
 	bool IsCornerRoom(ASDungeonRoom* TargetRoom);
 
-	ASDungeonRoom* GenerateNewTilePiece(ASDungeonRoom* TargetRoom, const int32& RoomNeighbors);
-
 	FRotator CalculateRoomRotation(ASDungeonRoom* TargetRoom);
-
-	TSubclassOf<ASDungeonRoom> GetRandomRoom();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TSubclassOf<ASDungeonRoom> StartingRoomClass;
@@ -65,13 +64,13 @@ private:
 	TSubclassOf<ASDungeonRoom> CornerRoomClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
-	TArray<TSubclassOf<ASDungeonRoom>> RoomClasses;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TSubclassOf<ASDungeonRoom> BossRoomClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TSubclassOf<ASDungeonRoom> HallwayClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
+	TSubclassOf<ASDungeonRoom> CornerHallwayClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TMap<int32, TSubclassOf<ASDungeonRoom>> RoomMap;

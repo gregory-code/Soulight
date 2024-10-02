@@ -36,83 +36,110 @@ void ASDungeonGenerationComponent::BeginPlay()
     PlaceStartRoom();
     PlaceBossRoom();
 
-    WalkTowardsEnd(15);
+    int32 Steps = 15;
+    WalkTowardsEnd(Steps);
 
     return;
 
-    GenerateRooms(3);
-
-    // Add Boss Room As Last Room in Generation
-    AllRooms.Add(StartingRooms[StartingRooms.Num() - 1]);
-
-    // Add Start Room Before Hallway Generation
-    
-    // Start Hallway Generation
-    for (int i = 0; i < StartingRooms.Num() - 1; i++)
-    {
-        GenerateHallways(i);
-    }
-
-    
     GenerateChests(MaxNumChests);
-
-    for (int i = 1; i < AllRooms.Num() - 1; i++) 
-    {
-        FindBestRoomTilePiece(AllRooms[i]);
-    }
-
-    /*
-    for (int i = 0; i < AllRooms.Num() - 1; i++)
-    {
-        AddRoomNeighbors(AllRooms[i]);
-    }
-    */
 }
 
+//
+
 #pragma region Initial Setup Walking Functions
+//
 
 void ASDungeonGenerationComponent::WalkTowardsEnd(const int32& Steps)
 {
-    FVector2D CurrentPosition(0, 0);
-    int32 StepsTaken = 0;
+    FVector2D StartRoomPosition(0, 0);
+    FVector2D BossRoomPosition(5, 5);
 
-    // Ensure the start room exists
-    if (!RoomGrid.Contains(CurrentPosition) || RoomGrid[CurrentPosition] == nullptr)
+    TArray<ASDungeonRoom*> GeneratedRooms;
+
+    GeneratedRooms.Append(WalkingGeneration(Steps, StartRoomPosition, BossRoomPosition));
+
+    ReplaceRoomsWithHallways(GeneratedRooms, 2);
+
+    GeneratedRooms.Insert(StartingRooms[0], 0);
+    GeneratedRooms.Add(StartingRooms[1]);
+
+    // TODO: Logic to handle corners, T Rooms, and Intersections. Then Start Generating Dead Ends and Branches.
+    // ALSO TODO: Figure out why the ReplaceRoomsWithHallways() function isn't working as intended.\
+
+    // Check for corners in Generated Rooms
+    CheckForCorners(GeneratedRooms);
+
+    for (ASDungeonRoom* Room : GeneratedRooms)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Start room is not valid at (0, 0)"));
-        return; // Exit if start room is invalid
+        if (Room == nullptr) continue;
+
+        FRotator TargetRotation = CalculateRoomRotation(Room);
+
+        FQuat TargetQuat;
+        TargetQuat = FQuat::MakeFromRotator(TargetRotation);
+        Room->SetActorRotation(TargetQuat);
     }
 
-    FVector2D BossRoomPosition(5, 5);
+    FRotator TargetRotation(0, -90.0f, 0);
+
+    FQuat TargetQuat;
+    TargetQuat = FQuat::MakeFromRotator(TargetRotation);
+    StartingRooms[0]->SetActorRotation(TargetQuat);
+
+    TargetRotation = FRotator(0, 0, 0);
+    TargetQuat = FQuat::MakeFromRotator(TargetRotation);
+    StartingRooms[1]->SetActorRotation(TargetQuat);
+}
+
+FVector2D ASDungeonGenerationComponent::GetRandomMoveDirection(const FVector2D& CurrentPos, const FVector2D& EndRoomPosition, float& OutRotation)
+{
+    // Randomly decide to move right or up, favoring towards the boss room
+    if (CurrentPos.X < EndRoomPosition.X && FMath::RandBool())
+    {
+        OutRotation = 0.0f;
+        return FVector2D(1, 0); // Move right
+    }
+    else if (CurrentPos.Y < EndRoomPosition.Y)
+    {
+        OutRotation = 90.0f;
+        return FVector2D(0, 1); // Move up
+    }
+    else if (CurrentPos.Y < EndRoomPosition.Y && FMath::RandBool())
+    {
+        OutRotation = 90.0f;
+        return FVector2D(0, 1); // Move up if not moving right
+    }
+    else if (CurrentPos.X < EndRoomPosition.X)
+    {
+        OutRotation = 0.0f;
+        return FVector2D(1, 0); // Move right if not moving up
+    }
+
+    OutRotation = 90.0f;
+    return FVector2D(0, 0);
+}
+
+TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkingGeneration(const int32& Steps, const FVector2D& StartingPosition, const FVector2D& EndRoomPosition)
+{
+    TArray<ASDungeonRoom*> GeneratedRooms;
+
+    FVector2D CurrentPosition = StartingPosition;
+    int32 StepsTaken = 0;
 
     // Randomly walk towards the end
     while (StepsTaken < Steps)
     {
         FVector2D MoveDirection(0, 0);
+        float Rotation = 90.0f;
+
         bool bMoved = false;
 
-        // Randomly decide to move right or up, favoring towards the boss room
-        if (CurrentPosition.X < BossRoomPosition.X && FMath::RandBool())
-        {
-            MoveDirection = FVector2D(1, 0); // Move right
-        }
-        else if (CurrentPosition.Y < BossRoomPosition.Y)
-        {
-            MoveDirection = FVector2D(0, 1); // Move up
-        }
-        else if (CurrentPosition.Y < BossRoomPosition.Y && FMath::RandBool())
-        {
-            MoveDirection = FVector2D(0, 1); // Move up if not moving right
-        }
-        else if (CurrentPosition.X < BossRoomPosition.X)
-        {
-            MoveDirection = FVector2D(1, 0); // Move right if not moving up
-        }
+        MoveDirection = GetRandomMoveDirection(CurrentPosition, EndRoomPosition, Rotation);
 
         FVector2D NextPosition = CurrentPosition + MoveDirection;
 
         // Ensure the next position is not the boss room
-        if (NextPosition != BossRoomPosition)
+        if (NextPosition != EndRoomPosition)
         {
             // Check if the next position exists in the RoomGrid
             if (RoomGrid.Contains(NextPosition))
@@ -123,32 +150,18 @@ void ASDungeonGenerationComponent::WalkTowardsEnd(const int32& Steps)
                 if (CurrentRoom == nullptr)
                 {
                     FVector SpawnLocation = FVector(NextPosition.X * TileSize, NextPosition.Y * TileSize, -100.0f);
-                    CurrentRoom = SpawnRoom(RoomMap[4], SpawnLocation);
+                    CurrentRoom = SpawnRoom(RoomMap[4], SpawnLocation, FRotator(0, Rotation, 0));
 
-                    if (CurrentRoom != nullptr)
-                    {
-                        RoomGrid[NextPosition] = CurrentRoom; // Store the new room in the grid
-                        CurrentPosition = NextPosition; // Move to the new room
-                        StepsTaken++;
-                        bMoved = true;
-                    }
+                    RoomGrid[NextPosition] = CurrentRoom; // Store the new room in the grid
                 }
-                else
-                {
-                    // Move to the existing room
-                    CurrentPosition = NextPosition;
-                    StepsTaken++;
-                    bMoved = true;
-                }
+
+                GeneratedRooms.Add(CurrentRoom);
+
+                // Move to the existing room
+                CurrentPosition = NextPosition;
+                StepsTaken++;
+                bMoved = true;
             }
-            else
-            {
-                UE_LOG(LogTemp, Warning, TEXT("NextPosition (%d, %d) not found in RoomGrid!"), NextPosition.X, NextPosition.Y);
-            }
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Avoiding generation in boss room at (%d, %d)"), NextPosition.X, NextPosition.Y);
         }
 
         // If no movement was made in this iteration, exit the loop to prevent infinite looping
@@ -159,46 +172,151 @@ void ASDungeonGenerationComponent::WalkTowardsEnd(const int32& Steps)
         }
     }
 
-    // Ensure we complete the connection to the boss room
-    while (CurrentPosition != BossRoomPosition)
-    {
-        // Move horizontally towards the boss room
-        if (CurrentPosition.X < BossRoomPosition.X)
-        {
-            CurrentPosition.X++; // Move right
-        }
-        // Move vertically towards the boss room
-        else if (CurrentPosition.Y < BossRoomPosition.Y)
-        {
-            CurrentPosition.Y++; // Move up
-        }
+    return GeneratedRooms;
+}
 
-        // Check if the current position is the boss room
-        if (CurrentPosition != BossRoomPosition)
-        {
-            ASDungeonRoom* CurrentRoom = RoomGrid.FindRef(CurrentPosition);
-            if (CurrentRoom == nullptr)
-            {
-                FVector SpawnLocation = FVector(CurrentPosition.X * TileSize, CurrentPosition.Y * TileSize, -100.0f);
-                CurrentRoom = SpawnRoom(RoomMap[4], SpawnLocation);
-                if (CurrentRoom != nullptr)
-                {
-                    RoomGrid[CurrentPosition] = CurrentRoom; // Store the new room in the grid
-                }
-            }
-        }
+void ASDungeonGenerationComponent::ReplaceRoomsWithHallways(TArray<ASDungeonRoom*>& Rooms, const int32& NumRoomsToKeep)
+{
+    if (Rooms.Num() <= NumRoomsToKeep) return;
+
+    TArray<ASDungeonRoom*> TempRooms;
+    TempRooms.Append(Rooms);
+
+    TSet<int32> UniqueIndexes;
+    while (UniqueIndexes.Num() < NumRoomsToKeep)
+    {
+        int32 RandomIndex = FMath::RandRange(0, TempRooms.Num() - 1);
+        UniqueIndexes.Add(RandomIndex);
+
+        TempRooms.RemoveAt(RandomIndex);
     }
 
-    // Optionally mark the boss room if needed
-    ASDungeonRoom* BossRoom = RoomGrid.FindRef(BossRoomPosition);
-    if (BossRoom)
+    TArray<int32> RoomsToKeep = UniqueIndexes.Array();
+
+    for (int32 i = 0; i < Rooms.Num(); i++)
     {
-        // Mark as the end room or perform any additional logic for the boss room
-        // BossRoom->SetAsEnd();
+        if (!RoomsToKeep.Contains(i) && Rooms[i])
+        {
+            // Spawn a new hallway (assuming you have a method to do this)
+            ASDungeonRoom* NewHallway = GetWorld()->SpawnActor<ASDungeonRoom>(HallwayClass, Rooms[i]->GetActorLocation(), Rooms[i]->GetActorRotation());
+
+            const FVector2D* Cell = RoomGrid.FindKey(Rooms[i]);
+            if (Cell == nullptr) return;
+
+            // Destroy the current room
+            Rooms[i]->Destroy();
+
+            // Replace the current element with the new hallway
+            Rooms[i] = NewHallway;
+            RoomGrid[*Cell] = NewHallway;
+        }
     }
 }
 
+void ASDungeonGenerationComponent::CheckForCorners(TArray<ASDungeonRoom*>& Rooms)
+{
+    if (Rooms.Num() <= 0 || CornerHallwayClass == nullptr) return;
+
+    for (int32 i = 0; i < Rooms.Num(); i++) 
+    {
+        if (Rooms[i] == nullptr) continue;
+
+        if (Rooms[i]->GetIsHallway() == false) continue;
+
+        if (IsCornerRoom(Rooms[i]))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Room at index %d is a corner!"), i);
+
+            ASDungeonRoom* HallwayCorner = GetWorld()->SpawnActor<ASDungeonRoom>(CornerHallwayClass, Rooms[i]->GetActorLocation(), Rooms[i]->GetActorRotation());
+            const FVector2D* Cell = RoomGrid.FindKey(Rooms[i]);
+
+            if (Cell == nullptr)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Failed to find cell in RoomGrid!"));
+                continue;
+            }
+
+            Rooms[i]->Destroy();
+            Rooms[i] = HallwayCorner;
+            RoomGrid[*Cell] = HallwayCorner;  // Ensure this updates RoomGrid properly
+
+            UE_LOG(LogTemp, Warning, TEXT("Replaced room at index %d with a corner hallway."), i);
+        }
+
+        if (IsCornerRoom(Rooms[i]))
+        {
+            ASDungeonRoom* HallwayCorner = GetWorld()->SpawnActor<ASDungeonRoom>(CornerHallwayClass, Rooms[i]->GetActorLocation(), Rooms[i]->GetActorRotation());
+            const FVector2D* Cell = RoomGrid.FindKey(Rooms[i]);
+            if (Cell == nullptr) continue;
+
+            Rooms[i]->Destroy();
+
+            Rooms[i] = HallwayCorner;
+            RoomGrid[*Cell] = HallwayCorner;
+        }
+    }
+}
+
+void ASDungeonGenerationComponent::CheckIsIndexCorner(TArray<ASDungeonRoom*>& Rooms, const int32& Index)
+{
+    if (Rooms.Num() <= 0 || CornerHallwayClass == nullptr) return;
+
+    if (Rooms[Index] == nullptr) return;
+
+    if (Rooms[Index]->GetIsHallway() == false) return;
+
+    if (IsCornerRoom(Rooms[Index]))
+    {
+        ASDungeonRoom* HallwayCorner = GetWorld()->SpawnActor<ASDungeonRoom>(CornerHallwayClass, Rooms[Index]->GetActorLocation(), Rooms[Index]->GetActorRotation());
+        const FVector2D* Cell = RoomGrid.FindKey(Rooms[Index]);
+        if (Cell == nullptr) return;
+
+        Rooms[Index]->Destroy();
+
+        Rooms[Index] = HallwayCorner;
+        RoomGrid[*Cell] = HallwayCorner;
+    }
+}
+
+TArray<FVector2D> ASDungeonGenerationComponent::GetPossibleNeighborCells(const FVector2D& CurrentCell)
+{
+    TArray<FVector2D> NeighborCells;
+
+    // Check Right Cell
+    if (RoomGrid.Contains(FVector2D(CurrentCell.X + 1, CurrentCell.Y)))
+    {
+        if(RoomGrid[FVector2D(CurrentCell.X + 1, CurrentCell.Y)] != nullptr)
+            NeighborCells.Add(FVector2D(CurrentCell.X + 1, CurrentCell.Y));
+    }
+    
+    // Check Left Cell
+    if (RoomGrid.Contains(FVector2D(CurrentCell.X - 1, CurrentCell.Y)))
+    {
+        if(RoomGrid[FVector2D(CurrentCell.X - 1, CurrentCell.Y)] != nullptr)
+            NeighborCells.Add(FVector2D(CurrentCell.X - 1, CurrentCell.Y));
+    }
+
+    // Check Up Cell
+    if (RoomGrid.Contains(FVector2D(CurrentCell.X, CurrentCell.Y + 1)))
+    {
+        if(RoomGrid[FVector2D(CurrentCell.X, CurrentCell.Y + 1)] != nullptr)
+            NeighborCells.Add(FVector2D(CurrentCell.X, CurrentCell.Y + 1));
+    }
+
+    // Check Down Cell
+    if (RoomGrid.Contains(FVector2D(CurrentCell.X, CurrentCell.Y - 1)))
+    {
+        if(RoomGrid[FVector2D(CurrentCell.X, CurrentCell.Y - 1)] != nullptr)
+            NeighborCells.Add(FVector2D(CurrentCell.X, CurrentCell.Y - 1));
+    }
+
+    return NeighborCells;
+}
+
+//
 #pragma endregion
+
+//
 
 void ASDungeonGenerationComponent::InitializeGrid()
 {
@@ -244,7 +362,7 @@ void ASDungeonGenerationComponent::PlaceBossRoom()
     RoomGrid[FVector2D(6, 5)] = Room;
     RoomGrid[FVector2D(6, 6)] = Room;
 
-    StartingRooms[StartingRooms.Num() - 1] = Room;
+    StartingRooms[1] = Room;
 
     UE_LOG(LogTemp, Warning, TEXT("Boss Room placed from (4, 4) to (5, 5)"));
 }
@@ -252,120 +370,6 @@ void ASDungeonGenerationComponent::PlaceBossRoom()
 #pragma endregion
 
 #pragma region Room Generation Functions
-
-void ASDungeonGenerationComponent::GenerateRooms(const int32& NumRooms)
-{
-    for (int32 RoomCount = 0; RoomCount < NumRooms; RoomCount++)
-    {
-        bool bPlaced = false;
-        while (!bPlaced)
-        {
-            int32 X = FMath::RandRange(0, GridSize - 3);
-            int32 Y = FMath::RandRange(0, GridSize - 3);
-
-            if (RoomGrid[FVector2D(X, Y)] == nullptr)
-            {
-                FVector RoomLocation = FVector(X * TileSize, Y * TileSize, -100.0f);
-                ASDungeonRoom* SpawnedRoom = GetWorld()->SpawnActor<ASDungeonRoom>(GetRandomRoom(), RoomLocation, FRotator::ZeroRotator);
-                if (SpawnedRoom == nullptr) continue;
-
-                UE_LOG(LogTemp, Warning, TEXT("Cell Assigned: %d, %d"), X, Y);
-
-                StartingRooms[RoomCount + 1] = SpawnedRoom;
-                AllRooms.Add(SpawnedRoom);
-
-                RoomGrid[FVector2D(X, Y)] = SpawnedRoom;
-                bPlaced = true;
-            }
-        }
-    }
-}
-
-void ASDungeonGenerationComponent::GenerateHallways(const int32& Index)
-{
-    if (StartingRooms.Num() < 2) return;
-
-    int32 CurrentRoomX = StartingRooms[Index]->GetActorLocation().X / TileSize;
-    int32 CurrentRoomY = StartingRooms[Index]->GetActorLocation().Y / TileSize;
-
-    if (Index + 1 >= StartingRooms.Num()) return;
-
-    int32 TargetRoomX = StartingRooms[Index + 1]->GetActorLocation().X / TileSize;
-    int32 TargetRoomY = StartingRooms[Index + 1]->GetActorLocation().Y / TileSize;
-
-    int32 RoomDistanceX = FMath::Abs(CurrentRoomX - TargetRoomX);
-    int32 RoomDistanceY = FMath::Abs(CurrentRoomY - TargetRoomY);
-
-    int32 XDirection = (TargetRoomX - CurrentRoomX) >= 0 ? 1 : -1;
-    int32 YDirection = (TargetRoomY - CurrentRoomY) >= 0 ? 1 : -1;
-
-    if (RoomDistanceX == 0 && RoomDistanceY == 0) return;
-
-    if (RoomDistanceX == 1 && RoomDistanceY == 1)
-    {
-        FVector CornerLocation = FVector(TargetRoomX * TileSize, CurrentRoomY * TileSize, -100.0f);
-
-        if (RoomGrid[FVector2D(TargetRoomX, CurrentRoomY)] == nullptr)
-        {
-            SpawnRoom(GetRandomRoom(), CornerLocation);
-        }
-
-        return;
-    }
-
-    if (RoomDistanceX > 0)
-    {
-        for (int32 i = 0; i < RoomDistanceX; i++)
-        {
-            FVector HallwayLocation = FVector((CurrentRoomX + i * XDirection) * TileSize, CurrentRoomY * TileSize, -100.0f);
-
-            if (RoomGrid[FVector2D(CurrentRoomX + i * XDirection, CurrentRoomY)] == nullptr)
-            {
-                //UE_LOG(LogTemp, Warning, TEXT("Room Index: %d, Hallway Index: %d"), Index, i);
-
-                SpawnHallway(Index, i, HallwayLocation, FRotator(0.0f, 0.0f, 0.0f));
-            }
-        }
-
-        if (RoomDistanceY > 0)
-        {
-            FVector CornerLocation = FVector(TargetRoomX * TileSize, CurrentRoomY * TileSize, -100.0f);
-            if (RoomGrid[FVector2D(TargetRoomX, CurrentRoomY)] == nullptr)
-            {
-                SpawnRoom(GetRandomRoom(), CornerLocation);
-            }
-        }
-    }
-
-    if (RoomDistanceY > 0)
-    {
-        for (int32 i = 0; i < RoomDistanceY; i++)
-        {
-            FVector HallwayLocation = FVector(TargetRoomX * TileSize, (CurrentRoomY + (i * YDirection)) * TileSize, -100.0f);
-
-            if (RoomGrid[FVector2D(TargetRoomX, CurrentRoomY + (i * YDirection))] == nullptr)
-            {
-                //UE_LOG(LogTemp, Warning, TEXT("Room Index: %d, Hallway Index: %d"), Index, i);
-
-                SpawnHallway(Index, i, HallwayLocation, FRotator(0.0f, 90.0f, 0.0f));
-            }
-        }
-
-        if (RoomDistanceX > 0)
-        {
-            FVector CornerLocation = FVector(TargetRoomX * TileSize, TargetRoomY * TileSize, -100.0f);
-            if (RoomGrid[FVector2D(TargetRoomX, TargetRoomY)] == nullptr)
-            {
-                SpawnRoom(GetRandomRoom(), CornerLocation);
-            }
-        }
-    }
-
-    if (RoomGrid[FVector2D(TargetRoomX, TargetRoomY)] == nullptr)
-    {
-        SpawnRoom(GetRandomRoom(), FVector(TargetRoomX * TileSize, TargetRoomY * TileSize, -100.0f));
-    }
-}
 
 void ASDungeonGenerationComponent::SpawnHallway(const int32& RoomIndex, const int32& HallwayIndex, const FVector& Location, const FRotator& Rotation)
 {
@@ -420,7 +424,7 @@ void ASDungeonGenerationComponent::SpawnHallway(const int32& RoomIndex, const in
     RoomGrid[FVector2D(X, Y)] = Hallway;
 }
 
-ASDungeonRoom* ASDungeonGenerationComponent::SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, FVector Location)
+ASDungeonRoom* ASDungeonGenerationComponent::SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, const FVector& Location)
 {
     if (RoomClass == nullptr) return nullptr;
 
@@ -472,27 +476,56 @@ ASDungeonRoom* ASDungeonGenerationComponent::SpawnRoom(TSubclassOf<ASDungeonRoom
     return Room;
 }
 
-ASDungeonRoom* ASDungeonGenerationComponent::GenerateNewTilePiece(ASDungeonRoom* TargetRoom, const int32& RoomNeighbors)
+ASDungeonRoom* ASDungeonGenerationComponent::SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, const FVector& Location, const FRotator& Rotation)
 {
-    if (RoomMap[RoomNeighbors] == nullptr || TargetRoom == nullptr) return nullptr;
+    if (RoomClass == nullptr) return nullptr;
 
-    FVector RoomLocation = TargetRoom->GetActorLocation();
+    int32 X = Location.X / TileSize;
+    int32 Y = Location.Y / TileSize;
 
-    ASDungeonRoom* NewRoom;
-    if (IsCornerRoom(TargetRoom) && CornerRoomClass != nullptr)
-        NewRoom = GetWorld()->SpawnActor<ASDungeonRoom>(CornerRoomClass, RoomLocation, FRotator::ZeroRotator);
-    else
-        NewRoom = GetWorld()->SpawnActor<ASDungeonRoom>(RoomMap[RoomNeighbors], RoomLocation, FRotator::ZeroRotator);
+    if (X < 0 || Y < 0 || X >= GridSize || Y >= GridSize)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Out Of Range!"));
+        return nullptr;
+    }
 
-    if (NewRoom == nullptr) return nullptr;
+    if (RoomGrid[FVector2D(X, Y)])
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Cell Taken: %d, %d"), X, Y);
+        return nullptr;
+    }
 
-    int32 Index = AllRooms.IndexOfByKey(TargetRoom);
-    if (Index != INDEX_NONE)
-        AllRooms[Index] = NewRoom;
+    if (X >= 4 && Y >= 4)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Cell Is Overlapping Boss Room"));
+        return nullptr;
+    }
 
-    TargetRoom->Destroy();
 
-    return NewRoom;
+    ASDungeonRoom* Room = GetWorld()->SpawnActor<ASDungeonRoom>(RoomClass, Location, Rotation);
+    if (Room == nullptr) return nullptr;
+
+    RoomGrid[FVector2D(X, Y)] = Room;
+
+    // Add Neighbors
+    if (AllRooms.Num() > 0)
+    {
+        ASDungeonRoom* PreviousRoom = AllRooms[AllRooms.Num() - 1];
+        if (PreviousRoom) {
+            PreviousRoom->AddChildRoom(Room);
+            Room->AddChildRoom(PreviousRoom);
+        }
+    }
+
+    // Then Add Room to List
+    AllRooms.Add(Room);
+
+    if (Room->GetChestSpawnPoints().Num() > 0)
+    {
+        ChestSpawnPoints.Append(Room->GetChestSpawnPoints());
+    }
+
+    return Room;
 }
 
 #pragma endregion
@@ -522,70 +555,29 @@ void ASDungeonGenerationComponent::GenerateChests(const int32& NumChests)
     }
 }
 
-void ASDungeonGenerationComponent::AddRoomNeighbors(ASDungeonRoom* TargetRoom)
-{
-    // I am here today
-
-    const FVector2D* RoomLocation = RoomGrid.FindKey(TargetRoom);
-
-    if (RoomLocation == nullptr) return;
-
-    if (RoomGrid.Contains(FVector2D(RoomLocation->X - 1, RoomLocation->Y)))
-        TargetRoom->AddChildRoom(RoomGrid[FVector2D(RoomLocation->X - 1, RoomLocation->Y)]);
-
-    if (RoomGrid.Contains(FVector2D(RoomLocation->X + 1, RoomLocation->Y)))
-        TargetRoom->AddChildRoom(RoomGrid[FVector2D(RoomLocation->X - 1, RoomLocation->Y)]);
-
-    if (RoomGrid.Contains(FVector2D(RoomLocation->X, RoomLocation->Y - 1)))
-        TargetRoom->AddChildRoom(RoomGrid[FVector2D(RoomLocation->X, RoomLocation->Y - 1)]);
-
-    if (RoomGrid.Contains(FVector2D(RoomLocation->X, RoomLocation->Y + 1)))
-        TargetRoom->AddChildRoom(RoomGrid[FVector2D(RoomLocation->X, RoomLocation->Y + 1)]);
-}
-
-void ASDungeonGenerationComponent::FindBestRoomTilePiece(ASDungeonRoom* TargetRoom)
-{
-    if (TargetRoom == nullptr) return;
-
-    int32 RoomOpenings = TargetRoom->Openings.Num();
-    int32 RoomNeighbors = TargetRoom->GetChildrenRoom().Num();
-
-    if (RoomOpenings < RoomNeighbors) 
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Not Enough Opening For Neighbors, Generate New Tile Piece!"));
-
-        // TODO: v This Right Here v
-        GenerateNewTilePiece(TargetRoom, RoomNeighbors);
-    }
-
-    if (IsCornerRoom(TargetRoom)) 
-    {
-        UE_LOG(LogTemp, Warning, TEXT("I AM A CORNER!"));
-
-        GenerateNewTilePiece(TargetRoom, RoomNeighbors);
-    }
-
-    UE_LOG(LogTemp, Warning, TEXT("Finding Rotation!"));
-
-    FQuat TargetRot = FQuat::MakeFromRotator(CalculateRoomRotation(TargetRoom));
-    TargetRoom->SetActorRotation(TargetRot);
-}
-
 #pragma region Helper Functions
 
 bool ASDungeonGenerationComponent::IsCornerRoom(ASDungeonRoom* TargetRoom)
 {
-    if (TargetRoom->GetChildrenRoom().Num() != 2) return false;
-   
-    float X1 = TargetRoom->GetChildrenRoom()[0]->GetActorLocation().X;
-    float X2 = TargetRoom->GetChildrenRoom()[1]->GetActorLocation().X;
+    const FVector2D* RoomLocation = RoomGrid.FindKey(TargetRoom);
 
-    float Y1 = TargetRoom->GetChildrenRoom()[0]->GetActorLocation().Y;
-    float Y2 = TargetRoom->GetChildrenRoom()[1]->GetActorLocation().Y;
+    UE_LOG(LogTemp, Warning, TEXT("Corner Room"));
+
+    if (RoomLocation == nullptr) return false;
+
+    UE_LOG(LogTemp, Warning, TEXT("Corner Room, Part 2"));
+
+    TArray<FVector2D> NeighborCells;
+    NeighborCells.Append(GetPossibleNeighborCells(*RoomLocation));
+
+    if (NeighborCells.Num() != 2) return false;
+
+    UE_LOG(LogTemp, Warning, TEXT("Corner Room, Part 3"));
 
     // If both neighbors aren't on the same X or Y level then we know the neighbors
     // must be adjacent to one another not parallel.
-    if (FMath::IsNearlyEqual(X1, X2, 0.01f) == false && FMath::IsNearlyEqual(Y1, Y2, 0.01f) == false)
+    if (FMath::IsNearlyEqual(NeighborCells[0].X, NeighborCells[1].X, 0.01f) == false 
+        && FMath::IsNearlyEqual(NeighborCells[0].Y, NeighborCells[1].Y, 0.01f) == false)
     {
         return true;
     }
@@ -596,116 +588,101 @@ bool ASDungeonGenerationComponent::IsCornerRoom(ASDungeonRoom* TargetRoom)
 FRotator ASDungeonGenerationComponent::CalculateRoomRotation(ASDungeonRoom* TargetRoom)
 {
     FRotator Target = FRotator::ZeroRotator;
+    const float Tolerance = 0.01f;  // Tolerance for float comparison
 
-    if (TargetRoom->GetChildrenRoom().Num() == 0 || TargetRoom->Openings.Num() == 0)
+    const FVector2D* RoomLocation = RoomGrid.FindKey(TargetRoom);
+    if (RoomLocation == nullptr) return Target;
+
+    TArray<FVector2D> NeighborCells;
+    NeighborCells.Append(GetPossibleNeighborCells(*RoomLocation));
+
+    if (NeighborCells.Num() == 0 || TargetRoom->Openings.Num() == 0)
         return Target;
 
     if (TargetRoom->Openings.Num() == 4)
         return Target;
 
-    // Adjust rotation based on neighbors
-    int32 UpNeighbors = 0;
-    int32 DownNeighbors = 0;
-    int32 LeftNeighbors = 0;
-    int32 RightNeighbors = 0;
-
-    for (ASDungeonRoom* Neighbor : TargetRoom->GetChildrenRoom())
+    if (NeighborCells.Num() == 2 && IsCornerRoom(TargetRoom))
     {
-        if (Neighbor)
-        {
-            FVector NeighborPos = Neighbor->GetActorLocation();
+        // Calculate direction vectors relative to current room
+        FVector2D FirstNeighborDirection = NeighborCells[0] - *RoomLocation;
+        FVector2D SecondNeighborDirection = NeighborCells[1] - *RoomLocation;
 
-            if (NeighborPos.X > TargetRoom->GetActorLocation().X)
-            {
-                RightNeighbors++;
-            }
-            else if (NeighborPos.X < TargetRoom->GetActorLocation().X)
-            {
-                LeftNeighbors++;
-            }
-            else if (NeighborPos.Y > TargetRoom->GetActorLocation().Y)
-            {
-                UpNeighbors++;
-            }
-            else if (NeighborPos.Y < TargetRoom->GetActorLocation().Y)
-            {
-                DownNeighbors++;
-            }
+        // Normalize the direction vectors
+        FirstNeighborDirection.Normalize();
+        SecondNeighborDirection.Normalize();
+
+        // Log the directions for debugging
+        //UE_LOG(LogTemp, Warning, TEXT("First Neighbor Direction: X=%f, Y=%f"), FirstNeighborDirection.X, FirstNeighborDirection.Y);
+        //UE_LOG(LogTemp, Warning, TEXT("Second Neighbor Direction: X=%f, Y=%f"), SecondNeighborDirection.X, SecondNeighborDirection.Y);
+
+        // Function to check if two directions are approximately equal
+        auto AreDirectionsEqual = [](const FVector2D& Dir1, const FVector2D& Dir2, float Tolerance) -> bool
+        {
+            return FMath::IsNearlyEqual(Dir1.X, Dir2.X, Tolerance) && FMath::IsNearlyEqual(Dir1.Y, Dir2.Y, Tolerance);
+        };
+
+        // Define the direction vectors for Up, Down, Left, Right
+        FVector2D Up(0, 1);
+        FVector2D Down(0, -1);
+        FVector2D Left(-1, 0);
+        FVector2D Right(1, 0);
+
+        // Check for Up + Right
+        if ((AreDirectionsEqual(FirstNeighborDirection, Up, Tolerance) && AreDirectionsEqual(SecondNeighborDirection, Right, Tolerance)) ||
+            (AreDirectionsEqual(FirstNeighborDirection, Right, Tolerance) && AreDirectionsEqual(SecondNeighborDirection, Up, Tolerance)))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Up + Right : Corner!"));
+            Target = FRotator(0, -90.0f, 0); // Example rotation for Up + Right
+        }
+        // Check for Up + Left
+        else if ((AreDirectionsEqual(FirstNeighborDirection, Up, Tolerance) && AreDirectionsEqual(SecondNeighborDirection, Left, Tolerance)) ||
+            (AreDirectionsEqual(FirstNeighborDirection, Left, Tolerance) && AreDirectionsEqual(SecondNeighborDirection, Up, Tolerance)))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Up + Left : Corner!"));
+            Target = FRotator(0, 0.0f, 0); // Rotation for Up + Left
+        }
+        // Check for Down + Right
+        else if ((AreDirectionsEqual(FirstNeighborDirection, Down, Tolerance) && AreDirectionsEqual(SecondNeighborDirection, Right, Tolerance)) ||
+            (AreDirectionsEqual(FirstNeighborDirection, Right, Tolerance) && AreDirectionsEqual(SecondNeighborDirection, Down, Tolerance)))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Down + Right : Corner!"));
+            Target = FRotator(0, 180.0f, 0); // Rotation for Down + Right
+        }
+        // Check for Down + Left
+        else if ((AreDirectionsEqual(FirstNeighborDirection, Down, Tolerance) && AreDirectionsEqual(SecondNeighborDirection, Left, Tolerance)) ||
+            (AreDirectionsEqual(FirstNeighborDirection, Left, Tolerance) && AreDirectionsEqual(SecondNeighborDirection, Down, Tolerance)))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Down + Left : Corner!"));
+            Target = FRotator(0, 90.0f, 0); // Rotation for Down + Left
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Unexpected Corner Configuration!"));
+        }
+
+        //UE_LOG(LogTemp, Warning, TEXT("First Neighbor Direction: X=%f, Y=%f"), FirstNeighborDirection.X, FirstNeighborDirection.Y);
+        //UE_LOG(LogTemp, Warning, TEXT("Second Neighbor Direction: X=%f, Y=%f"), SecondNeighborDirection.X, SecondNeighborDirection.Y);
+    }
+    else if (NeighborCells.Num() == 2)
+    {
+        // I am a straight path room
+        FVector2D FirstNeighbor = NeighborCells[0] - *RoomLocation;
+        FVector2D SecondNeighbor = NeighborCells[1] - *RoomLocation;
+
+        if ((FirstNeighbor == FVector2D(1, 0) && SecondNeighbor == FVector2D(-1, 0)) ||
+            (FirstNeighbor == FVector2D(-1, 0) && SecondNeighbor == FVector2D(1, 0))) // Horizontal neighbors
+        {
+            Target = FRotator(0, 0.0f, 0); // Rotate for horizontal path
+        }
+        else if ((FirstNeighbor == FVector2D(0, 1) && SecondNeighbor == FVector2D(0, -1)) ||
+            (FirstNeighbor == FVector2D(0, -1) && SecondNeighbor == FVector2D(0, 1))) // Vertical neighbors
+        {
+            Target = FRotator(0, 90.0f, 0); // No rotation for vertical path
         }
     }
 
-    // I only have vertical neighbors
-    // I am also assuming that the previous pass makes sure this room is not a corner
-    if (UpNeighbors > 0 && DownNeighbors > 0 && LeftNeighbors == 0 && RightNeighbors == 0) 
-    {
-        // All rooms by default should have initial rotation with the start opening being at the bottom
-
-        Target.Yaw = 0.0f;
-
-        return Target;
-    }
-
-    // I only have horizontal neighbors
-    if (UpNeighbors == 0 && DownNeighbors == 0 && LeftNeighbors > 0 && RightNeighbors > 0)
-    {
-        Target.Yaw = 90.0f;
-
-        return Target;
-    }
-
-    // I am a corner
-
-    int32 VertNeighbors = UpNeighbors - DownNeighbors;
-    int32 HoriNeighbors = LeftNeighbors - RightNeighbors;
-    if (VertNeighbors != 0 && HoriNeighbors != 0)
-    {
-        if (VertNeighbors > 0 && HoriNeighbors > 0)
-            Target.Yaw = 180.0f;
-        if(VertNeighbors > 0 && HoriNeighbors < 0)
-            Target.Yaw = -90.0f;
-        if (VertNeighbors < 0 && HoriNeighbors < 0)
-            Target.Yaw = 0.0f;
-        if (VertNeighbors < 0 && HoriNeighbors > 0)
-            Target.Yaw = 90.0f;
-
-        return Target;
-    }
-
     return Target;
-
-
-    // I have 3 neighbors, 2 on the side one vertical
-
-    // I have 3 neighbors, 2 vertical one on the side
-
-    // Determine the dominant direction based on neighbors
-    if (UpNeighbors >= DownNeighbors && UpNeighbors >= LeftNeighbors && UpNeighbors >= RightNeighbors)
-    {
-        Target.Yaw = 0.0f;
-    }
-    else if (DownNeighbors >= UpNeighbors && DownNeighbors >= LeftNeighbors && DownNeighbors >= RightNeighbors)
-    {
-        Target.Yaw = 180.0f;
-    }
-    else if (LeftNeighbors >= UpNeighbors && LeftNeighbors >= DownNeighbors && LeftNeighbors >= RightNeighbors)
-    {
-        Target.Yaw = -90.0f;
-    }
-    else if (RightNeighbors >= UpNeighbors && RightNeighbors >= DownNeighbors && RightNeighbors >= LeftNeighbors)
-    {
-        Target.Yaw = 90.0f;
-    }
-
-    return Target;
-}
-
-TSubclassOf<ASDungeonRoom> ASDungeonGenerationComponent::GetRandomRoom()
-{
-    if (RoomClasses.Num() == 0) return nullptr;
-
-    int32 RandomNumber = FMath::RandRange(0, RoomClasses.Num() - 1);
-
-    return RoomClasses[RandomNumber];
 }
 
 #pragma endregion

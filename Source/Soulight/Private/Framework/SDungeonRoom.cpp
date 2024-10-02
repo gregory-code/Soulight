@@ -64,3 +64,8 @@ TArray<FTransform> ASDungeonRoom::GetChestSpawnPoints()
 	return ChestSpawnPositions;
 }
 
+bool ASDungeonRoom::GetIsHallway()
+{
+	return bIsHallway;
+}
+
