@@ -23,9 +23,11 @@ protected:
 
 private:
 	TArray<ASDungeonRoom*> WalkTowardsEnd(const FVector2D StartPosition, const FVector2D EndPosition, const int32& Steps);
-	//bool IsRoomValid(const FVector2D& Position);
+	
 	FVector2D GetRandomMoveDirection(const FVector2D& CurrentPos, const FVector2D& BossRoomPosition, float& OutRotation);
 	TArray<ASDungeonRoom*> WalkingGeneration(const int32& Steps, const FVector2D& StartingPosition, const FVector2D& EndPosition);
+	bool CanWalkInDirection(const FVector2D& Direction);
+
 	void ReplaceRoomsWithHallways(TArray<ASDungeonRoom*>& Rooms, const int32& NumRoomsToKeep);
 
 	void CheckForCorners(TArray<ASDungeonRoom*>& Rooms);

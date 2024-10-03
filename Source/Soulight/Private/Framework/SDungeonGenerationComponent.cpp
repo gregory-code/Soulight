@@ -158,7 +158,7 @@ TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkingGeneration(const int
         FVector2D NextPosition = CurrentPosition + MoveDirection;
 
         // Ensure the next position is not the boss room
-        if (NextPosition != EndRoomPosition)
+        if (NextPosition != EndRoomPosition && CanWalkInDirection(NextPosition))
         {
             // Check if the next position exists in the RoomGrid
             if (RoomGrid.Contains(NextPosition))
@@ -192,6 +192,14 @@ TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkingGeneration(const int
     }
 
     return GeneratedRooms;
+}
+
+bool ASDungeonGenerationComponent::CanWalkInDirection(const FVector2D& Direction)
+{
+    if (RoomGrid[Direction] == nullptr)
+        return true;
+
+    return false;
 }
 
 void ASDungeonGenerationComponent::ReplaceRoomsWithHallways(TArray<ASDungeonRoom*>& Rooms, const int32& NumRoomsToKeep)
@@ -380,7 +388,7 @@ void ASDungeonGenerationComponent::GenerateBranches(TArray<ASDungeonRoom*> Path)
                 RandomCell = FVector2D(X, Y);
                 Attempts++;
 
-                if (Attempts > 3) {
+                if (Attempts > 10) {
                     break;
                 }
             }
