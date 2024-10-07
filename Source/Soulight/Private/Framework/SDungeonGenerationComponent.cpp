@@ -56,6 +56,8 @@ void ASDungeonGenerationComponent::BeginPlay()
     TargetQuat = FQuat::MakeFromRotator(TargetRotation);
     StartingRooms[1]->SetActorRotation(TargetQuat);
 
+    GenerateDeadEnds();
+
     return;
 
     GenerateChests(MaxNumChests);
@@ -428,10 +430,63 @@ void ASDungeonGenerationComponent::GenerateBranches(TArray<ASDungeonRoom*> Path)
                 }
             }
 
+            UE_LOG(LogTemp, Warning, TEXT("I AM REACHING THIS PART"));
             WalkTowardsEnd(*Cell, FVector2D(X, Y), 3, 1);
         }
     }
 
+}
+
+void ASDungeonGenerationComponent::GenerateDeadEnds()
+{
+    if (AllRooms.Num() == 0 || IsValid(DeadendHallwayClass) == false) return;
+
+    for (ASDungeonRoom* Room : AllRooms) 
+    {
+        if (Room == nullptr) continue;
+
+        if (Room->GetIsHallway()) continue;
+
+        UE_LOG(LogTemp, Warning, TEXT("I AM A POSSIBLE MATCH FOR DEAD ENDS"));
+
+        FVector2D CurrentCell = GetCellPositionFromRoom(Room);
+
+        TArray<FVector2D> EmptyNeighbors;
+        EmptyNeighbors.Append(GetPossibleEmptyNeighborCells(CurrentCell));
+        if (EmptyNeighbors.Num() == 0) continue;
+
+        for (FVector2D Cell : EmptyNeighbors)
+        {
+            // IS THIS TRULY EMPTY?
+            if (RoomGrid[Cell] != nullptr) 
+            {
+                UE_LOG(LogTemp, Warning, TEXT("I LIED, I AM NOT TRUELY EMPTY, HAHA GOT YOUR ASS"));
+
+                continue;
+            }
+            ASDungeonRoom* DeadendHallway = GetWorld()->SpawnActor<ASDungeonRoom>(DeadendHallwayClass, FVector(Cell.X * TileSize, Cell.Y * TileSize, -100.0f), FRotator::ZeroRotator);
+            UE_LOG(LogTemp, Warning, TEXT("I MAKE DEADEND, I WORK NOW"));
+            if (DeadendHallway == nullptr) return;
+
+            RoomGrid[Cell] = DeadendHallway;
+
+            // Rotate this hallway properly
+            FRotator TargetRotation = CalaculateRotationFromRoomPosition(Room, DeadendHallway);
+
+            FQuat TargetQuat;
+            TargetQuat = FQuat::MakeFromRotator(TargetRotation);
+            DeadendHallway->SetActorRotation(TargetQuat);
+        }
+
+    }
+}
+
+FVector2D ASDungeonGenerationComponent::GetCellPositionFromRoom(ASDungeonRoom* TargetRoom)
+{
+    const FVector2D* Cell = RoomGrid.FindKey(TargetRoom);
+    if (Cell == nullptr) return FVector2D::ZeroVector;
+
+    return *Cell;
 }
 
 //
@@ -800,6 +855,34 @@ FRotator ASDungeonGenerationComponent::CalculateRoomRotation(ASDungeonRoom* Targ
     }
 
     return Target;
+}
+
+FRotator ASDungeonGenerationComponent::CalaculateRotationFromRoomPosition(ASDungeonRoom* ParentRoom, ASDungeonRoom* TargetRoom)
+{
+    FVector2D ParentRoomCell = GetCellPositionFromRoom(ParentRoom);
+    FVector2D TargetRoomCell = GetCellPositionFromRoom(TargetRoom);
+
+    FVector2D Direction = TargetRoomCell;
+
+    if (TargetRoomCell.X > ParentRoomCell.X)  // TargetRoom is above ParentRoom (Up)
+    {
+        return FRotator(0.0f, 0.0f, 0.0f);  // No rotation needed
+    }
+    else if (TargetRoomCell.X < ParentRoomCell.X)  // TargetRoom is below ParentRoom (Down)
+    {
+        return FRotator(0.0f, 180.0f, 0.0f);  // Rotate 180 degrees
+    }
+    else if (TargetRoomCell.Y > ParentRoomCell.Y)  // TargetRoom is to the right of ParentRoom (Right)
+    {
+        return FRotator(0.0f, 90.0f, 0.0f);  // Rotate 90 degrees
+    }
+    else if (TargetRoomCell.Y < ParentRoomCell.Y)  // TargetRoom is to the left of ParentRoom (Left)
+    {
+        return FRotator(0.0f, -90.0f, 0.0f);  // Rotate -90 degrees
+    }
+
+    // If the target room is at the same position (no valid direction), return a default rotation
+    return FRotator::ZeroRotator;
 }
 
 #pragma endregion

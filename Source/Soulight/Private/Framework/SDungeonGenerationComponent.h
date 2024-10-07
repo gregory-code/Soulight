@@ -38,6 +38,11 @@ private:
 
 	void GenerateBranches(TArray<ASDungeonRoom*> Path);
 
+	// Brute Force Approach, Works as a final pass of generation
+	void GenerateDeadEnds();
+
+	FVector2D GetCellPositionFromRoom(ASDungeonRoom* TargetRoom);
+
 	//bool TryMove(FVector2D& CurrentPosition, const FVector2D& MoveDirection);
 	//void ConnectToBossRoom(FVector2D& CurrentPosition, const FVector2D& BossRoomPosition);
 
@@ -61,6 +66,7 @@ private:
 	bool IsCornerRoom(ASDungeonRoom* TargetRoom);
 
 	FRotator CalculateRoomRotation(ASDungeonRoom* TargetRoom);
+	FRotator CalaculateRotationFromRoomPosition(ASDungeonRoom* ParentRoom, ASDungeonRoom* TargetRoom);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TSubclassOf<ASDungeonRoom> StartingRoomClass;
@@ -76,6 +82,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TSubclassOf<ASDungeonRoom> CornerHallwayClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
+	TSubclassOf<ASDungeonRoom> DeadendHallwayClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TMap<int32, TSubclassOf<ASDungeonRoom>> RoomMap;
