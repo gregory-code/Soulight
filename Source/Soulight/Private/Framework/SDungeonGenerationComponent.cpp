@@ -176,6 +176,18 @@ TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkingGeneration(const int
                     RoomGrid[NextPosition] = CurrentRoom; // Store the new room in the grid
                 }
 
+                /* Idea I had to make this do the rotation as it generated, didn't work to well for corners
+                if (StepsTaken > 0 && StepsTaken < GeneratedRooms.Num())
+                {
+                    FRotator TargetRotation = CalaculateRotationFromRoomPosition(GeneratedRooms[StepsTaken], CurrentRoom);
+
+                    FQuat TargetQuat;
+                    TargetQuat = FQuat::MakeFromRotator(TargetRotation);
+                    CurrentRoom->SetActorRotation(TargetQuat);
+
+                }
+                */
+
                 GeneratedRooms.Add(CurrentRoom);
 
                 // Move to the existing room
@@ -208,33 +220,27 @@ void ASDungeonGenerationComponent::ReplaceRoomsWithHallways(TArray<ASDungeonRoom
 {
     if (Rooms.Num() <= NumRoomsToKeep) return;
 
-    TArray<ASDungeonRoom*> TempRooms;
-    TempRooms.Append(Rooms);
+    // Calculate path length
+    int32 PathLength = Rooms.Num();
 
-    TSet<int32> UniqueIndexes;
-    TArray<int32> RoomsToKeep;
+    // Calculate the interval to evenly spread the rooms
+    float Interval = PathLength / static_cast<float>(NumRoomsToKeep);
 
-    if (Rooms.Num() > 2) 
+    // Ensure a set of rooms to keep at even intervals
+    TSet<int32> RoomsToKeep;
+    for (int32 i = 0; i < NumRoomsToKeep; i++)
     {
-        while (UniqueIndexes.Num() < NumRoomsToKeep)
+        // Calculate the index to keep based on the interval
+        int32 RoomIndex = FMath::RoundToInt(i * Interval);
+
+        // Ensure the room index is within bounds
+        if (RoomIndex >= 0 && RoomIndex < Rooms.Num())
         {
-            if (TempRooms.Num() - 1 <= 0) 
-            {
-                UniqueIndexes.Add(0);
-                break;
-            }
-
-            int32 RandomIndex = FMath::RandRange(0, TempRooms.Num() - 1);
-            UniqueIndexes.Add(RandomIndex);
-
-            TempRooms.RemoveAt(RandomIndex);
+            RoomsToKeep.Add(RoomIndex);
         }
     }
 
-    RoomsToKeep.Append(UniqueIndexes.Array());
-
-    if (RoomsToKeep.Num() <= 0) return;
-
+    // Replace rooms that are not in the RoomsToKeep set with hallways
     for (int32 i = 0; i < Rooms.Num(); i++)
     {
         if (!RoomsToKeep.Contains(i) && Rooms[i])
@@ -401,40 +407,22 @@ void ASDungeonGenerationComponent::GenerateBranches(TArray<ASDungeonRoom*> Path)
             const FVector2D* Cell = RoomGrid.FindKey(Room);
             if (Cell == nullptr) return;
 
-            int32 GridLimit = GridSize;
-            int32 X = 0;
-            int32 Y = 0;
+            // Use the new method to pick a random empty cell
+            FVector2D RandomCell = PickRandomEmptyCell();
 
-            X = FMath::RandRange(0, GridLimit);
-            if (X > 4)
-                GridLimit = 4;
-            Y = FMath::RandRange(0, GridLimit);
-
-            FVector2D RandomCell(X, Y);
-
-            int32 Attempts = 0;
-            while (IsValid(RoomGrid[RandomCell]))
+            // Check if a valid cell was found
+            if (RandomCell.X == -1 && RandomCell.Y == -1)
             {
-                X = FMath::RandRange(0, GridLimit);
+                // Failed to find a valid empty cell, skip this room
+                UE_LOG(LogTemp, Warning, TEXT("I HAVE FAILED MY TAKS :("));
 
-                if (X > 4)
-                    GridLimit = 4;
-
-                Y = FMath::RandRange(0, GridLimit);
-
-                RandomCell = FVector2D(X, Y);
-                Attempts++;
-
-                if (Attempts > 10) {
-                    break;
-                }
+                continue;
             }
 
             UE_LOG(LogTemp, Warning, TEXT("I AM REACHING THIS PART"));
-            WalkTowardsEnd(*Cell, FVector2D(X, Y), 3, 1);
+            WalkTowardsEnd(*Cell, RandomCell, 3, 1);
         }
     }
-
 }
 
 void ASDungeonGenerationComponent::GenerateDeadEnds()
@@ -487,6 +475,93 @@ FVector2D ASDungeonGenerationComponent::GetCellPositionFromRoom(ASDungeonRoom* T
     if (Cell == nullptr) return FVector2D::ZeroVector;
 
     return *Cell;
+}
+
+FVector2D ASDungeonGenerationComponent::PickRandomEmptyCell()
+{
+    // Define the cells to exclude
+    TArray<FVector2D> ExcludedCells = {
+        FVector2D(0, 0),   // Start Room
+        FVector2D(5, 5),   // Boss Room cells
+        FVector2D(5, 6),
+        FVector2D(6, 5),
+        FVector2D(6, 6)
+    };
+
+    // Divide the grid into regions (quadrants)
+    TArray<FVector2D> TopLeftRegion, TopRightRegion, BottomLeftRegion, BottomRightRegion;
+
+    for (int32 X = 0; X < GridSize; ++X)
+    {
+        for (int32 Y = 0; Y < GridSize; ++Y)
+        {
+            FVector2D Cell(X, Y);
+
+            // Skip cells that are either occupied or excluded
+            if ((RoomGrid.Contains(Cell) && IsValid(RoomGrid[Cell])) || ExcludedCells.Contains(Cell))
+            {
+                continue;
+            }
+
+            // Sort cells into regions
+            if (X <= 2 && Y <= 2)
+                TopLeftRegion.Add(Cell);
+            else if (X >= 3 && Y <= 2)
+                TopRightRegion.Add(Cell);
+            else if (X <= 2 && Y >= 3)
+                BottomLeftRegion.Add(Cell);
+            else if (X >= 3 && Y >= 3)
+                BottomRightRegion.Add(Cell);
+        }
+    }
+
+    // Calculate room densities in each region
+    int32 TotalCells = GridSize * GridSize;
+    int32 TopLeftOccupied = TopLeftRegion.Num();
+    int32 TopRightOccupied = TopRightRegion.Num();
+    int32 BottomLeftOccupied = BottomLeftRegion.Num();
+    int32 BottomRightOccupied = BottomRightRegion.Num();
+
+    float TotalWeight = TopLeftOccupied + TopRightOccupied + BottomLeftOccupied + BottomRightOccupied;
+
+    // If no regions are available, return an invalid vector (safety check)
+    if (TotalWeight == 0.0f)
+    {
+        return FVector2D(-1, -1);  // Invalid position, no empty cells available
+    }
+
+    // Weighted random selection based on room densities
+    float RandomValue = FMath::FRandRange(0, TotalWeight);
+
+    // Bias the random selection based on the room densities
+    if (RandomValue < TopLeftOccupied)
+    {
+        return PickRandomCellFromRegion(TopLeftRegion);
+    }
+    else if (RandomValue < TopLeftOccupied + TopRightOccupied)
+    {
+        return PickRandomCellFromRegion(TopRightRegion);
+    }
+    else if (RandomValue < TopLeftOccupied + TopRightOccupied + BottomLeftOccupied)
+    {
+        return PickRandomCellFromRegion(BottomLeftRegion);
+    }
+    else
+    {
+        return PickRandomCellFromRegion(BottomRightRegion);
+    }
+}
+
+FVector2D ASDungeonGenerationComponent::PickRandomCellFromRegion(const TArray<FVector2D>& Region)
+{
+    if (Region.Num() == 0)
+    {
+        return FVector2D(-1, -1);  // Invalid position (no empty space)
+    }
+
+    // Pick a random index from the region
+    int32 RandomIndex = FMath::RandRange(0, Region.Num() - 1);
+    return Region[RandomIndex];
 }
 
 //

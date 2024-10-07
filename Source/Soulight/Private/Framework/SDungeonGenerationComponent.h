@@ -43,6 +43,9 @@ private:
 
 	FVector2D GetCellPositionFromRoom(ASDungeonRoom* TargetRoom);
 
+	FVector2D PickRandomEmptyCell();
+	FVector2D PickRandomCellFromRegion(const TArray<FVector2D>& Region);
+
 	//bool TryMove(FVector2D& CurrentPosition, const FVector2D& MoveDirection);
 	//void ConnectToBossRoom(FVector2D& CurrentPosition, const FVector2D& BossRoomPosition);
 
