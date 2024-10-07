@@ -22,7 +22,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	TArray<ASDungeonRoom*> WalkTowardsEnd(const FVector2D StartPosition, const FVector2D EndPosition, const int32& Steps);
+	TArray<ASDungeonRoom*> WalkTowardsEnd(const FVector2D StartPosition, const FVector2D EndPosition, const int32& Steps, const int32& NumRoomsToKeep);
 	
 	FVector2D GetRandomMoveDirection(const FVector2D& CurrentPos, const FVector2D& BossRoomPosition, float& OutRotation);
 	TArray<ASDungeonRoom*> WalkingGeneration(const int32& Steps, const FVector2D& StartingPosition, const FVector2D& EndPosition);
@@ -34,6 +34,7 @@ private:
 	void CheckIsIndexCorner(TArray<ASDungeonRoom*>& Rooms, const int32& Index);
 
 	TArray<FVector2D> GetPossibleNeighborCells(const FVector2D& CurrentCell);
+	TArray<FVector2D> GetPossibleEmptyNeighborCells(const FVector2D& CurrentCell);
 
 	void GenerateBranches(TArray<ASDungeonRoom*> Path);
 

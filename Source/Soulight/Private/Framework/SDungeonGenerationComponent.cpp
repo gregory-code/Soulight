@@ -42,7 +42,7 @@ void ASDungeonGenerationComponent::BeginPlay()
     int32 Steps = 15;
 
     TArray<ASDungeonRoom*> IntermediatePath;
-    IntermediatePath.Append(WalkTowardsEnd(StartRoomPosition, BossRoomPosition, Steps));
+    IntermediatePath.Append(WalkTowardsEnd(StartRoomPosition, BossRoomPosition, Steps, 2));
 
     GenerateBranches(IntermediatePath);
 
@@ -66,13 +66,13 @@ void ASDungeonGenerationComponent::BeginPlay()
 #pragma region Initial Setup Walking Functions
 //
 
-TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkTowardsEnd(const FVector2D StartPosition, const FVector2D EndPosition, const int32& Steps)
+TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkTowardsEnd(const FVector2D StartPosition, const FVector2D EndPosition, const int32& Steps, const int32& NumRoomsToKeep)
 {
     TArray<ASDungeonRoom*> GeneratedRooms;
 
     GeneratedRooms.Append(WalkingGeneration(Steps, StartPosition, EndPosition));
 
-    ReplaceRoomsWithHallways(GeneratedRooms, 2);
+    ReplaceRoomsWithHallways(GeneratedRooms, NumRoomsToKeep);
 
     //GeneratedRooms.Insert(StartingRooms[0], 0);
     //GeneratedRooms.Add(StartingRooms[1]);
@@ -353,6 +353,41 @@ TArray<FVector2D> ASDungeonGenerationComponent::GetPossibleNeighborCells(const F
     return NeighborCells;
 }
 
+TArray<FVector2D> ASDungeonGenerationComponent::GetPossibleEmptyNeighborCells(const FVector2D& CurrentCell)
+{
+    TArray<FVector2D> NeighborCells;
+
+    // Check Right Cell
+    if (RoomGrid.Contains(FVector2D(CurrentCell.X + 1, CurrentCell.Y)))
+    {
+        if (RoomGrid[FVector2D(CurrentCell.X + 1, CurrentCell.Y)] == nullptr)
+            NeighborCells.Add(FVector2D(CurrentCell.X + 1, CurrentCell.Y));
+    }
+
+    // Check Left Cell
+    if (RoomGrid.Contains(FVector2D(CurrentCell.X - 1, CurrentCell.Y)))
+    {
+        if (RoomGrid[FVector2D(CurrentCell.X - 1, CurrentCell.Y)] == nullptr)
+            NeighborCells.Add(FVector2D(CurrentCell.X - 1, CurrentCell.Y));
+    }
+
+    // Check Up Cell
+    if (RoomGrid.Contains(FVector2D(CurrentCell.X, CurrentCell.Y + 1)))
+    {
+        if (RoomGrid[FVector2D(CurrentCell.X, CurrentCell.Y + 1)] == nullptr)
+            NeighborCells.Add(FVector2D(CurrentCell.X, CurrentCell.Y + 1));
+    }
+
+    // Check Down Cell
+    if (RoomGrid.Contains(FVector2D(CurrentCell.X, CurrentCell.Y - 1)))
+    {
+        if (RoomGrid[FVector2D(CurrentCell.X, CurrentCell.Y - 1)] == nullptr)
+            NeighborCells.Add(FVector2D(CurrentCell.X, CurrentCell.Y - 1));
+    }
+
+    return NeighborCells;
+}
+
 void ASDungeonGenerationComponent::GenerateBranches(TArray<ASDungeonRoom*> Path)
 {
     if (Path.Num() <= 0) return;
@@ -393,7 +428,7 @@ void ASDungeonGenerationComponent::GenerateBranches(TArray<ASDungeonRoom*> Path)
                 }
             }
 
-            WalkTowardsEnd(*Cell, FVector2D(X, Y), 5);
+            WalkTowardsEnd(*Cell, FVector2D(X, Y), 3, 1);
         }
     }
 
@@ -647,11 +682,7 @@ bool ASDungeonGenerationComponent::IsCornerRoom(ASDungeonRoom* TargetRoom)
 {
     const FVector2D* RoomLocation = RoomGrid.FindKey(TargetRoom);
 
-    UE_LOG(LogTemp, Warning, TEXT("Corner Room"));
-
     if (RoomLocation == nullptr) return false;
-
-    UE_LOG(LogTemp, Warning, TEXT("Corner Room, Part 2"));
 
     TArray<FVector2D> NeighborCells;
     NeighborCells.Append(GetPossibleNeighborCells(*RoomLocation));
