@@ -44,11 +44,21 @@ void ASDungeonGenerationComponent::BeginPlay()
     TArray<ASDungeonRoom*> IntermediatePath;
     IntermediatePath.Append(WalkTowardsEnd(StartRoomPosition, BossRoomPosition, Steps, 2));
 
-    GenerateBranches(IntermediatePath);
-
-    FRotator TargetRotation(0, -90.0f, 0);
+    FRotator TargetRotation(0, -290.0f, 0);
 
     FQuat TargetQuat;
+    TargetQuat = FQuat::MakeFromRotator(TargetRotation);
+
+    if(IntermediatePath.Last(1))
+        IntermediatePath.Last(1)->SetActorRotation(TargetQuat); // So the last isn't null? but Last(1) is the last one? idk how this function works
+    else {
+        UE_LOG(LogTemp, Warning, TEXT("THE FUCKING FIRST LAST INDEX OF THE MAIN PATH IS NULL!"));
+    }
+
+    GenerateBranches(IntermediatePath);
+
+    TargetRotation = FRotator(0, -90.0f, 0);
+
     TargetQuat = FQuat::MakeFromRotator(TargetRotation);
     StartingRooms[0]->SetActorRotation(TargetQuat);
 
@@ -112,8 +122,16 @@ TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkTowardsEnd(const FVecto
             GeneratedRooms[GeneratedRooms.Num() - 1]->SetActorRotation(TargetQuat);
         }
 
-        if(GeneratedRooms.Last() != nullptr)
+        if (GeneratedRooms.Last() != nullptr) 
+        {
             UE_LOG(LogTemp, Warning, TEXT("PROBLEM CHILD: %s"), *GeneratedRooms.Last()->GetName());
+
+            FRotator TargetRotation = FRotator(90, 180, 0);
+
+            FQuat TargetQuat;
+            TargetQuat = FQuat::MakeFromRotator(TargetRotation);
+            GeneratedRooms.Last(0)->SetActorRotation(TargetQuat);
+        }
     }
 
 
@@ -289,6 +307,15 @@ void ASDungeonGenerationComponent::ReplaceRoomsWithHallways(TArray<ASDungeonRoom
             // Replace the current element with the new hallway
             Rooms[i] = NewHallway;
             RoomGrid[*Cell] = NewHallway;
+
+            if (Rooms[i] != nullptr) 
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Hallway Is NOT NULL: %s"), *Rooms[i]->GetName());
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Hallway Is NULL AT: %d"), i);
+            }
         }
     }
 }
