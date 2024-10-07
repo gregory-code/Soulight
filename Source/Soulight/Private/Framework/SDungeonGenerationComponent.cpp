@@ -95,6 +95,28 @@ TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkTowardsEnd(const FVecto
         Room->SetActorRotation(TargetQuat);
     }
 
+    // Hit it with that double check to make damn sure it's oriented properly
+
+    if (GeneratedRooms.Num() > 1)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("PLEASE WORK I BEG OF YOU"));
+
+        if (IsValid(GeneratedRooms[GeneratedRooms.Num() - 1]))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("PLEASE WORK I BEG OF YOU, PART 2"));
+
+            FRotator TargetRotation = CalaculateRotationFromRoomPosition(GeneratedRooms[GeneratedRooms.Num() - 2], GeneratedRooms[GeneratedRooms.Num() - 1]);
+            
+            FQuat TargetQuat;
+            TargetQuat = FQuat::MakeFromRotator(TargetRotation);
+            GeneratedRooms[GeneratedRooms.Num() - 1]->SetActorRotation(TargetQuat);
+        }
+
+        if(GeneratedRooms.Last() != nullptr)
+            UE_LOG(LogTemp, Warning, TEXT("PROBLEM CHILD: %s"), *GeneratedRooms.Last()->GetName());
+    }
+
+
     return GeneratedRooms;
 }
 
@@ -188,6 +210,9 @@ TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkingGeneration(const int
                 }
                 */
 
+                if (CurrentRoom != nullptr)
+                    UE_LOG(LogTemp, Warning, TEXT("I AM GENERATING ROOM: %s"), *CurrentRoom->GetName());
+
                 GeneratedRooms.Add(CurrentRoom);
 
                 // Move to the existing room
@@ -243,10 +268,17 @@ void ASDungeonGenerationComponent::ReplaceRoomsWithHallways(TArray<ASDungeonRoom
     // Replace rooms that are not in the RoomsToKeep set with hallways
     for (int32 i = 0; i < Rooms.Num(); i++)
     {
-        if (!RoomsToKeep.Contains(i) && Rooms[i])
+        if (!RoomsToKeep.Contains(i) && IsValid(Rooms[i]))
         {
             // Spawn a new hallway (assuming you have a method to do this)
             ASDungeonRoom* NewHallway = GetWorld()->SpawnActor<ASDungeonRoom>(HallwayClass, Rooms[i]->GetActorLocation(), Rooms[i]->GetActorRotation());
+
+            if (NewHallway != nullptr) {
+                UE_LOG(LogTemp, Warning, TEXT("I AM GENERATING Hallway: %s"), *NewHallway->GetName());
+            }
+            else {
+                UE_LOG(LogTemp, Warning, TEXT("I AM NULL WHY THE FUCK AM I NULL"));
+            }
 
             const FVector2D* Cell = RoomGrid.FindKey(Rooms[i]);
             if (Cell == nullptr) return;
@@ -290,6 +322,8 @@ void ASDungeonGenerationComponent::CheckForCorners(TArray<ASDungeonRoom*>& Rooms
 
             UE_LOG(LogTemp, Warning, TEXT("Replaced room at index %d with a corner hallway."), i);
         }
+
+        continue;
 
         if (IsCornerRoom(Rooms[i]))
         {
@@ -818,8 +852,6 @@ bool ASDungeonGenerationComponent::IsCornerRoom(ASDungeonRoom* TargetRoom)
     NeighborCells.Append(GetPossibleNeighborCells(*RoomLocation));
 
     if (NeighborCells.Num() != 2) return false;
-
-    UE_LOG(LogTemp, Warning, TEXT("Corner Room, Part 3"));
 
     // If both neighbors aren't on the same X or Y level then we know the neighbors
     // must be adjacent to one another not parallel.
