@@ -15,7 +15,7 @@ class USItemUI : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void SetItem(FString itemName, FString itemDescription, UTexture* itemImage);
+	void SetItem(FString itemName, FString itemUpgrade, UTexture* itemImage, FColor itemColor);
 	
 private:
 
@@ -23,7 +23,7 @@ private:
 	FName IconMaterialParameterName{ "Icon" };
 
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* ItemDescription;
+	class UTextBlock* ItemUpgrade;
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* ItemName;

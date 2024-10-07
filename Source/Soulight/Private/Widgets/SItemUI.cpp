@@ -5,10 +5,11 @@
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 
-void USItemUI::SetItem(FString itemName, FString itemDescription, UTexture* itemImage)
+void USItemUI::SetItem(FString itemName, FString itemUpgrade, UTexture* itemImage, FColor itemColor)
 {
 	ItemName->SetText(FText::FromString(itemName));
-	ItemDescription->SetText(FText::FromString(itemDescription));
+	ItemUpgrade->SetText(FText::FromString(itemUpgrade));
+	ItemUpgrade->SetColorAndOpacity(FSlateColor(itemColor));
 
 	if (ItemImage == nullptr)
 	{

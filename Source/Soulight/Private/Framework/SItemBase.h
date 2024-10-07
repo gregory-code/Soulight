@@ -35,12 +35,24 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
 	class USAbilityDataBase* AbilityItem;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Item")
+	FColor AbilityUpgradeColor;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Item")
+	FColor AbilityNewColor;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Item")
+	FColor AbilityReplacesColor;
+
+	UPROPERTY()
+	class ASPlayer* Player;
+
+	UFUNCTION()
+	void SetAbilityItem(class USAbilityDataBase* ability, FString upgrade, FColor abilityColor);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	UFUNCTION()
-	void SetAbilityItem(class USAbilityDataBase* ability);
 
 	//UPROPERTY()
 	//class EquipmentItem*

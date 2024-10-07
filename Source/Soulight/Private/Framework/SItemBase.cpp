@@ -41,8 +41,6 @@ void ASItemBase::BeginPlay()
 	OnActorEndOverlap.AddDynamic(this, &ASItemBase::OnOverlapEnd);
 
 	ItemWidgetComponent->SetVisibility(false, false);
-
-	SetAbilityItem(AbilityItem);
 }
 
 // Called every frame
@@ -52,7 +50,7 @@ void ASItemBase::Tick(float DeltaTime)
 
 }
 
-void ASItemBase::SetAbilityItem(USAbilityDataBase* ability)
+void ASItemBase::SetAbilityItem(USAbilityDataBase* ability, FString upgrade, FColor abilityColor)
 {
 	if (ability == nullptr)
 		return;
@@ -61,13 +59,18 @@ void ASItemBase::SetAbilityItem(USAbilityDataBase* ability)
 	USItemUI* itemUI = Cast<USItemUI>(ItemWidgetComponent->GetWidget());
 	if (itemUI)
 	{
-		itemUI->SetItem(ability->GetAbilityName(), ability->GetAbilityDescription(), ability->GetAbilityIcon());
+		itemUI->SetItem(ability->GetAbilityName(), upgrade, ability->GetAbilityIcon(), abilityColor);
 	}
 }
 
 void ASItemBase::Interact(bool bActionable)
 {
 	if (!bInRange) return;
+
+	if (Player == nullptr)
+		return;
+
+	Player->ObtainItem(AbilityItem);
 
 	// hmm find a way to show this on the players HUD, and tell the player that they got an item. You'll be returning AbilityItem on this script
 
@@ -76,10 +79,30 @@ void ASItemBase::Interact(bool bActionable)
 
 void ASItemBase::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
 {
-	ASPlayer* player = Cast<ASPlayer>(otherActor);
-	if (!player) return;
+	if (Player == nullptr)
+	{
+		Player = Cast<ASPlayer>(otherActor);
+	}
 
-	player->OnInteract.AddDynamic(this, &ASItemBase::Interact);
+	if (!Player) return;
+	if (Player != otherActor) return;
+	
+	switch (Player->GetItemStatus(AbilityItem, Player->GetItemTypeFromNew(AbilityItem)))
+	{
+		case EUpgrade::New:
+			SetAbilityItem(AbilityItem, FString("- New -"), AbilityNewColor);
+			break;
+
+		case EUpgrade::Upgrade:
+			SetAbilityItem(AbilityItem, FString("Upgrade +++"), AbilityUpgradeColor);
+			break;
+
+		case EUpgrade::Replace:
+			SetAbilityItem(AbilityItem, FString("Replaces -> "), AbilityReplacesColor);
+			break;
+	}
+
+	Player->OnInteract.AddDynamic(this, &ASItemBase::Interact);
 
 	bInRange = true;
 	ItemWidgetComponent->SetVisibility(true, false);
@@ -87,10 +110,10 @@ void ASItemBase::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
 
 void ASItemBase::OnOverlapEnd(AActor* overlappedActor, AActor* otherActor)
 {
-	ASPlayer* player = Cast<ASPlayer>(otherActor);
-	if (!player) return;
+	if (!Player) return;
+	if (Player != otherActor) return;
 
-	player->OnInteract.RemoveDynamic(this, &ASItemBase::Interact);
+	Player->OnInteract.RemoveDynamic(this, &ASItemBase::Interact);
 
 	bInRange = false; 
 	ItemWidgetComponent->SetVisibility(false, false);

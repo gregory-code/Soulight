@@ -14,6 +14,14 @@ enum class EType : uint8
 	Skill    UMETA(DisplayName = "Skill"),
 	Spell    UMETA(DisplayName = "Spell")
 };
+
+UENUM(BlueprintType)
+enum class EUpgrade : uint8
+{
+	New			 UMETA(DisplayName = "New"),
+	Upgrade		 UMETA(DisplayName = "Upgrade"),
+	Replace		  UMETA(DisplayName = "Replace")
+};
 /**
  * 
  */

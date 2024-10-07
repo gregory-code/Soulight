@@ -10,6 +10,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteract, bool, bActionable);
 /**
  * 
  */
+
+class USAbilityDataBase;
+
 UCLASS()
 class ASPlayer : public ASCharacterBase
 {
@@ -167,12 +170,23 @@ private:
 	/*         Skills           */
 	/////////////////////////////
 
-	UPROPERTY(EditDefaultsOnly, Category = "Ability")
-	class USAbilityDataBase* CurrentSkill;
+	UPROPERTY(EditAnywhere, Category = "Ability")
+	USAbilityDataBase* CurrentSkill;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Ability")
-	class USAbilityDataBase* CurrentSpell;
+	UPROPERTY(EditAnywhere, Category = "Ability")
+	USAbilityDataBase* CurrentSpell;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Ability")
-	class USAbilityDataBase* CurrentPassive;
+	UPROPERTY(EditAnywhere, Category = "Ability")
+	USAbilityDataBase* CurrentPassive;
+
+	public:
+
+	UFUNCTION()
+	bool ObtainItem(USAbilityDataBase* newItem);
+
+	UFUNCTION()
+	EUpgrade GetItemStatus(USAbilityDataBase* newItem, USAbilityDataBase* currentItem);
+
+	UFUNCTION()
+	USAbilityDataBase*& GetItemTypeFromNew(USAbilityDataBase* newItem);
 };

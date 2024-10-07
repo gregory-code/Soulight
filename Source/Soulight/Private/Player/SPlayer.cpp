@@ -20,7 +20,10 @@
 
 #include "Framework/SFogCleaner.h"
 
+#include "Player/Abilities/SAbilityDataBase.h"
+
 #include "Components/StaticMeshComponent.h"
+
 
 #include "Components/SceneCaptureComponent2D.h"
 
@@ -254,4 +257,58 @@ void ASPlayer::HealthUpdated(const float newHealth)
 
 	FVector interpolatedPos = FMath::Lerp(EmptyHealthView->GetRelativeLocation(), FullHealthView->GetRelativeLocation(), newHealth);
 	MoveCameraToLocalOffset(interpolatedPos);
+}
+
+bool ASPlayer::ObtainItem(USAbilityDataBase* newItem)
+{
+	USAbilityDataBase*& currentItem = GetItemTypeFromNew(newItem);
+
+	switch (GetItemStatus(newItem, currentItem))
+	{
+		case EUpgrade::New:
+			currentItem = newItem;
+			break;
+
+		case EUpgrade::Upgrade:
+			currentItem->LevelUp();
+			break;
+
+		case EUpgrade::Replace:
+			currentItem = newItem;
+			break;
+	}
+
+	return false;
+}
+
+EUpgrade ASPlayer::GetItemStatus(USAbilityDataBase* newItem, USAbilityDataBase* currentItem)
+{
+	if (currentItem == nullptr)
+		return EUpgrade::New;
+	else if (currentItem->GetAbilityName() == newItem->GetAbilityName())
+		return EUpgrade::Upgrade;
+	else if (currentItem->GetAbilityName() != newItem->GetAbilityName())
+		return EUpgrade::Replace;
+
+	return EUpgrade::New;
+}
+
+USAbilityDataBase*& ASPlayer::GetItemTypeFromNew(USAbilityDataBase* newItem)
+{
+	switch (newItem->GetType())
+	{
+	case EType::Passive:
+		return CurrentPassive;
+		break;
+
+	case EType::Skill:
+		return CurrentSkill;
+		break;
+
+	case EType::Spell:
+		return CurrentSpell;
+		break;
+	}
+
+	return CurrentPassive;
 }
