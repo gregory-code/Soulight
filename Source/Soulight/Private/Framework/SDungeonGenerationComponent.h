@@ -61,9 +61,6 @@ private:
 
 	void SpawnHallway(const int32& RoomIndex, const int32& HallwayIndex, const FVector& Location, const FRotator& Rotation);
 	
-	ASDungeonRoom* SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, const FVector& Location);
-	ASDungeonRoom* SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, const FVector& Location, const FRotator& Rotation);
-
 	void GenerateChests(const int32& NumChests);
 
 	bool IsCornerRoom(ASDungeonRoom* TargetRoom);
