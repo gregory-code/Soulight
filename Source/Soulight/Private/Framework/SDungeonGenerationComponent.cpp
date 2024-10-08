@@ -37,9 +37,9 @@ void ASDungeonGenerationComponent::BeginPlay()
     PlaceBossRoom();
 
     FVector2D StartRoomPosition(0, 0);
-    FVector2D BossRoomPosition(5, 5);
+    FVector2D BossRoomPosition(6, 6);
 
-    int32 Steps = 15;
+    int32 Steps = 20;
 
     TArray<ASDungeonRoom*> IntermediatePath;
     IntermediatePath.Append(WalkTowardsEnd(StartRoomPosition, BossRoomPosition, Steps, 2));
@@ -47,10 +47,43 @@ void ASDungeonGenerationComponent::BeginPlay()
     FRotator TargetRotation(0, -290.0f, 0);
 
     FQuat TargetQuat;
-    TargetQuat = FQuat::MakeFromRotator(TargetRotation);
+    
+    if (IntermediatePath.Last(1)) 
+    {
+        TargetRotation = CalculateRoomRotation(IntermediatePath.Last(1));
 
-    if(IntermediatePath.Last(1))
+        FVector2D Cell = GetCellPositionFromRoom(IntermediatePath.Last(1));
+
+        TArray<FVector2D> Neighbors;
+        Neighbors.Append(GetPossibleNeighborCells(Cell));
+        if (Neighbors.Num() > 0)
+        {
+            for (FVector2D NeighborCell : Neighbors) 
+            {
+                if (RoomGrid.Contains(NeighborCell) == false) {
+                    UE_LOG(LogTemp, Warning, TEXT("Cell is not on grid!"));
+
+                    continue;
+                }
+                ASDungeonRoom* Room = RoomGrid[NeighborCell];
+                if (Room == nullptr) {
+                    UE_LOG(LogTemp, Warning, TEXT("This Neighbor is somehow null"));
+                    continue;
+                }
+
+                UE_LOG(LogTemp, Warning, TEXT("Neighbor: %s"), *Room->GetName());
+
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("I HAVE NO FRIENDS: %s"), *IntermediatePath.Last(1)->GetName());
+        }
+
+        TargetQuat = FQuat::MakeFromRotator(TargetRotation);
+
         IntermediatePath.Last(1)->SetActorRotation(TargetQuat); // So the last isn't null? but Last(1) is the last one? idk how this function works
+    }
     else {
         UE_LOG(LogTemp, Warning, TEXT("THE FUCKING FIRST LAST INDEX OF THE MAIN PATH IS NULL!"));
     }
@@ -111,7 +144,7 @@ TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkTowardsEnd(const FVecto
     {
         UE_LOG(LogTemp, Warning, TEXT("PLEASE WORK I BEG OF YOU"));
 
-        if (IsValid(GeneratedRooms[GeneratedRooms.Num() - 1]))
+        if (IsValid(GeneratedRooms.Last(1)))
         {
             UE_LOG(LogTemp, Warning, TEXT("PLEASE WORK I BEG OF YOU, PART 2"));
 
@@ -119,19 +152,9 @@ TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkTowardsEnd(const FVecto
             
             FQuat TargetQuat;
             TargetQuat = FQuat::MakeFromRotator(TargetRotation);
-            GeneratedRooms[GeneratedRooms.Num() - 1]->SetActorRotation(TargetQuat);
+            GeneratedRooms.Last(1)->SetActorRotation(TargetQuat);
         }
 
-        if (GeneratedRooms.Last() != nullptr) 
-        {
-            UE_LOG(LogTemp, Warning, TEXT("PROBLEM CHILD: %s"), *GeneratedRooms.Last()->GetName());
-
-            FRotator TargetRotation = FRotator(90, 180, 0);
-
-            FQuat TargetQuat;
-            TargetQuat = FQuat::MakeFromRotator(TargetRotation);
-            GeneratedRooms.Last(0)->SetActorRotation(TargetQuat);
-        }
     }
 
 
@@ -351,18 +374,6 @@ void ASDungeonGenerationComponent::CheckForCorners(TArray<ASDungeonRoom*>& Rooms
         }
 
         continue;
-
-        if (IsCornerRoom(Rooms[i]))
-        {
-            ASDungeonRoom* HallwayCorner = GetWorld()->SpawnActor<ASDungeonRoom>(CornerHallwayClass, Rooms[i]->GetActorLocation(), Rooms[i]->GetActorRotation());
-            const FVector2D* Cell = RoomGrid.FindKey(Rooms[i]);
-            if (Cell == nullptr) continue;
-
-            Rooms[i]->Destroy();
-
-            Rooms[i] = HallwayCorner;
-            RoomGrid[*Cell] = HallwayCorner;
-        }
     }
 }
 
@@ -665,7 +676,7 @@ void ASDungeonGenerationComponent::PlaceBossRoom()
 {
     if (BossRoomClass == nullptr) return;
 
-    FVector BossRoomLocation = FVector(4 * TileSize, 5 * TileSize, -600.0f);
+    FVector BossRoomLocation = FVector(5 * TileSize, 5 * TileSize, -600.0f);
     ASDungeonRoom* Room = GetWorld()->SpawnActor<ASDungeonRoom>(BossRoomClass, BossRoomLocation, FRotator::ZeroRotator);
     if (Room == nullptr) return;
 
