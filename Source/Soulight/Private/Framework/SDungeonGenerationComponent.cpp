@@ -129,6 +129,30 @@ TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkTowardsEnd(ASDungeonRoo
         Room->SetActorRotation(TargetQuat);
     }
 
+    // Re-add Neighbors
+
+    if (GeneratedRooms.Num() < 1) return GeneratedRooms;
+
+    for (int32 i = 0; i < GeneratedRooms.Num(); i++)
+    {
+        // Get the current room
+        ASDungeonRoom* CurrentRoom = GeneratedRooms[i];
+
+        // Check for previous room
+        if (i > 0)
+        {
+            ASDungeonRoom* PreviousRoom = GeneratedRooms[i - 1];
+            CurrentRoom->AddChildRoom(PreviousRoom);
+        }
+
+        // Check for next room
+        if (i < GeneratedRooms.Num() - 1)
+        {
+            ASDungeonRoom* NextRoom = GeneratedRooms[i + 1];
+            CurrentRoom->AddChildRoom(NextRoom);
+        }
+    }
+
     // Hit it with that double check to make damn sure it's oriented properly
 
     return GeneratedRooms;
@@ -377,6 +401,7 @@ void ASDungeonGenerationComponent::ReplaceRoomsWithHallways(TArray<ASDungeonRoom
                 for (ASDungeonRoom* Room : TempNeighbors)
                 {
                     NewHallway->AddChildRoom(Room);
+                    UE_LOG(LogTemp, Warning, TEXT("NEIGHBORING NEIGHBOR: %s"), *Room->GetName());
                 }
             }
 
@@ -704,6 +729,11 @@ void ASDungeonGenerationComponent::FindBestRoom()
         if (Room->GetIsHallway() || IsValid(Room) == false || Room->GetChildrenRoom().Num() == 0) continue;
 
         int32 NeighborCount = Room->GetChildrenRoom().Num();
+        for (ASDungeonRoom* Neighbor : Room->GetChildrenRoom()) 
+        {
+            if (IsValid(Neighbor))
+                UE_LOG(LogTemp, Warning, TEXT("I AM NEIGHBOR: %s"), *Neighbor->GetName());
+        }
 
         if (RoomMap.Contains(NeighborCount) == false) continue;
 
