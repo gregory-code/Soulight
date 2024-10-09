@@ -45,6 +45,9 @@ public:
 	UFUNCTION()
 	bool GetIsHallway();
 
+	UFUNCTION()
+	bool GetIsCorner();
+
 	FORCEINLINE TArray<ASDungeonRoom*> GetChildrenRoom() { return ChildrenRoom; }
 
 private:
@@ -53,6 +56,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Room Details")
 	bool bIsHallway = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Room Details")
+	bool bIsCorner = false;
 
 	TArray<ASDungeonRoom*> ChildrenRoom;
 
