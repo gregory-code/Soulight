@@ -88,6 +88,8 @@ void ASDungeonGenerationComponent::BeginPlay()
 
     GenerateDeadEnds();
 
+    FindBestRoom();
+
     return;
 
     GenerateChests(MaxNumChests);
@@ -232,6 +234,7 @@ TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkingGeneration(const int
                     if (GeneratedRooms.Num() > 0)
                     {
                         CurrentRoom->AddChildRoom(GeneratedRooms[GeneratedRooms.Num() - 1]);
+                        GeneratedRooms[GeneratedRooms.Num() - 1]->AddChildRoom(CurrentRoom);
                     }
 
                     GeneratedRooms.Add(CurrentRoom);
@@ -299,6 +302,17 @@ void ASDungeonGenerationComponent::GenerateBranches(TArray<ASDungeonRoom*> Path)
                 ASDungeonRoom* Deadend = GetWorld()->SpawnActor<ASDungeonRoom>(DeadendHallwayClass, IntermediatePath.Last()->GetActorLocation(), TargetRotation);
                 if (Deadend == nullptr) continue;
 
+                TArray<ASDungeonRoom*> TempNeighbors = IntermediatePath.Last()->GetChildrenRoom();
+
+                //Room->Destroy();
+
+                if (TempNeighbors.Num() > 0)
+                {
+                    for (ASDungeonRoom* TempRoom : TempNeighbors)
+                    {
+                        Deadend->AddChildRoom(TempRoom);
+                    }
+                }
                 IntermediatePath.Last()->Destroy();
 
                 RoomGrid[CurrentCell] = Deadend;
@@ -356,6 +370,15 @@ void ASDungeonGenerationComponent::ReplaceRoomsWithHallways(TArray<ASDungeonRoom
 
             const FVector2D* Cell = RoomGrid.FindKey(Rooms[i]);
             if (Cell == nullptr) return;
+
+            TArray<ASDungeonRoom*> TempNeighbors = Rooms[i]->GetChildrenRoom();
+            if (TempNeighbors.Num() > 0) 
+            {
+                for (ASDungeonRoom* Room : TempNeighbors)
+                {
+                    NewHallway->AddChildRoom(Room);
+                }
+            }
 
             // Destroy the current room
             Rooms[i]->Destroy();
@@ -670,6 +693,28 @@ FVector2D ASDungeonGenerationComponent::PickRandomCellFromRegion(const TArray<FV
     // Pick a random index from the region
     int32 RandomIndex = FMath::RandRange(0, Region.Num() - 1);
     return Region[RandomIndex];
+}
+
+void ASDungeonGenerationComponent::FindBestRoom()
+{
+    if (AllRooms.Num() <= 0) return;
+
+    for (ASDungeonRoom* Room : AllRooms) 
+    {
+        if (Room->GetIsHallway() || IsValid(Room) == false || Room->GetChildrenRoom().Num() == 0) continue;
+
+        int32 NeighborCount = Room->GetChildrenRoom().Num();
+
+        if (RoomMap.Contains(NeighborCount) == false) continue;
+
+        //Replace Room with proper room
+        ASDungeonRoom* SpawnedRoom = GetWorld()->SpawnActor<ASDungeonRoom>(RoomMap[NeighborCount], Room->GetActorLocation(), Room->GetActorRotation());
+        if (IsValid(SpawnedRoom) == false) continue;
+
+        Room->Destroy();
+
+        UE_LOG(LogTemp, Warning, TEXT("I AM FINDING THE BEST ROOM"));
+    }
 }
 
 //
