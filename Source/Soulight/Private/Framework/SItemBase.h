@@ -47,6 +47,9 @@ private:
 	UPROPERTY()
 	class ASPlayer* Player;
 
+	UPROPERTY(VisibleAnywhere)
+	class USItemUI* ItemUI;
+
 	UFUNCTION()
 	void SetAbilityItem(class USAbilityDataBase* ability, FString upgrade, FColor abilityColor);
 

@@ -2,25 +2,25 @@
 
 
 #include "Widgets/SStatsUI.h"
-#include "Player/Abilities/SAbilityDataBase.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "Player/Abilities/SAbilityDataBase.h"
 
-void USStatsUI::AddAbility(USAbilityDataBase* newSkill)
+void USStatsUI::AddAbility(USAbilityDataBase* newSkill/*, EUpgrade upgradeType*/)
 {
 	switch (newSkill->GetType())
 	{
-	case EType::Skill:
+		case EType::Skill:
 		ApplyAbilityToType(newSkill, SkillName, SkillDescription, SkillImage);
-			break;
+		break;
 
-	case EType::Spell:
+		case EType::Spell:
 		ApplyAbilityToType(newSkill, SpellName, SpellDescription, SpellImage);
-			break;
+		break;
 
-	case EType::Passive:
+		case EType::Passive:
 		ApplyAbilityToType(newSkill, PassiveName, PassiveDescription, PassiveImage);
-			break;
+		break;
 	}
 }
 

@@ -5,6 +5,7 @@
 #include "Player/SPlayer.h"
 #include "Kismet/GameplayStatics.h"
 #include "Widgets/SGameplayUI.h"
+#include "Player/Abilities/SAbilityDataBase.h"
 #include "Widgets/SPlayerHUDUI.h"
 #include "Widgets/SStatsUI.h"
 
@@ -43,6 +44,11 @@ void ASPlayerController::GameplayUIState(bool state)
 		GameplayUI->AddToViewport();
 		PlayerHUDUI->RemoveFromParent();
 	}
+}
+
+void ASPlayerController::AddAbility(USAbilityDataBase* newAbility)
+{
+	PlayerHUDUI->StatsUI->AddAbility(newAbility);
 }
 
 void ASPlayerController::PostPossessionSetup(APawn* NewPawn)

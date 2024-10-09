@@ -13,11 +13,13 @@ UCLASS()
 class USPlayerHUDUI : public UUserWidget
 {
 	GENERATED_BODY()
-	
-private:
 
+public:
 	UPROPERTY(meta = (BindWidget))
 	class USStatsUI* StatsUI;
+
+	
+private:
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* CharacterName;

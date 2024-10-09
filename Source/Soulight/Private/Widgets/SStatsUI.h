@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "SStatsUI.generated.h"
 
+class USAbilityDataBase;
 /**
  * 
  */
@@ -16,11 +17,11 @@ class USStatsUI : public UUserWidget
 
 public:
 
-	void AddAbility(class USAbilityDataBase* newSkill);
+	void AddAbility(USAbilityDataBase* newSkill/*, EUpgrade upgradeType*/);
 	
 private:
 
-	void ApplyAbilityToType(class USAbilityDataBase* newSkill, class UTextBlock* targetName, class UTextBlock* targetDescription, class UImage* targetImage);
+	void ApplyAbilityToType(USAbilityDataBase* newSkill, class UTextBlock* targetName, class UTextBlock* targetDescription, class UImage* targetImage);
 
 	UPROPERTY(EditDefaultsOnly)
 	FName IconMaterialParameterName{ "Icon" };

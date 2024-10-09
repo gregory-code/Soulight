@@ -267,14 +267,17 @@ bool ASPlayer::ObtainItem(USAbilityDataBase* newItem)
 	{
 		case EUpgrade::New:
 			currentItem = newItem;
+			//PlayerController->AddAbility(newItem, EUpgrade::New);
 			break;
 
 		case EUpgrade::Upgrade:
 			currentItem->LevelUp();
+			//PlayerController->AddAbility(newItem, EUpgrade::Upgrade);
 			break;
 
 		case EUpgrade::Replace:
 			currentItem = newItem;
+			//PlayerController->AddAbility(newItem, EUpgrade::Replace);
 			break;
 	}
 

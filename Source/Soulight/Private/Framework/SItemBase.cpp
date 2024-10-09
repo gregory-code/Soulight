@@ -7,7 +7,9 @@
 #include "Player/Abilities/SAbilityDataBase.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/Image.h"
 #include "Engine/Texture.h"
+#include "Widgets/SItemUI.h"
 #include "Widgets/SItemUI.h"
 #include "Engine/Texture2D.h"
 #include "Widgets/SItemWidgetComponent.h"
@@ -40,7 +42,13 @@ void ASItemBase::BeginPlay()
 	OnActorBeginOverlap.AddDynamic(this, &ASItemBase::OnOverlapBegin);
 	OnActorEndOverlap.AddDynamic(this, &ASItemBase::OnOverlapEnd);
 
-	ItemWidgetComponent->SetVisibility(false, false);
+	//ItemWidgetComponent->SetVisibility(false, false);
+
+	ItemUI = Cast<USItemUI>(ItemWidgetComponent->GetWidget());
+	if (ItemUI)
+	{
+		ItemUI->Start();
+	}
 }
 
 // Called every frame
@@ -48,6 +56,10 @@ void ASItemBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (ItemUI)
+	{
+		ItemUI->TickInRange(bInRange, DeltaTime);
+	}
 }
 
 void ASItemBase::SetAbilityItem(USAbilityDataBase* ability, FString upgrade, FColor abilityColor)
@@ -105,7 +117,7 @@ void ASItemBase::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
 	Player->OnInteract.AddDynamic(this, &ASItemBase::Interact);
 
 	bInRange = true;
-	ItemWidgetComponent->SetVisibility(true, false);
+	//ItemWidgetComponent->SetVisibility(true, false);
 }
 
 void ASItemBase::OnOverlapEnd(AActor* overlappedActor, AActor* otherActor)
@@ -116,6 +128,6 @@ void ASItemBase::OnOverlapEnd(AActor* overlappedActor, AActor* otherActor)
 	Player->OnInteract.RemoveDynamic(this, &ASItemBase::Interact);
 
 	bInRange = false; 
-	ItemWidgetComponent->SetVisibility(false, false);
+	//ItemWidgetComponent->SetVisibility(false, false);
 }
 

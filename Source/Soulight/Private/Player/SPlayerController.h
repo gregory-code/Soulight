@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "SPlayerController.generated.h"
 
+class USAbilityDataBase;
 /**
  * 
  */
@@ -20,6 +21,8 @@ public:
 	virtual void AcknowledgePossession(APawn* NewPawn) override;
 
 	void GameplayUIState(bool state);
+
+	void AddAbility(USAbilityDataBase* newAbility);
 
 private:
 	void PostPossessionSetup(APawn* NewPawn);

@@ -17,10 +17,26 @@ class USItemUI : public UUserWidget
 public:
 	void SetItem(FString itemName, FString itemUpgrade, UTexture* itemImage, FColor itemColor);
 	
+	void TickInRange(bool bInRange, float DeltaTime);
+
+	void Start();
+
 private:
+
+	UPROPERTY(meta = (BindWidget))
+	class UImage* ItemImage;
 
 	UPROPERTY(EditDefaultsOnly)
 	FName IconMaterialParameterName{ "Icon" };
+
+	UPROPERTY(EditDefaultsOnly)
+	FName OutlineParameterName{ "Outline Box Scale" };
+
+	UPROPERTY(EditDefaultsOnly)
+	FName BackgroundParameterName{ "Box Scale" };
+
+	UPROPERTY(EditDefaultsOnly)
+	FName OpacityParameterName{ "Opacity" };
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* ItemUpgrade;
@@ -28,6 +44,21 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* ItemName;
 
-	UPROPERTY(meta = (BindWidget))
-	class UImage* ItemImage;
+	UPROPERTY()
+	class UCanvasPanelSlot* ItemNameSlot;
+
+	UPROPERTY()
+	class UCanvasPanelSlot* ItemUpgradeSlot;
+
+	UPROPERTY()
+	float OriginalOutlineScale;
+
+	UPROPERTY()
+	float OriginalBackgroundScale;
+
+	UPROPERTY()
+	float OriginalItemNameY;
+
+	UPROPERTY()
+	float OriginalItemUpgradeY;
 };
