@@ -63,32 +63,16 @@ void ASDungeonGenerationComponent::BeginPlay()
         {
             for (FVector2D NeighborCell : Neighbors) 
             {
-                if (RoomGrid.Contains(NeighborCell) == false) {
-                    UE_LOG(LogTemp, Warning, TEXT("Cell is not on grid!"));
+                if (RoomGrid.Contains(NeighborCell) == false) continue;
 
-                    continue;
-                }
                 ASDungeonRoom* Room = RoomGrid[NeighborCell];
-                if (Room == nullptr) {
-                    UE_LOG(LogTemp, Warning, TEXT("This Neighbor is somehow null"));
-                    continue;
-                }
-
-                UE_LOG(LogTemp, Warning, TEXT("Neighbor: %s"), *Room->GetName());
-
+                if (Room == nullptr) continue;
             }
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("I HAVE NO FRIENDS: %s"), *IntermediatePath.Last(1)->GetName());
         }
 
         TargetQuat = FQuat::MakeFromRotator(TargetRotation);
 
         IntermediatePath.Last(1)->SetActorRotation(TargetQuat); // So the last isn't null? but Last(1) is the last one? idk how this function works
-    }
-    else {
-        UE_LOG(LogTemp, Warning, TEXT("THE FUCKING FIRST LAST INDEX OF THE MAIN PATH IS NULL!"));
     }
 
     GenerateBranches(IntermediatePath);
@@ -238,12 +222,13 @@ TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkingGeneration(const int
                 {
                     UE_LOG(LogTemp, Warning, TEXT("I AM GENERATING ROOM: %s"), *CurrentRoom->GetName());
 
+                    if (GeneratedRooms.Num() > 0)
+                    {
+                        CurrentRoom->AddChildRoom(GeneratedRooms[GeneratedRooms.Num() - 1]);
+                    }
+
                     GeneratedRooms.Add(CurrentRoom);
                     AllRooms.Add(CurrentRoom);
-                }
-                else
-                {
-                    UE_LOG(LogTemp, Warning, TEXT("HOW THE FUCK AM I STILL NULL"));
                 }
 
                 CurrentPosition = NextPosition;
@@ -451,7 +436,7 @@ TArray<FVector2D> ASDungeonGenerationComponent::GetPossibleEmptyNeighborCells(co
 void ASDungeonGenerationComponent::GenerateBranches(TArray<ASDungeonRoom*> Path)
 {
     if (Path.Num() <= 0) return;
-
+    
     for (ASDungeonRoom* Room : Path) 
     {
         if (IsValid(Room) && Room->GetIsHallway() == false) 
@@ -471,7 +456,29 @@ void ASDungeonGenerationComponent::GenerateBranches(TArray<ASDungeonRoom*> Path)
                 continue;
             }
 
-            WalkTowardsEnd(*Cell, RandomCell, 10, 1);
+            TArray<ASDungeonRoom*> IntermediatePath;
+            FRotator TargetRotation(0, -290.0f, 0);
+            FQuat TargetQuat;
+
+            IntermediatePath.Append(WalkTowardsEnd(*Cell, RandomCell, 5, 1));
+
+            if (IntermediatePath.Num() <= 2) continue;
+
+            // I think I should just use the last rooms position to influence rotation so it moves straight
+            if (IsValid(IntermediatePath.Last()))
+            {
+                TargetRotation = CalculateRoomRotation(IntermediatePath.Last());
+
+                FVector2D CurrentCell = GetCellPositionFromRoom(IntermediatePath.Last());
+                TargetRotation = CalaculateRotationFromRoomPosition(IntermediatePath.Last(1), IntermediatePath.Last());
+
+                ASDungeonRoom* Deadend = GetWorld()->SpawnActor<ASDungeonRoom>(DeadendHallwayClass, IntermediatePath.Last()->GetActorLocation(), TargetRotation);
+                if (Deadend == nullptr) continue;
+
+                IntermediatePath.Last()->Destroy();
+
+                RoomGrid[CurrentCell] = Deadend;
+            }
         }
     }
 }
@@ -511,7 +518,6 @@ void ASDungeonGenerationComponent::GenerateDeadEnds()
             TargetQuat = FQuat::MakeFromRotator(TargetRotation);
             DeadendHallway->SetActorRotation(TargetQuat);
         }
-
     }
 }
 
@@ -805,10 +811,6 @@ FRotator ASDungeonGenerationComponent::CalculateRoomRotation(ASDungeonRoom* Targ
         // Normalize the direction vectors
         FirstNeighborDirection.Normalize();
         SecondNeighborDirection.Normalize();
-
-        // Log the directions for debugging
-        //UE_LOG(LogTemp, Warning, TEXT("First Neighbor Direction: X=%f, Y=%f"), FirstNeighborDirection.X, FirstNeighborDirection.Y);
-        //UE_LOG(LogTemp, Warning, TEXT("Second Neighbor Direction: X=%f, Y=%f"), SecondNeighborDirection.X, SecondNeighborDirection.Y);
 
         // Function to check if two directions are approximately equal
         auto AreDirectionsEqual = [](const FVector2D& Dir1, const FVector2D& Dir2, float Tolerance) -> bool
