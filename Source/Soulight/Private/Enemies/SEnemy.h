@@ -14,4 +14,11 @@ class ASEnemy : public ASCharacterBase
 {
 	GENERATED_BODY()
 	
+public:
+	ASEnemy();
+
+private:
+	UPROPERTY(VisibleDefaultsOnly, Category = "AI")
+	class UAIPerceptionStimuliSourceComponent* AIPerceptionSourceComp;
+
 };
