@@ -23,8 +23,8 @@ void USStatsUI::AddAbility(USAbilityDataBase* newSkill, EUpgrade upgradeType)
 			targetDescription = SkillDescription;
 			targetImage = SkillImage;
 			targetStar1 = SkillStar1;
-			targetStar1 = SkillStar2;
-			targetStar1 = SkillStar3;
+			targetStar2 = SkillStar2;
+			targetStar3 = SkillStar3;
 		break;
 
 		case EType::Spell:
@@ -32,8 +32,8 @@ void USStatsUI::AddAbility(USAbilityDataBase* newSkill, EUpgrade upgradeType)
 			targetDescription = SpellDescription;
 			targetImage = SpellImage;
 			targetStar1 = SpellStar1;
-			targetStar1 = SpellStar2;
-			targetStar1 = SpellStar3;
+			targetStar2 = SpellStar2;
+			targetStar3 = SpellStar3;
 		break;
 
 		case EType::Passive:
@@ -41,8 +41,8 @@ void USStatsUI::AddAbility(USAbilityDataBase* newSkill, EUpgrade upgradeType)
 			targetDescription = PassiveDescription;
 			targetImage = PassiveImage;
 			targetStar1 = passiveStar1;
-			targetStar1 = PassiveStar2;
-			targetStar1 = PassiveStar3;
+			targetStar2 = PassiveStar2;
+			targetStar3 = PassiveStar3;
 		break;
 	}
 	
@@ -51,7 +51,14 @@ void USStatsUI::AddAbility(USAbilityDataBase* newSkill, EUpgrade upgradeType)
 
 	if (upgradeType == EUpgrade::Upgrade)
 	{
-
+		if (newSkill->GetLevel() == 2)
+		{
+			targetStar2->SetBrushFromTexture(FullStarTexture);
+		}
+		else if (newSkill->GetLevel() == 3)
+		{
+			targetStar3->SetBrushFromTexture(FullStarTexture);
+		}
 	}
 	else
 	{

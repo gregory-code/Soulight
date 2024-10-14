@@ -35,6 +35,9 @@ public:
 	bool LevelUp();
 
 	UFUNCTION()
+	int GetLevel();
+
+	UFUNCTION()
 	EType GetType();
 
 	UFUNCTION()

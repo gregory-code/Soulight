@@ -16,6 +16,12 @@ bool USAbilityDataBase::LevelUp()
 	return true;
 }
 
+int USAbilityDataBase::GetLevel()
+{
+	return level;
+}
+
+
 EType USAbilityDataBase::GetType()
 {
 	return AbilityType;
