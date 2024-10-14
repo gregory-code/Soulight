@@ -22,8 +22,9 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	TArray<ASDungeonRoom*> WalkTowardsEnd(ASDungeonRoom* RootRoom, const FVector2D StartPosition, const FVector2D EndPosition, const int32& Steps, const int32& NumRoomsToKeep);
-	
+	TArray<ASDungeonRoom*> WalkTowardsEnd(ASDungeonRoom* RootRoom, const FVector2D& StartPosition, const FVector2D& EndPosition, const int32& Steps, const int32& NumRoomsToKeep);
+	TArray<ASDungeonRoom*> WalkRandomly(ASDungeonRoom* RootRoom, const FVector2D& StartPosition, const int32& Steps, const int32& RoomsToKeep);
+
 	FVector2D GetRandomMoveDirection(const FVector2D& CurrentPos, const FVector2D& BossRoomPosition, float& OutRotation);
 	TArray<ASDungeonRoom*> WalkingGeneration(const int32& Steps, const FVector2D& StartingPosition, const FVector2D& EndPosition);
 	bool CanWalkInDirection(const FVector2D& Direction);
@@ -31,7 +32,6 @@ private:
 	void ReplaceRoomsWithHallways(TArray<ASDungeonRoom*>& Rooms, const int32& NumRoomsToKeep);
 
 	void CheckForCorners(TArray<ASDungeonRoom*>& Rooms);
-	void CheckIsIndexCorner(TArray<ASDungeonRoom*>& Rooms, const int32& Index);
 
 	// I am Assuming The Room Is Always a Corner
 	void MakeCornerRoom(ASDungeonRoom* Room);
@@ -40,6 +40,7 @@ private:
 	TArray<FVector2D> GetPossibleEmptyNeighborCells(const FVector2D& CurrentCell);
 
 	void GenerateBranches(TArray<ASDungeonRoom*> Path);
+	void BranchPathRotation(TArray<ASDungeonRoom*> Path);
 
 	// Brute Force Approach, Works as a final pass of generation
 	void GenerateDeadEnds();
