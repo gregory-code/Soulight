@@ -42,7 +42,7 @@ void ASDungeonGenerationComponent::BeginPlay()
     int32 Steps = 20;
 
     TArray<ASDungeonRoom*> IntermediatePath;
-    IntermediatePath.Append(WalkTowardsEnd(StartingRooms[0], StartRoomPosition, BossRoomPosition, Steps, 3));
+    IntermediatePath.Append(WalkTowardsEnd(StartingRooms[0], StartRoomPosition, BossRoomPosition, Steps, 5));
 
     FRotator TargetRotation(0, -290.0f, 0);
 
@@ -75,7 +75,7 @@ void ASDungeonGenerationComponent::BeginPlay()
         IntermediatePath.Last(1)->SetActorRotation(TargetQuat); // So the last isn't null? but Last(1) is the last one? idk how this function works
     }
 
-    GenerateBranches(IntermediatePath);
+    //GenerateBranches(IntermediatePath);
 
     TargetRotation = FRotator(0, -90.0f, 0);
 
@@ -86,7 +86,7 @@ void ASDungeonGenerationComponent::BeginPlay()
     TargetQuat = FQuat::MakeFromRotator(TargetRotation);
     StartingRooms[1]->SetActorRotation(TargetQuat);
 
-    //GenerateDeadEnds();
+    GenerateDeadEnds();
 
     FindBestRoom();
 
@@ -285,7 +285,8 @@ TArray<ASDungeonRoom*> ASDungeonGenerationComponent::WalkingGeneration(const int
                 {
                     FVector SpawnLocation = FVector(NextPosition.X * TileSize, NextPosition.Y * TileSize, -100.0f);
 
-                    CurrentRoom = GetWorld()->SpawnActor<ASDungeonRoom>(RoomMap[4], SpawnLocation, FRotator(0, Rotation, 0));
+                    int32 RandomRoom = FMath::RandRange(2, 4);
+                    CurrentRoom = GetWorld()->SpawnActor<ASDungeonRoom>(RoomMap[RandomRoom], SpawnLocation, FRotator(0, Rotation, 0));
 
                     RoomGrid[NextPosition] = CurrentRoom; // Store the new room in the grid
                 }
@@ -336,7 +337,7 @@ void ASDungeonGenerationComponent::GenerateBranches(TArray<ASDungeonRoom*> Path)
             FRotator TargetRotation(0, -290.0f, 0);
             FQuat TargetQuat;
 
-            int32 RandomRoomCount = FMath::RandRange(1, 1);
+            int32 RandomRoomCount = FMath::RandRange(1, 3);
             IntermediatePath.Append(WalkRandomly(Room, *Cell, RandomRoomCount, 1));
 
             if (IntermediatePath.Num() <= 0) continue;
@@ -349,7 +350,7 @@ void ASDungeonGenerationComponent::GenerateBranches(TArray<ASDungeonRoom*> Path)
 
             ReplaceRoomsWithHallways(IntermediatePath, 1);
 
-            //BranchPathRotation(IntermediatePath);
+            BranchPathRotation(IntermediatePath);
 
             CheckForCorners(IntermediatePath);
 
@@ -877,22 +878,26 @@ void ASDungeonGenerationComponent::FindBestRoom()
         }
 
         // Check if best room is a corner room
-        ASDungeonRoom* SpawnedRoom;
+        //ASDungeonRoom* SpawnedRoom;
         if (NeighborCount == 2 && IsCornerRoom(Room)) 
         {
-            SpawnedRoom = GetWorld()->SpawnActor<ASDungeonRoom>(CornerRoomClass, Room->GetActorLocation(), Room->GetActorRotation());
+            ASDungeonRoom* SpawnedRoom = GetWorld()->SpawnActor<ASDungeonRoom>(CornerRoomClass, Room->GetActorLocation(), Room->GetActorRotation());
+
+            if (IsValid(SpawnedRoom) == false) continue;
+
+            Room->Destroy();
+
+            UE_LOG(LogTemp, Warning, TEXT("I AM FINDING THE BEST ROOM"));
         }
+        /*
         else
         {
             SpawnedRoom = GetWorld()->SpawnActor<ASDungeonRoom>(RoomMap[NeighborCount], Room->GetActorLocation(), Room->GetActorRotation());
         }
+        */
 
         //Replace Room with proper room
-        if (IsValid(SpawnedRoom) == false) continue;
-
-        Room->Destroy();
-
-        UE_LOG(LogTemp, Warning, TEXT("I AM FINDING THE BEST ROOM"));
+        
     }
 }
 
