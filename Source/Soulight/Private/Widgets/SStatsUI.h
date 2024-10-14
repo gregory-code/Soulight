@@ -17,20 +17,21 @@ class USStatsUI : public UUserWidget
 
 public:
 
-	void AddAbility(USAbilityDataBase* newSkill/*, EUpgrade upgradeType*/);
+	UFUNCTION()
+	void AddAbility(USAbilityDataBase* newSkill, EUpgrade upgradeType);
 	
 private:
 
-	void ApplyAbilityToType(USAbilityDataBase* newSkill, class UTextBlock* targetName, class UTextBlock* targetDescription, class UImage* targetImage);
+	void ApplyNewSkill(USAbilityDataBase* newSkill, class UTextBlock*& targetName, class UTextBlock*& targetDescription, class UImage*& targetImage, class UImage*& star1, class UImage*& star2, class UImage*& star3);
 
 	UPROPERTY(EditDefaultsOnly)
 	FName IconMaterialParameterName{ "Icon" };
 
 	UPROPERTY(EditDefaultsOnly)
-	UTexture* EmptyStarTexture;
+	UTexture2D* EmptyStarTexture;
 
 	UPROPERTY(EditDefaultsOnly)
-	UTexture* FullStarTexture;
+	UTexture2D* FullStarTexture;
 
 	////////////////////////////////////
 

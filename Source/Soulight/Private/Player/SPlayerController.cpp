@@ -46,9 +46,9 @@ void ASPlayerController::GameplayUIState(bool state)
 	}
 }
 
-void ASPlayerController::AddAbility(USAbilityDataBase* newAbility)
+void ASPlayerController::AddAbility(USAbilityDataBase* newAbility, EUpgrade upgrade)
 {
-	PlayerHUDUI->StatsUI->AddAbility(newAbility);
+	PlayerHUDUI->StatsUI->AddAbility(newAbility, upgrade);
 }
 
 void ASPlayerController::PostPossessionSetup(APawn* NewPawn)

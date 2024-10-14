@@ -6,10 +6,12 @@
 #include "GameFramework/PlayerController.h"
 #include "SPlayerController.generated.h"
 
-class USAbilityDataBase;
 /**
  * 
  */
+
+class USAbilityDataBase;
+
 UCLASS()
 class ASPlayerController : public APlayerController
 {
@@ -22,7 +24,8 @@ public:
 
 	void GameplayUIState(bool state);
 
-	void AddAbility(USAbilityDataBase* newAbility);
+	UFUNCTION()
+	void AddAbility(USAbilityDataBase* newAbility, EUpgrade upgrade);
 
 private:
 	void PostPossessionSetup(APawn* NewPawn);
