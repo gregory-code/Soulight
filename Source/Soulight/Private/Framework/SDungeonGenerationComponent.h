@@ -22,16 +22,35 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	void WalkTowardsEnd(const int32& Steps);
-	//bool IsRoomValid(const FVector2D& Position);
+	TArray<ASDungeonRoom*> WalkTowardsEnd(ASDungeonRoom* RootRoom, const FVector2D& StartPosition, const FVector2D& EndPosition, const int32& Steps, const int32& NumRoomsToKeep);
+	TArray<ASDungeonRoom*> WalkRandomly(ASDungeonRoom* RootRoom, const FVector2D& StartPosition, const int32& Steps, const int32& RoomsToKeep);
+
 	FVector2D GetRandomMoveDirection(const FVector2D& CurrentPos, const FVector2D& BossRoomPosition, float& OutRotation);
 	TArray<ASDungeonRoom*> WalkingGeneration(const int32& Steps, const FVector2D& StartingPosition, const FVector2D& EndPosition);
+	bool CanWalkInDirection(const FVector2D& Direction);
+
 	void ReplaceRoomsWithHallways(TArray<ASDungeonRoom*>& Rooms, const int32& NumRoomsToKeep);
 
 	void CheckForCorners(TArray<ASDungeonRoom*>& Rooms);
-	void CheckIsIndexCorner(TArray<ASDungeonRoom*>& Rooms, const int32& Index);
+
+	// I am Assuming The Room Is Always a Corner
+	void MakeCornerRoom(ASDungeonRoom* Room);
 
 	TArray<FVector2D> GetPossibleNeighborCells(const FVector2D& CurrentCell);
+	TArray<FVector2D> GetPossibleEmptyNeighborCells(const FVector2D& CurrentCell);
+
+	void GenerateBranches(TArray<ASDungeonRoom*> Path);
+	void BranchPathRotation(TArray<ASDungeonRoom*> Path);
+
+	// Brute Force Approach, Works as a final pass of generation
+	void GenerateDeadEnds();
+
+	FVector2D GetCellPositionFromRoom(ASDungeonRoom* TargetRoom);
+
+	FVector2D PickRandomEmptyCell();
+	FVector2D PickRandomCellFromRegion(const TArray<FVector2D>& Region);
+
+	void FindBestRoom();
 
 	//bool TryMove(FVector2D& CurrentPosition, const FVector2D& MoveDirection);
 	//void ConnectToBossRoom(FVector2D& CurrentPosition, const FVector2D& BossRoomPosition);
@@ -48,14 +67,15 @@ private:
 
 	void SpawnHallway(const int32& RoomIndex, const int32& HallwayIndex, const FVector& Location, const FRotator& Rotation);
 	
-	ASDungeonRoom* SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, const FVector& Location);
-	ASDungeonRoom* SpawnRoom(TSubclassOf<ASDungeonRoom> RoomClass, const FVector& Location, const FRotator& Rotation);
-
 	void GenerateChests(const int32& NumChests);
 
 	bool IsCornerRoom(ASDungeonRoom* TargetRoom);
 
 	FRotator CalculateRoomRotation(ASDungeonRoom* TargetRoom);
+
+	void RotateRoomsBasedOnPath(TArray<ASDungeonRoom*> Path);
+
+	FRotator CalaculateRotationFromRoomPosition(ASDungeonRoom* ParentRoom, ASDungeonRoom* TargetRoom);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TSubclassOf<ASDungeonRoom> StartingRoomClass;
@@ -71,6 +91,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TSubclassOf<ASDungeonRoom> CornerHallwayClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
+	TSubclassOf<ASDungeonRoom> DeadendHallwayClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dungeon Settings")
 	TMap<int32, TSubclassOf<ASDungeonRoom>> RoomMap;

@@ -69,3 +69,8 @@ bool ASDungeonRoom::GetIsHallway()
 	return bIsHallway;
 }
 
+bool ASDungeonRoom::GetIsCorner()
+{
+	return bIsCorner;
+}
+
