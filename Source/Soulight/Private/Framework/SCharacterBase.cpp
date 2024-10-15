@@ -6,7 +6,7 @@
 // Sets default values
 ASCharacterBase::ASCharacterBase()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 }
@@ -15,7 +15,8 @@ ASCharacterBase::ASCharacterBase()
 void ASCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	Health = MaxHealth;
 }
 
 // Called every frame
@@ -32,3 +33,17 @@ void ASCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 }
 
+void ASCharacterBase::StartDeath()
+{
+	OnDead.Broadcast(true);
+}
+
+void ASCharacterBase::TakeDamage(float Damage)
+{
+	Health = FMath::Clamp(Health - Damage, 0, MaxHealth);
+
+	if (Health <= 0)
+	{
+		StartDeath();
+	}
+}

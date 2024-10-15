@@ -6,24 +6,40 @@
 #include "GameFramework/Character.h"
 #include "SCharacterBase.generated.h"
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDead, bool, bIsDead);
+
 UCLASS()
 class ASCharacterBase : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	ASCharacterBase();
 
+	FOnDead OnDead;
+
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
+public:
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+private:
+	//virtual void OnDead();
+
+	void StartDeath();
+
+public:
+	virtual void TakeDamage(float Damage);
+
+public:
+	UPROPERTY(EditDefaultsOnly, Category = "Stats")
+	float Health;
+	UPROPERTY(EditDefaultsOnly, Category = "Stats")
+	float MaxHealth = 100.0f;
+
 
 };

@@ -7,11 +7,21 @@
 #include "SEnemy.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class ASEnemy : public ASCharacterBase
 {
 	GENERATED_BODY()
-	
+
+public:
+	ASEnemy();
+
+private:
+	UFUNCTION()
+	void StartDeath(bool IsDead);
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "AI")
+	class UAIPerceptionStimuliSourceComponent* AIPerceptionSourceComp;
+
 };

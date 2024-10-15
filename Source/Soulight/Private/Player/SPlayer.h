@@ -8,7 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteract, bool, bActionable);
 /**
- * 
+ *
  */
 
 class USAbilityDataBase;
@@ -179,7 +179,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Ability")
 	USAbilityDataBase* CurrentPassive;
 
-	public:
+public:
 
 	UFUNCTION()
 	bool ObtainItem(USAbilityDataBase* newItem);
