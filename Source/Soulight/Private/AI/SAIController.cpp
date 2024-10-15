@@ -82,6 +82,10 @@ void ASAIController::OnTargetPerceptionUpdated(AActor* Target, FAIStimulus Stimu
 	{
 		GetBlackboardComponent()->SetValueAsObject(TargetBBKeyName, Target);
 	}
+	else 
+	{
+		GetBlackboardComponent()->ClearValue(TargetBBKeyName);
+	}
 }
 
 void ASAIController::OnTargetForgotten(AActor* Target)
