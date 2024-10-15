@@ -18,6 +18,9 @@ public:
 	ASEnemy();
 
 private:
+	UFUNCTION()
+	void StartDeath(bool IsDead);
+
 	UPROPERTY(VisibleDefaultsOnly, Category = "AI")
 	class UAIPerceptionStimuliSourceComponent* AIPerceptionSourceComp;
 

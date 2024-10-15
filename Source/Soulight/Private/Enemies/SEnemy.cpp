@@ -18,4 +18,11 @@ ASEnemy::ASEnemy()
 	AIPerceptionSourceComp = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>("AI Perception Source Comp");
 	AIPerceptionSourceComp->RegisterForSense(UAISense_Sight::StaticClass());
 	AIPerceptionSourceComp->RegisterWithPerceptionSystem();
+
+	OnDead.AddDynamic(this, &ASEnemy::StartDeath);
+}
+
+void ASEnemy::StartDeath(bool IsDead)
+{
+	Destroy();
 }

@@ -179,6 +179,49 @@ void ASPlayer::Interact()
 void ASPlayer::Attack()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Attack"));
+
+	FVector SwipeLocation = GetActorLocation(); 
+	float SwipeRadius = 100.0f; 
+
+	TArray<AActor*> OverlappingActors;
+
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
+
+	TSubclassOf<AActor> ClassFilter = ASCharacterBase::StaticClass();
+
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+
+	bool bHit = UKismetSystemLibrary::SphereOverlapActors(
+		GetWorld(),                      
+		SwipeLocation,                   
+		SwipeRadius,                     
+		ObjectTypes,                     
+		ClassFilter,                     
+		ActorsToIgnore,
+		OverlappingActors                
+	);
+
+	DrawDebugSphere(GetWorld(), SwipeLocation, SwipeRadius, 32, FColor::Red, false, 1.0f);
+
+	if (bHit)
+	{
+		for (AActor* Actor : OverlappingActors)
+		{
+			if (Actor)
+			{
+				ASCharacterBase* HitEnemy = Cast<ASCharacterBase>(Actor);
+				if (HitEnemy)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Hit Enemy: %s"), *HitEnemy->GetName());
+
+					HitEnemy->TakeDamage(50);
+				}
+			}
+		}
+	}
+
 	HealthUpdated(1.0f);
 }
 

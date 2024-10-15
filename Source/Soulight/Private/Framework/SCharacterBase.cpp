@@ -16,6 +16,7 @@ void ASCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	Health = MaxHealth;
 }
 
 // Called every frame
@@ -30,5 +31,20 @@ void ASCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+
+void ASCharacterBase::StartDeath()
+{
+	OnDead.Broadcast(true);
+}
+
+void ASCharacterBase::TakeDamage(float Damage)
+{
+	Health = FMath::Clamp(Health - Damage, 0, MaxHealth);
+
+	if (Health <= 0) 
+	{
+		StartDeath();
+	}
 }
 

@@ -19,14 +19,21 @@ public:
 
 	virtual void BeginPlay() override;
 
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 private:
+	UFUNCTION()
+	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+
+	UFUNCTION()
+	void OnTargetForgotten(AActor* Target);
+
 	UPROPERTY(VisibleDefaultsOnly, Category = "AI")
 	class UAIPerceptionComponent* AIPerceptionComponent;
+
 	UPROPERTY(VisibleDefaultsOnly, Category = "AI")
 	class UAISenseConfig_Sight* SightConfig;
+
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	class UBehaviorTree* BehaviorTree;
 
