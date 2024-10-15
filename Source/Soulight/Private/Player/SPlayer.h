@@ -179,6 +179,10 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Ability")
 	USAbilityDataBase* CurrentPassive;
 
+	UPROPERTY(EditAnywhere, Category = "Ability")
+	class UAnimMontage* DashAttack;
+
+
 public:
 
 	UFUNCTION()

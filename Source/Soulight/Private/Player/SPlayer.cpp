@@ -131,11 +131,11 @@ void ASPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	{
 		enhancedInputComponent->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Move);
 		enhancedInputComponent->BindAction(AimInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Aim);
-		enhancedInputComponent->BindAction(AttackInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Attack);
-		enhancedInputComponent->BindAction(DodgeInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Dodge);
-		enhancedInputComponent->BindAction(SkillInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Skill);
-		enhancedInputComponent->BindAction(SpellInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Spell);
-		enhancedInputComponent->BindAction(InteractInputAction, ETriggerEvent::Triggered, this, &ASPlayer::Interact);
+		enhancedInputComponent->BindAction(AttackInputAction, ETriggerEvent::Started, this, &ASPlayer::Attack);
+		enhancedInputComponent->BindAction(DodgeInputAction, ETriggerEvent::Started, this, &ASPlayer::Dodge);
+		enhancedInputComponent->BindAction(SkillInputAction, ETriggerEvent::Started, this, &ASPlayer::Skill);
+		enhancedInputComponent->BindAction(SpellInputAction, ETriggerEvent::Started, this, &ASPlayer::Spell);
+		enhancedInputComponent->BindAction(InteractInputAction, ETriggerEvent::Started, this, &ASPlayer::Interact);
 		enhancedInputComponent->BindAction(HUDInputAction, ETriggerEvent::Started, this, &ASPlayer::HUD);
 		enhancedInputComponent->BindAction(SettingsInputAction, ETriggerEvent::Started, this, &ASPlayer::Settings);
 	}
@@ -216,13 +216,11 @@ void ASPlayer::Attack()
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Hit Enemy: %s"), *HitEnemy->GetName());
 
-					HitEnemy->TakeDamage(50);
+					HitEnemy->TakeDamage(20);
 				}
 			}
 		}
 	}
-
-	HealthUpdated(1.0f);
 }
 
 void ASPlayer::Dodge()
@@ -232,13 +230,24 @@ void ASPlayer::Dodge()
 
 void ASPlayer::Skill()
 {
+	if (!IsValid(CurrentSkill)) return;
+
 	UE_LOG(LogTemp, Warning, TEXT("Skill"));
-	HealthUpdated(0.0f);
+
+	if (!IsValid(DashAttack)) return;
+
+	PlayAnimMontage(DashAttack);
 }
 
 void ASPlayer::Spell()
 {
+	if (!IsValid(CurrentSpell)) return;
+
 	UE_LOG(LogTemp, Warning, TEXT("Spell"));
+
+	if (!IsValid(DashAttack)) return;
+
+	PlayAnimMontage(DashAttack);
 }
 
 void ASPlayer::HUD()
