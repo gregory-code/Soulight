@@ -217,7 +217,7 @@ void ASPlayer::Attack()
 
 	AttackCombo();
 
-	DrawDebugSphere(GetWorld(), SwipeLocation, SwipeRadius, 32, FColor::Red, false, 1.0f);
+	//DrawDebugSphere(GetWorld(), SwipeLocation, SwipeRadius, 32, FColor::Red, false, 1.0f);
 }
 
 void ASPlayer::Dodge()
