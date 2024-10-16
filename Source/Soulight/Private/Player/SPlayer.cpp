@@ -225,8 +225,12 @@ void ASPlayer::Dodge()
 
 void ASPlayer::Skill()
 {
-	if (!IsValid(CurrentSkill)) return;
+	if (!IsValid(CurrentSkill)) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Skill Slot Is Null"));
 
+		return;
+	}
 	UE_LOG(LogTemp, Warning, TEXT("Skill"));
 
 	CurrentSkill->ExecuteAbility();
@@ -234,7 +238,11 @@ void ASPlayer::Skill()
 
 void ASPlayer::Spell()
 {
-	if (!IsValid(CurrentSpell)) return;
+	if (!IsValid(CurrentSpell)) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Spell Slot Is Null"));
+		return;
+	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Spell"));
 
@@ -304,14 +312,30 @@ void ASPlayer::HealthUpdated(const float newHealth)
 
 bool ASPlayer::ObtainItem(USAbilityBase* newItem)
 {
+	if (IsValid(newItem) == false) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("New Item Is Null"));
+		return false;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Part 1"));
+
 	USAbilityDataBase* NewAbilityData = newItem->GetAbilityData();
 	if (IsValid(NewAbilityData) == false) return false;
 
-	USAbilityBase* currentItem = GetItemTypeFromNew(newItem);
-	if (IsValid(currentItem) == false) return false;
+	UE_LOG(LogTemp, Warning, TEXT("Part 1, 1"));
 
-	USAbilityDataBase* CurrentAbilityData = currentItem->GetAbilityData();
+	USAbilityBase* currentItem = GetItemTypeFromNew(newItem);
+	USAbilityDataBase* CurrentAbilityData = NewObject<USAbilityDataBase>(this);
+	if (IsValid(currentItem))
+	{
+		CurrentAbilityData = currentItem->GetAbilityData();
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Part 1, 2"));
+
 	if (IsValid(CurrentAbilityData) == false) return false;
+	UE_LOG(LogTemp, Warning, TEXT("Part 1, 3"));
 
 	USAbilityBase* NewAbility = NewObject<USAbilityBase>(this);
 
@@ -321,7 +345,10 @@ bool ASPlayer::ObtainItem(USAbilityBase* newItem)
 			//currentItem = NewAbilityData;
 
 			NewAbility->CopyAbility(newItem);
-
+			if (!IsValid(NewAbility))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Part 3, Null"));
+			}
 			currentItem = NewAbility;
 
 			PlayerController->AddAbility(NewAbilityData, EUpgrade::New);
@@ -334,6 +361,10 @@ bool ASPlayer::ObtainItem(USAbilityBase* newItem)
 				NewAbility->ConditionalBeginDestroy();
 			}
 
+			UE_LOG(LogTemp, Warning, TEXT("Part 3"));
+
+			if (IsValid(CurrentAbilityData) == false) break;
+
 			// level up actor component
 			PlayerController->AddAbility(CurrentAbilityData, EUpgrade::Upgrade);
 			break;
@@ -345,12 +376,26 @@ bool ASPlayer::ObtainItem(USAbilityBase* newItem)
 				currentItem->ConditionalBeginDestroy();
 			}
 
+			UE_LOG(LogTemp, Warning, TEXT("Part 3"));
+
 			NewAbility->CopyAbility(newItem);
 
 			//newItem->RegisterComponent();
 			currentItem = NewAbility;
 
 			PlayerController->AddAbility(NewAbilityData, EUpgrade::Replace);
+			break;
+		default:
+			//currentItem = NewAbilityData;
+
+			NewAbility->CopyAbility(newItem);
+			if (!IsValid(NewAbility))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Part 3, Null"));
+			}
+			currentItem = NewAbility;
+
+			PlayerController->AddAbility(NewAbilityData, EUpgrade::New);
 			break;
 	}
 
@@ -359,6 +404,8 @@ bool ASPlayer::ObtainItem(USAbilityBase* newItem)
 
 EUpgrade ASPlayer::GetItemStatus(USAbilityBase* newItem, USAbilityBase* currentItem)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Part 2"));
+
 	if (currentItem == nullptr) 
 	{
 		return EUpgrade::New;
@@ -377,8 +424,23 @@ EUpgrade ASPlayer::GetItemStatus(USAbilityBase* newItem, USAbilityBase* currentI
 
 USAbilityBase* ASPlayer::GetItemTypeFromNew(USAbilityBase* newItem)
 {
+	UE_LOG(LogTemp, Warning, TEXT("I am going into this function"));
+
+	if (!IsValid(newItem)) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Item Is Null"));
+
+		return nullptr;
+	}
 	USAbilityDataBase* NewAbilityData = newItem->GetAbilityData();
-	if (IsValid(NewAbilityData) == false) return nullptr;
+	if (IsValid(NewAbilityData) == false)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("New Ability Data is null"));
+
+		return nullptr;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Part 202"));
 
 	switch (NewAbilityData->GetType())
 	{
@@ -394,6 +456,7 @@ USAbilityBase* ASPlayer::GetItemTypeFromNew(USAbilityBase* newItem)
 			return CurrentSpell;
 			break;
 	}
+	UE_LOG(LogTemp, Warning, TEXT("Part 303"));
 
 	return CurrentPassive;
 }

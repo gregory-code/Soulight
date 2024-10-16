@@ -44,7 +44,12 @@ void ASItemBase::BeginPlay()
 	OnActorEndOverlap.AddDynamic(this, &ASItemBase::OnOverlapEnd);
 
 	//ItemWidgetComponent->SetVisibility(false, false);
+	if (IsValid(AbilityItemClass))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Creating Ability Item!"));
 
+		AbilityItem = NewObject<USAbilityBase>(this, AbilityItemClass);
+	}
 	ItemUI = Cast<USItemUI>(ItemWidgetComponent->GetWidget());
 	if (ItemUI)
 	{
@@ -104,6 +109,11 @@ void ASItemBase::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
 	if (!Player) return;
 	if (Player != otherActor) return;
 	
+	if (!IsValid(AbilityItem)) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Ability Item Does Not Exist!"));
+	}
+
 	switch (Player->GetItemStatus(AbilityItem, Player->GetItemTypeFromNew(AbilityItem)))
 	{
 		case EUpgrade::New:

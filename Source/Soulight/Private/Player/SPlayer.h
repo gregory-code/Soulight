@@ -79,6 +79,9 @@ private:
 
 	void SetInputMapping(bool bPlayerMapping);
 
+	UPROPERTY(EditDefaultsOnly, Category = "Testing Stuff")
+	AActor* Testing;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputMappingContext* InputPlayerMapping;
 
