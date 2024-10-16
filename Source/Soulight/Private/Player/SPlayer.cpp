@@ -215,6 +215,8 @@ void ASPlayer::Attack()
 		}
 	}
 
+	AttackCombo();
+
 	DrawDebugSphere(GetWorld(), SwipeLocation, SwipeRadius, 32, FColor::Red, false, 1.0f);
 }
 
@@ -262,6 +264,16 @@ void ASPlayer::HUD()
 void ASPlayer::Settings()
 {
 
+}
+
+void ASPlayer::AttackCombo()
+{
+	if (!IsValid(AttackComboMontage)) return;
+
+	if (GetMesh()->GetAnimInstance())
+	{
+		GetMesh()->GetAnimInstance()->Montage_Play(AttackComboMontage);
+	}
 }
 
 void ASPlayer::GetGrabbed()

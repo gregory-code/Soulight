@@ -146,6 +146,16 @@ private:
 	void Settings();
 
 	///////////////////////////////
+	/*         Attack           */
+	/////////////////////////////
+
+	UFUNCTION()
+	void AttackCombo();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	class UAnimMontage* AttackComboMontage;
+
+	///////////////////////////////
 	/*       Movement           */
 	/////////////////////////////
 
