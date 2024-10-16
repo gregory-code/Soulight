@@ -7,9 +7,9 @@ bool USAbilityDataBase::LevelUp()
 {
 	level++;
 
-	if (level >= 3)
+	if (level >= 2)
 	{
-		level = 0;
+		level = 2;
 		return false;
 	}
 

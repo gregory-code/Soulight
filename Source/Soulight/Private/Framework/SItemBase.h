@@ -33,7 +33,7 @@ private:
 	bool bInRange;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
-	class USAbilityDataBase* AbilityItem;
+	class USAbilityBase* AbilityItem;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
 	FColor AbilityUpgradeColor;
@@ -51,7 +51,7 @@ private:
 	class USItemUI* ItemUI;
 
 	UFUNCTION()
-	void SetAbilityItem(class USAbilityDataBase* ability, FString upgrade, FColor abilityColor);
+	void SetAbilityItem(class USAbilityBase* ability, FString upgrade, FColor abilityColor);
 
 public:	
 	// Called every frame

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -22,6 +22,8 @@ enum class EUpgrade : uint8
 	Upgrade		 UMETA(DisplayName = "Upgrade"),
 	Replace		  UMETA(DisplayName = "Replace")
 };
+
+class UAnimMontage;
 /**
  * 
  */
@@ -31,6 +33,11 @@ class USAbilityDataBase : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
+	
+	///////////////////////////////
+	/*        Gameplay          */
+	/////////////////////////////
+	
 	UFUNCTION()
 	bool LevelUp();
 
@@ -41,6 +48,18 @@ public:
 	EType GetType();
 
 	UFUNCTION()
+	float GetBaseDamage();
+
+	UFUNCTION()
+	float GetAnimSpeedMultiplier();
+	
+	UFUNCTION()
+	UAnimMontage* GetAnimationMontage() { return AbilityAnimation; }
+
+	///////////////////////////////
+	/*           UI             */
+	/////////////////////////////
+	UFUNCTION()
 	FString GetAbilityName();
 
 	UFUNCTION()
@@ -49,19 +68,15 @@ public:
 	UFUNCTION()
 	UTexture* GetAbilityIcon();
 
-	UFUNCTION()
-	float GetBaseDamage();
-
-	UFUNCTION()
-	float GetAnimSpeedMultiplier();
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	UAnimMontage* AbilityAnimation;
 	
 private:
-
 	int level = 0;
 
 	UPROPERTY(EditDefaultsOnly)
 	EType AbilityType;
-
 
 	UPROPERTY(EditDefaultsOnly, Category = "Style")
 	FString AbilityName;
@@ -72,12 +87,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Style")
 	FString AbilityDescription;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Anim")
-	class UAnimMontage* AbilityAnimation;
+	UPROPERTY(EditDefaultsOnly, Category = "Values")
+	TArray<float> BaseDamage = { 10, 25, 50 };
 
 	UPROPERTY(EditDefaultsOnly, Category = "Values")
-	TArray<float> BaseDamage = { 0, 0, 0 };
-
-	UPROPERTY(EditDefaultsOnly, Category = "Values")
-	TArray<float> AnimSpeedMultiplier = { 0,0,0 };
+	TArray<float> AnimSpeedMultiplier = { 1,2, 3 };
 };

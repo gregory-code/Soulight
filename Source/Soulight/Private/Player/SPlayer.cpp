@@ -13,6 +13,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Components/StaticMeshComponent.h"
 
+#include "Abilities/SAbilityBase.h"
 #include "Animation/AnimInstance.h"
 
 #include "Kismet/KismetSystemLibrary.h"
@@ -23,7 +24,6 @@
 #include "Player/Abilities/SAbilityDataBase.h"
 
 #include "Components/StaticMeshComponent.h"
-
 
 #include "Components/SceneCaptureComponent2D.h"
 
@@ -180,11 +180,16 @@ void ASPlayer::Attack()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Attack"));
 
-	FVector SwipeLocation = GetActorLocation();
-	float SwipeRadius = 100.0f;
+	FVector PlayerLocation = GetActorLocation();
+	FVector ForwardVector = GetActorForwardVector();
+
+	float DistanceInFrontOfPlayer = 50.0f;
+
+	FVector SwipeLocation = PlayerLocation + (ForwardVector * DistanceInFrontOfPlayer);
+
+	float SwipeRadius = 50.0f;
 
 	TArray<AActor*> OverlappingActors;
-
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
 
@@ -193,19 +198,7 @@ void ASPlayer::Attack()
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 
-	bool bHit = UKismetSystemLibrary::SphereOverlapActors(
-		GetWorld(),
-		SwipeLocation,
-		SwipeRadius,
-		ObjectTypes,
-		ClassFilter,
-		ActorsToIgnore,
-		OverlappingActors
-	);
-
-	DrawDebugSphere(GetWorld(), SwipeLocation, SwipeRadius, 32, FColor::Red, false, 1.0f);
-
-	if (bHit)
+	if(UKismetSystemLibrary::SphereOverlapActors(GetWorld(), SwipeLocation, SwipeRadius, ObjectTypes, ClassFilter, ActorsToIgnore, OverlappingActors)) 
 	{
 		for (AActor* Actor : OverlappingActors)
 		{
@@ -221,6 +214,8 @@ void ASPlayer::Attack()
 			}
 		}
 	}
+
+	DrawDebugSphere(GetWorld(), SwipeLocation, SwipeRadius, 32, FColor::Red, false, 1.0f);
 }
 
 void ASPlayer::Dodge()
@@ -234,9 +229,7 @@ void ASPlayer::Skill()
 
 	UE_LOG(LogTemp, Warning, TEXT("Skill"));
 
-	if (!IsValid(DashAttack)) return;
-
-	PlayAnimMontage(DashAttack);
+	CurrentSkill->ExecuteAbility();
 }
 
 void ASPlayer::Spell()
@@ -245,9 +238,7 @@ void ASPlayer::Spell()
 
 	UE_LOG(LogTemp, Warning, TEXT("Spell"));
 
-	if (!IsValid(DashAttack)) return;
-
-	PlayAnimMontage(DashAttack);
+	CurrentSpell->ExecuteAbility();
 }
 
 void ASPlayer::HUD()
@@ -311,58 +302,97 @@ void ASPlayer::HealthUpdated(const float newHealth)
 	MoveCameraToLocalOffset(interpolatedPos);
 }
 
-bool ASPlayer::ObtainItem(USAbilityDataBase* newItem)
+bool ASPlayer::ObtainItem(USAbilityBase* newItem)
 {
-	USAbilityDataBase*& currentItem = GetItemTypeFromNew(newItem);
+	USAbilityDataBase* NewAbilityData = newItem->GetAbilityData();
+	if (IsValid(NewAbilityData) == false) return false;
+
+	USAbilityBase* currentItem = GetItemTypeFromNew(newItem);
+	if (IsValid(currentItem) == false) return false;
+
+	USAbilityDataBase* CurrentAbilityData = currentItem->GetAbilityData();
+	if (IsValid(CurrentAbilityData) == false) return false;
+
+	USAbilityBase* NewAbility = NewObject<USAbilityBase>(this);
 
 	switch (GetItemStatus(newItem, currentItem))
 	{
-	case EUpgrade::New:
-		currentItem = newItem;
-		PlayerController->AddAbility(newItem, EUpgrade::New);
-		break;
+		case EUpgrade::New:
+			//currentItem = NewAbilityData;
 
-	case EUpgrade::Upgrade:
-		currentItem->LevelUp();
-		PlayerController->AddAbility(newItem, EUpgrade::Upgrade);
-		break;
+			NewAbility->CopyAbility(newItem);
 
-	case EUpgrade::Replace:
-		currentItem = newItem;
-		PlayerController->AddAbility(newItem, EUpgrade::Replace);
-		break;
+			currentItem = NewAbility;
+
+			PlayerController->AddAbility(NewAbilityData, EUpgrade::New);
+			break;
+
+		case EUpgrade::Upgrade:
+			//currentItem->LevelUp();
+
+			if (IsValid(NewAbility)) {
+				NewAbility->ConditionalBeginDestroy();
+			}
+
+			// level up actor component
+			PlayerController->AddAbility(CurrentAbilityData, EUpgrade::Upgrade);
+			break;
+
+		case EUpgrade::Replace:
+			//currentItem = NewAbilityData;
+
+			if (IsValid(currentItem)) {
+				currentItem->ConditionalBeginDestroy();
+			}
+
+			NewAbility->CopyAbility(newItem);
+
+			//newItem->RegisterComponent();
+			currentItem = NewAbility;
+
+			PlayerController->AddAbility(NewAbilityData, EUpgrade::Replace);
+			break;
 	}
 
 	return false;
 }
 
-EUpgrade ASPlayer::GetItemStatus(USAbilityDataBase* newItem, USAbilityDataBase* currentItem)
+EUpgrade ASPlayer::GetItemStatus(USAbilityBase* newItem, USAbilityBase* currentItem)
 {
-	if (currentItem == nullptr)
+	if (currentItem == nullptr) 
+	{
 		return EUpgrade::New;
+	}
 	else if (currentItem->GetAbilityName() == newItem->GetAbilityName())
+	{
 		return EUpgrade::Upgrade;
+	}
 	else if (currentItem->GetAbilityName() != newItem->GetAbilityName())
+	{
 		return EUpgrade::Replace;
+	}
 
 	return EUpgrade::New;
 }
 
-USAbilityDataBase*& ASPlayer::GetItemTypeFromNew(USAbilityDataBase* newItem)
+USAbilityBase* ASPlayer::GetItemTypeFromNew(USAbilityBase* newItem)
 {
-	switch (newItem->GetType())
+	USAbilityDataBase* NewAbilityData = newItem->GetAbilityData();
+	if (IsValid(NewAbilityData) == false) return nullptr;
+
+	switch (NewAbilityData->GetType())
 	{
-	case EType::Passive:
-		return CurrentPassive;
-		break;
+		case EType::Passive:
+			return CurrentPassive;
+			break;
 
-	case EType::Skill:
-		return CurrentSkill;
-		break;
+		case EType::Skill:
+			return CurrentSkill;
+			break;
 
-	case EType::Spell:
-		return CurrentSpell;
-		break;
+		case EType::Spell:
+			return CurrentSpell;
+			break;
 	}
 
 	return CurrentPassive;

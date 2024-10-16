@@ -14,6 +14,7 @@
 #include "Engine/Texture2D.h"
 #include "Widgets/SItemWidgetComponent.h"
 #include "Player/SPlayer.h"
+#include "Abilities/SAbilityBase.h"
 
 // Sets default values
 ASItemBase::ASItemBase()
@@ -62,16 +63,18 @@ void ASItemBase::Tick(float DeltaTime)
 	}
 }
 
-void ASItemBase::SetAbilityItem(USAbilityDataBase* ability, FString upgrade, FColor abilityColor)
+void ASItemBase::SetAbilityItem(USAbilityBase* ability, FString upgrade, FColor abilityColor)
 {
 	if (ability == nullptr)
 		return;
 
-	AbilityItem = ability;
+	USAbilityDataBase* AbilityData = ability->GetAbilityData();
+	if (IsValid(AbilityData) == false) return;
+
 	USItemUI* itemUI = Cast<USItemUI>(ItemWidgetComponent->GetWidget());
 	if (itemUI)
 	{
-		itemUI->SetItem(ability->GetAbilityName(), upgrade, ability->GetAbilityIcon(), abilityColor);
+		itemUI->SetItem(AbilityData->GetAbilityName(), upgrade, AbilityData->GetAbilityIcon(), abilityColor);
 	}
 }
 
@@ -79,10 +82,12 @@ void ASItemBase::Interact(bool bActionable)
 {
 	if (!bInRange) return;
 
-	if (Player == nullptr)
+	if (Player == nullptr || IsValid(AbilityItem) == false)
 		return;
 
 	Player->ObtainItem(AbilityItem);
+
+	AbilityItem->SetOwner(Player);
 
 	// hmm find a way to show this on the players HUD, and tell the player that they got an item. You'll be returning AbilityItem on this script
 
