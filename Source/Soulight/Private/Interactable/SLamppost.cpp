@@ -4,7 +4,21 @@
 #include "Interactable/SLamppost.h"
 
 #include "Framework/SFogCleaner.h"
+#include "Framework/SoulightGameMode.h"
+#include "Framework/SForestObjectiveActor.h"
+
 #include "Player/SPlayer.h"
+
+#include "Kismet/GameplayStatics.h"
+
+void ASLamppost::BeginPlay()
+{
+	Super::BeginPlay();
+
+	AGameModeBase* GameMode = UGameplayStatics::GetGameMode(this);
+
+	SoulightGameMode = Cast<ASoulightGameMode>(GameMode);
+}
 
 void ASLamppost::Interact(bool bActionable)
 {
@@ -14,6 +28,12 @@ void ASLamppost::Interact(bool bActionable)
 
 	FActorSpawnParameters spawnParam;
 	FVector spawnPos = GetActorLocation();
+	
+	if (IsValid(SoulightGameMode)) 
+	{
+		SoulightGameMode->GetForestObjectiveTracker()->ActiveLampCount++;
+		UE_LOG(LogTemp, Warning, TEXT("Incrementing Lamp Count"));
+	}
 
 	if(IsValid(Player))
 		Player->OnInteract.RemoveDynamic(this, &ASInteractableObject::Interact);

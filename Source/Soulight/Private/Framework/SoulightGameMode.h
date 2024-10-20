@@ -6,6 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "SoulightGameMode.generated.h"
 
+class ASForestObjectiveActor;
 /**
  * 
  */
@@ -15,12 +16,16 @@ class ASoulightGameMode : public AGameModeBase
 	GENERATED_BODY()
 	
 public:
+	ASForestObjectiveActor* GetForestObjectiveTracker() { return ForestObjectiveTracker; }
 
 protected:
-
 	virtual void BeginPlay() override;
 
 private:
-
+	UPROPERTY(EditDefaultsOnly, Category = "Forest Level")
+	TSubclassOf<ASForestObjectiveActor> ForestObjectiveTrackerClass;
 	
+	UPROPERTY()
+	ASForestObjectiveActor* ForestObjectiveTracker;
+
 };

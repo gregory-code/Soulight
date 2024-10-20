@@ -13,6 +13,8 @@ void ASoulightGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
+	ForestObjectiveTracker = GetWorld()->SpawnActor<ASForestObjectiveActor>(ForestObjectiveTrackerClass, FVector::ZeroVector, FRotator::ZeroRotator);
+
 	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
 	if (GameInstance)
 	{
