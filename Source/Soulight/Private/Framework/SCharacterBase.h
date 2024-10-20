@@ -22,16 +22,17 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	class UAnimMontage* HitReactionMontage;
+
 public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
-	//virtual void OnDead();
-
 	void StartDeath();
-
+	
 public:
 	virtual void TakeDamage(float Damage);
 

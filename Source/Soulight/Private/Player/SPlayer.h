@@ -30,8 +30,25 @@ public:
 
 	virtual void BeginPlay() override;
 
+	virtual void TakeDamage(float Damage) override;
+
 	UFUNCTION()
 	void GetGrabbed();
+
+	UFUNCTION()
+	void EndCombo();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	TArray<UAnimMontage*> ComboSectionMontages;
+
+	UPROPERTY()
+	int32 CurrentCombo = 0;
+
+	UPROPERTY()
+	bool bCanAttack = true;
+	UPROPERTY()
+	bool bHasAttacked = false;
+
 
 private:
 
@@ -154,7 +171,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	class UAnimMontage* AttackComboMontage;
-
+	
 	///////////////////////////////
 	/*       Movement           */
 	/////////////////////////////

@@ -42,6 +42,18 @@ void ASCharacterBase::TakeDamage(float Damage)
 {
 	Health = FMath::Clamp(Health - Damage, 0, MaxHealth);
 
+	if (IsValid(HitReactionMontage)) 
+	{
+		if (IsValid(GetMesh()->GetAnimInstance())) 
+		{
+			UE_LOG(LogTemp, Warning, TEXT("I am playing hit montage: %s"), *GetOwner()->GetName());
+
+			GetMesh()->GetAnimInstance()->StopAllMontages(1.0f);
+			GetMesh()->GetAnimInstance()->Montage_Play(HitReactionMontage);
+		}
+	}
+
+
 	if (Health <= 0)
 	{
 		StartDeath();

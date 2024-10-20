@@ -104,6 +104,18 @@ void ASPlayer::BeginPlay()
 	FogCleaner = GetWorld()->SpawnActor<ASFogCleaner>(mFogCleanerClass, spawnPos, FRotator(0, 0, 0), spawnParam);
 }
 
+void ASPlayer::TakeDamage(float Damage)
+{
+	Super::TakeDamage(Damage);
+
+	EndCombo();
+
+	float NewHealth = (Health / MaxHealth);
+	NewHealth = NewHealth < 0 ? 0 : NewHealth;
+
+	HealthUpdated(NewHealth);
+}
+
 void ASPlayer::PawnClientRestart()
 {
 	Super::PawnClientRestart();
@@ -178,46 +190,11 @@ void ASPlayer::Interact()
 
 void ASPlayer::Attack()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Attack"));
+	if (bCanAttack == false) return;
 
-	FVector PlayerLocation = GetActorLocation();
-	FVector ForwardVector = GetActorForwardVector();
-
-	float DistanceInFrontOfPlayer = 50.0f;
-
-	FVector SwipeLocation = PlayerLocation + (ForwardVector * DistanceInFrontOfPlayer);
-
-	float SwipeRadius = 50.0f;
-
-	TArray<AActor*> OverlappingActors;
-	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
-
-	TSubclassOf<AActor> ClassFilter = ASCharacterBase::StaticClass();
-
-	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(this);
-
-	if(UKismetSystemLibrary::SphereOverlapActors(GetWorld(), SwipeLocation, SwipeRadius, ObjectTypes, ClassFilter, ActorsToIgnore, OverlappingActors)) 
-	{
-		for (AActor* Actor : OverlappingActors)
-		{
-			if (Actor)
-			{
-				ASCharacterBase* HitEnemy = Cast<ASCharacterBase>(Actor);
-				if (HitEnemy)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Hit Enemy: %s"), *HitEnemy->GetName());
-
-					HitEnemy->TakeDamage(20);
-				}
-			}
-		}
-	}
+	//if (GetMesh()->GetAnimInstance()->IsAnyMontagePlaying()) return;
 
 	AttackCombo();
-
-	//DrawDebugSphere(GetWorld(), SwipeLocation, SwipeRadius, 32, FColor::Red, false, 1.0f);
 }
 
 void ASPlayer::Dodge()
@@ -270,10 +247,23 @@ void ASPlayer::AttackCombo()
 {
 	if (!IsValid(AttackComboMontage)) return;
 
-	if (GetMesh()->GetAnimInstance())
-	{
-		GetMesh()->GetAnimInstance()->Montage_Play(AttackComboMontage);
-	}
+	bCanAttack = false;
+	bHasAttacked = true;
+
+	UE_LOG(LogTemp, Warning, TEXT("Section: %d"), CurrentCombo);
+
+	if (!IsValid(GetMesh()->GetAnimInstance())) return;
+
+	//GetMesh()->GetAnimInstance()->StopAllMontages(1.0f);
+
+	GetMesh()->GetAnimInstance()->Montage_Play(ComboSectionMontages[CurrentCombo]);
+}
+
+void ASPlayer::EndCombo()
+{
+	bHasAttacked = false;
+	bCanAttack = true;
+	CurrentCombo = 0;
 }
 
 void ASPlayer::GetGrabbed()
