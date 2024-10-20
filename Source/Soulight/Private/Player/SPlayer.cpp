@@ -313,7 +313,7 @@ void ASPlayer::HealthUpdated(const float newHealth)
 	MoveCameraToLocalOffset(interpolatedPos);
 }
 
-bool ASPlayer::ObtainItem(USAbilityBase* newItem)
+bool ASPlayer::ObtainItem(ASAbilityBase* newItem)
 {
 	if (IsValid(newItem) == false) 
 	{
@@ -321,91 +321,78 @@ bool ASPlayer::ObtainItem(USAbilityBase* newItem)
 		return false;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Part 1"));
-
 	USAbilityDataBase* NewAbilityData = newItem->GetAbilityData();
 	if (IsValid(NewAbilityData) == false) return false;
 
-	UE_LOG(LogTemp, Warning, TEXT("Part 1, 1"));
-
-	USAbilityBase* currentItem = GetItemTypeFromNew(newItem);
+	ASAbilityBase* currentItem = GetItemTypeFromNew(newItem);
 	USAbilityDataBase* CurrentAbilityData = NewObject<USAbilityDataBase>(this);
 	if (IsValid(currentItem))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Creating Current Ability Data"));
+
 		CurrentAbilityData = currentItem->GetAbilityData();
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Part 1, 2"));
-
-	if (IsValid(CurrentAbilityData) == false) return false;
-	UE_LOG(LogTemp, Warning, TEXT("Part 1, 3"));
-
-	USAbilityBase* NewAbility = NewObject<USAbilityBase>(this);
 
 	switch (GetItemStatus(newItem, currentItem))
 	{
 		case EUpgrade::New:
-			//currentItem = NewAbilityData;
+			UE_LOG(LogTemp, Warning, TEXT("New"));
 
-			NewAbility->CopyAbility(newItem);
-			if (!IsValid(NewAbility))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Part 3, Null"));
-			}
-			currentItem = NewAbility;
+			SetNewAbility(newItem, NewAbilityData);
 
 			PlayerController->AddAbility(NewAbilityData, EUpgrade::New);
 			break;
 
 		case EUpgrade::Upgrade:
-			//currentItem->LevelUp();
-
-			if (IsValid(NewAbility)) {
-				NewAbility->ConditionalBeginDestroy();
+			if (IsValid(newItem)) {
+				newItem->Destroy();
 			}
 
-			UE_LOG(LogTemp, Warning, TEXT("Part 3"));
-
+			UE_LOG(LogTemp, Warning, TEXT("Upgrade"));
 			if (IsValid(CurrentAbilityData) == false) break;
 
-			// level up actor component
 			PlayerController->AddAbility(CurrentAbilityData, EUpgrade::Upgrade);
 			break;
 
 		case EUpgrade::Replace:
-			//currentItem = NewAbilityData;
-
-			if (IsValid(currentItem)) {
-				currentItem->ConditionalBeginDestroy();
+			if (IsValid(currentItem)) 
+			{
+				currentItem->Destroy();
 			}
 
-			UE_LOG(LogTemp, Warning, TEXT("Part 3"));
+			UE_LOG(LogTemp, Warning, TEXT("Replace"));
 
-			NewAbility->CopyAbility(newItem);
-
-			//newItem->RegisterComponent();
-			currentItem = NewAbility;
+			SetNewAbility(newItem, NewAbilityData);
 
 			PlayerController->AddAbility(NewAbilityData, EUpgrade::Replace);
-			break;
-		default:
-			//currentItem = NewAbilityData;
-
-			NewAbility->CopyAbility(newItem);
-			if (!IsValid(NewAbility))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Part 3, Null"));
-			}
-			currentItem = NewAbility;
-
-			PlayerController->AddAbility(NewAbilityData, EUpgrade::New);
 			break;
 	}
 
 	return false;
 }
 
-EUpgrade ASPlayer::GetItemStatus(USAbilityBase* newItem, USAbilityBase* currentItem)
+void ASPlayer::SetNewAbility(ASAbilityBase* newItem, USAbilityDataBase* NewAbilityData)
+{
+	if (!IsValid(newItem) || !IsValid(NewAbilityData)) return;
+
+	switch (NewAbilityData->GetType())
+	{
+	case EType::Passive:
+		CurrentPassive = newItem;
+		break;
+
+	case EType::Skill:
+		CurrentSkill = newItem;
+		break;
+
+	case EType::Spell:
+		CurrentSpell = newItem;
+		break;
+	}
+}
+
+
+EUpgrade ASPlayer::GetItemStatus(ASAbilityBase* newItem, ASAbilityBase* currentItem)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Part 2"));
 
@@ -425,7 +412,7 @@ EUpgrade ASPlayer::GetItemStatus(USAbilityBase* newItem, USAbilityBase* currentI
 	return EUpgrade::New;
 }
 
-USAbilityBase* ASPlayer::GetItemTypeFromNew(USAbilityBase* newItem)
+ASAbilityBase* ASPlayer::GetItemTypeFromNew(ASAbilityBase* newItem)
 {
 	UE_LOG(LogTemp, Warning, TEXT("I am going into this function"));
 
@@ -448,14 +435,20 @@ USAbilityBase* ASPlayer::GetItemTypeFromNew(USAbilityBase* newItem)
 	switch (NewAbilityData->GetType())
 	{
 		case EType::Passive:
+			UE_LOG(LogTemp, Warning, TEXT("Passive"));
+
 			return CurrentPassive;
 			break;
 
 		case EType::Skill:
+			UE_LOG(LogTemp, Warning, TEXT("Skill"));
+
 			return CurrentSkill;
 			break;
 
 		case EType::Spell:
+			UE_LOG(LogTemp, Warning, TEXT("Spell"));
+
 			return CurrentSpell;
 			break;
 	}

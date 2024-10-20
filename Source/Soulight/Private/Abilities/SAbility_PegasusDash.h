@@ -3,17 +3,32 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Player/Abilities/SAbilityDataBase.h"
+#include "Abilities/SAbilityBase.h"
 #include "SAbility_PegasusDash.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class USAbility_PegasusDash : public USAbilityDataBase
+class ASAbility_PegasusDash : public ASAbilityBase
 {
 	GENERATED_BODY()
-	
 
+public:
+	virtual void ExecuteAbility() override;
+
+private:
+	UFUNCTION()
+	void StartDash();
+	void EndDash();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Pegasus Dash")
+	float DashSpeed = 10.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Pegasus Dash")
+	float DashDuration = 2.0f;
+
+	float ElapsedTime = 0.0f;
+	FTimerHandle DashTimer;
 };
 

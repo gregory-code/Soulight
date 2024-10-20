@@ -2,3 +2,38 @@
 
 
 #include "Abilities/SAbility_PegasusDash.h"
+
+#include "Abilities/SAbilityBase.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Player/SPlayer.h"
+
+void ASAbility_PegasusDash::ExecuteAbility()
+{
+	Super::ExecuteAbility();
+
+	if (GetWorld()->GetTimerManager().IsTimerActive(DashTimer)) return;
+
+	GetWorld()->GetTimerManager().SetTimer(DashTimer, this, &ASAbility_PegasusDash::StartDash, 1.0f / 60.0f, true);
+}
+
+void ASAbility_PegasusDash::StartDash()
+{
+	if (!IsValid(OwnerCharacter)) {
+		EndDash();
+		return;
+	}
+
+	FVector OwnerForward = OwnerCharacter->GetActorForwardVector();
+	OwnerCharacter->AddMovementInput(OwnerForward, DashSpeed);
+
+	ElapsedTime += GetWorld()->GetDeltaSeconds();
+	if (ElapsedTime > DashDuration) EndDash();
+}
+
+void ASAbility_PegasusDash::EndDash()
+{
+	ElapsedTime = 0.0f;
+
+	if (GetWorld()->GetTimerManager().IsTimerActive(DashTimer))
+		GetWorld()->GetTimerManager().ClearTimer(DashTimer);
+}

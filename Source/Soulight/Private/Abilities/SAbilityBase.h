@@ -1,32 +1,30 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
+#include "GameFramework/Actor.h"
 #include "SAbilityBase.generated.h"
 
 class USAbilityDataBase;
 
 UCLASS(BlueprintType)
-class USAbilityBase : public UObject
+class ASAbilityBase : public AActor
 {
     GENERATED_BODY()
 
 public:
-    USAbilityBase();
-
-    void CopyAbility(USAbilityBase* AbilityToCopy);
+    ASAbilityBase();
 
     UFUNCTION(BlueprintCallable, Category = "Ability")
-        USAbilityDataBase* GetAbilityData() const { return AbilityData; }
+    USAbilityDataBase* GetAbilityData() const { return AbilityData; }
 
     UFUNCTION(BlueprintCallable, Category = "Ability")
-        FString GetAbilityName() const;
+    FString GetAbilityName() const;
 
     UFUNCTION(BlueprintCallable, Category = "Ability")
-        void SetOwner(ACharacter* OwningCharacter);
+    void SetAbilityOwner(ACharacter* OwningCharacter);
 
     UFUNCTION(BlueprintCallable, Category = "Ability")
-        virtual void ExecuteAbility();
+    virtual void ExecuteAbility();
 
 protected:
     ACharacter* OwnerCharacter;

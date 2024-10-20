@@ -49,7 +49,7 @@ void ASItemBase::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Creating Ability Item!"));
 
-		AbilityItem = NewObject<USAbilityBase>(this, AbilityItemClass);
+		AbilityItem = GetWorld()->SpawnActor<ASAbilityBase>(AbilityItemClass);
 	}
 
 	ItemUI = Cast<USItemUI>(ItemWidgetComponent->GetWidget());
@@ -69,7 +69,7 @@ void ASItemBase::Tick(float DeltaTime)
 	}
 }
 
-void ASItemBase::SetAbilityItem(USAbilityBase* ability, FString upgrade, FColor abilityColor)
+void ASItemBase::SetAbilityItem(ASAbilityBase* ability, FString upgrade, FColor abilityColor)
 {
 	if (ability == nullptr)
 		return;
@@ -93,7 +93,7 @@ void ASItemBase::Interact(bool bActionable)
 
 	Player->ObtainItem(AbilityItem);
 
-	AbilityItem->SetOwner(Player);
+	AbilityItem->SetAbilityOwner(Player);
 
 	// hmm find a way to show this on the players HUD, and tell the player that they got an item. You'll be returning AbilityItem on this script
 

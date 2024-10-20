@@ -6,7 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "SItemBase.generated.h"
 
-class USAbilityBase;
+class ASAbilityBase;
 
 UCLASS()
 class ASItemBase : public AActor
@@ -35,9 +35,9 @@ private:
 	bool bInRange;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
-	TSubclassOf<USAbilityBase> AbilityItemClass;
+	TSubclassOf<ASAbilityBase> AbilityItemClass;
 
-	USAbilityBase* AbilityItem;
+	ASAbilityBase* AbilityItem;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
 	FColor AbilityUpgradeColor;
@@ -55,7 +55,7 @@ private:
 	class USItemUI* ItemUI;
 
 	UFUNCTION()
-	void SetAbilityItem(class USAbilityBase* ability, FString upgrade, FColor abilityColor);
+	void SetAbilityItem(class ASAbilityBase* ability, FString upgrade, FColor abilityColor);
 
 public:	
 	// Called every frame

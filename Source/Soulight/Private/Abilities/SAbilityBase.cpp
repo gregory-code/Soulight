@@ -7,22 +7,12 @@
 #include "GameFramework/Character.h"
 #include "Player/Abilities/SAbilityDataBase.h"
 
-USAbilityBase::USAbilityBase()
+ASAbilityBase::ASAbilityBase()
 {
 
 }
 
-void USAbilityBase::CopyAbility(USAbilityBase* AbilityToCopy)
-{
-	if (IsValid(AbilityToCopy) == false) return;
-
-	USAbilityDataBase* NewAblityData = AbilityToCopy->GetAbilityData();
-	if (IsValid(NewAblityData) == false) return;
-
-	AbilityData = NewAblityData;
-}
-
-FString USAbilityBase::GetAbilityName() const
+FString ASAbilityBase::GetAbilityName() const
 {
 	if (IsValid(AbilityData) == false)
 		return FString("Hello");
@@ -31,21 +21,21 @@ FString USAbilityBase::GetAbilityName() const
 
 }
 
-void USAbilityBase::SetOwner(ACharacter* OwningCharacter)
+void ASAbilityBase::SetAbilityOwner(ACharacter* OwningCharacter)
 {
 	if (!IsValid(OwningCharacter)) return;
 
 	OwnerCharacter = OwningCharacter;
 }
 
-void USAbilityBase::ExecuteAbility()
+void ASAbilityBase::ExecuteAbility()
 {
 	if (!IsValid(OwnerCharacter) || IsValid(AbilityData->GetAnimationMontage()) == false) return;
 
 	PlayMontage(AbilityData->GetAnimationMontage(), AbilityData->GetAnimSpeedMultiplier());
 }
 
-void USAbilityBase::PlayMontage(UAnimMontage* MontageToPlay, const float& PlayRate)
+void ASAbilityBase::PlayMontage(UAnimMontage* MontageToPlay, const float& PlayRate)
 {
 	if (!IsValid(OwnerCharacter->GetMesh()) || !IsValid(MontageToPlay)) return;
 
