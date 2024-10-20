@@ -185,6 +185,7 @@ void ASPlayer::Aim(const FInputActionValue& InputValue)
 void ASPlayer::Interact()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Interacted"));
+
 	OnInteract.Broadcast(true);
 }
 

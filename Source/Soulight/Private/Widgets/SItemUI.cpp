@@ -8,12 +8,15 @@
 
 void USItemUI::Start()
 {
-	OriginalOutlineScale = ItemImage->GetDynamicMaterial()->K2_GetScalarParameterValue(OutlineParameterName);
-	OriginalBackgroundScale = ItemImage->GetDynamicMaterial()->K2_GetScalarParameterValue(BackgroundParameterName);
+	if (IsValid(ItemImage) && IsValid(ItemImage->GetDynamicMaterial())) 
+	{
+		OriginalOutlineScale = ItemImage->GetDynamicMaterial()->K2_GetScalarParameterValue(OutlineParameterName);
+		OriginalBackgroundScale = ItemImage->GetDynamicMaterial()->K2_GetScalarParameterValue(BackgroundParameterName);
 
-	ItemImage->GetDynamicMaterial()->SetScalarParameterValue(OpacityParameterName, 0);
-	ItemImage->GetDynamicMaterial()->SetScalarParameterValue(OutlineParameterName, 0);
-	ItemImage->GetDynamicMaterial()->SetScalarParameterValue(BackgroundParameterName, 0);
+		ItemImage->GetDynamicMaterial()->SetScalarParameterValue(OpacityParameterName, 0);
+		ItemImage->GetDynamicMaterial()->SetScalarParameterValue(OutlineParameterName, 0);
+		ItemImage->GetDynamicMaterial()->SetScalarParameterValue(BackgroundParameterName, 0);
+	}
 
 	ItemNameSlot = Cast<UCanvasPanelSlot>(ItemName->Slot);
 	ItemUpgradeSlot = Cast<UCanvasPanelSlot>(ItemUpgrade->Slot);
@@ -28,12 +31,8 @@ void USItemUI::SetItem(FString itemName, FString itemUpgrade, UTexture* itemImag
 	ItemUpgrade->SetText(FText::FromString(itemUpgrade));
 	ItemUpgrade->SetColorAndOpacity(FSlateColor(itemColor));
 
-	if (ItemImage == nullptr)
-	{
-		return;
-	}
-
-	ItemImage->GetDynamicMaterial()->SetTextureParameterValue(IconMaterialParameterName, itemImage);
+	if (IsValid(ItemImage) && IsValid(ItemImage->GetDynamicMaterial()))
+		ItemImage->GetDynamicMaterial()->SetTextureParameterValue(IconMaterialParameterName, itemImage);
 }
 
 void USItemUI::TickInRange(bool bInRange, float DeltaTime)
@@ -41,15 +40,31 @@ void USItemUI::TickInRange(bool bInRange, float DeltaTime)
 	if (ItemNameSlot == nullptr)
 		return;
 
-	float opacity = ItemImage->GetDynamicMaterial()->K2_GetScalarParameterValue(OpacityParameterName);
-	float outlineScale = ItemImage->GetDynamicMaterial()->K2_GetScalarParameterValue(OutlineParameterName);
-	float backgroundScale = ItemImage->GetDynamicMaterial()->K2_GetScalarParameterValue(BackgroundParameterName);
+	float opacity = 0.0f;
+	float outlineScale = 0.0f;
+	float backgroundScale = 0.0f;
+
+	if (IsValid(ItemImage) && IsValid(ItemImage->GetDynamicMaterial()))
+	{
+		opacity = ItemImage->GetDynamicMaterial()->K2_GetScalarParameterValue(OpacityParameterName);
+		outlineScale = ItemImage->GetDynamicMaterial()->K2_GetScalarParameterValue(OutlineParameterName);
+		backgroundScale = ItemImage->GetDynamicMaterial()->K2_GetScalarParameterValue(BackgroundParameterName);
+	}
+	
+	opacity = FMath::Lerp(opacity, (bInRange) ? 1.0f : 0.0f, 6.0f * DeltaTime);
+	outlineScale = FMath::Lerp(outlineScale, (bInRange) ? OriginalOutlineScale : 0, 6.0f * DeltaTime);
+	backgroundScale = FMath::Lerp(backgroundScale, (bInRange) ? OriginalBackgroundScale : 0, 6.0f * DeltaTime);
+	
+	if (IsValid(ItemImage) && IsValid(ItemImage->GetDynamicMaterial()))
+	{
+		ItemImage->GetDynamicMaterial()->SetScalarParameterValue(OpacityParameterName, opacity);
+		ItemImage->GetDynamicMaterial()->SetScalarParameterValue(OutlineParameterName, outlineScale);
+		ItemImage->GetDynamicMaterial()->SetScalarParameterValue(BackgroundParameterName, backgroundScale);
+	}
+
 	float itemNameY = ItemNameSlot->GetPosition().Y;
 	float itemUpgradeY = ItemUpgradeSlot->GetPosition().Y;
 
-	opacity = FMath::Lerp(opacity, (bInRange) ? 1.0 : 0, 6.0f * DeltaTime);
-	outlineScale = FMath::Lerp(outlineScale, (bInRange) ? OriginalOutlineScale : 0, 6.0f * DeltaTime);
-	backgroundScale = FMath::Lerp(backgroundScale, (bInRange) ? OriginalBackgroundScale : 0, 6.0f * DeltaTime);
 	itemNameY = FMathf::Lerp(itemNameY, (bInRange) ? OriginalItemNameY : 0, 6.0f * DeltaTime);
 	itemUpgradeY = FMathf::Lerp(itemUpgradeY, (bInRange) ? OriginalItemUpgradeY : 0, 6.0f * DeltaTime);
 
@@ -60,11 +75,6 @@ void USItemUI::TickInRange(bool bInRange, float DeltaTime)
 	FLinearColor itemUpgradeColor = ItemUpgrade->ColorAndOpacity.GetSpecifiedColor();
 	itemUpgradeColor.A = opacity;
 	ItemUpgrade->SetColorAndOpacity(FSlateColor(itemUpgradeColor));
-
-	ItemImage->GetDynamicMaterial()->SetScalarParameterValue(OpacityParameterName, opacity);
-	ItemImage->GetDynamicMaterial()->SetScalarParameterValue(OutlineParameterName, outlineScale);
-	ItemImage->GetDynamicMaterial()->SetScalarParameterValue(BackgroundParameterName, backgroundScale);
-
 	ItemNameSlot->SetPosition(FVector2D(0, itemNameY));
 	ItemUpgradeSlot->SetPosition(FVector2D(0, itemUpgradeY));
 }

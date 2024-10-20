@@ -51,10 +51,10 @@ private:
 	class UCanvasPanelSlot* ItemUpgradeSlot;
 
 	UPROPERTY()
-	float OriginalOutlineScale;
+	float OriginalOutlineScale = 1.0f;
 
 	UPROPERTY()
-	float OriginalBackgroundScale;
+	float OriginalBackgroundScale = 1.0f;
 
 	UPROPERTY()
 	float OriginalItemNameY;

@@ -28,11 +28,28 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Interactable")
 	class USItemWidgetComponent* ItemWidgetComponent;
 
+	UPROPERTY()
+	class ASPlayer* Player;
+
+private:
+	UPROPERTY()
+	bool bInRange;
+
+	UPROPERTY(VisibleAnywhere, Category = "UI")
+	class USItemUI* ItemUI;
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void Interact(AActor* InstigatingObject);
+	UFUNCTION()
+	virtual void Interact(bool bActionable);
+
+	UFUNCTION(BlueprintCallable, Category = "Propeties")
+	virtual void OnOverlapBegin(AActor* overlappedActor, AActor* otherActor);
+
+	UFUNCTION(BlueprintCallable, Category = "Propeties")
+	virtual void OnOverlapEnd(AActor* overlappedActor, AActor* otherActor);
+
 
 };
