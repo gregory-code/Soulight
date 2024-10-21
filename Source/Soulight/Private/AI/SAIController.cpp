@@ -66,6 +66,20 @@ void ASAIController::Tick(float DeltaTime)
 	}
 }
 
+void ASAIController::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const
+{
+	if (GetCharacter() && GetCharacter()->GetMesh())
+	{
+		OutLocation = GetCharacter()->GetMesh()->GetSocketLocation(AIVisionAttachSocketName);
+		OutRotation = GetCharacter()->GetMesh()->GetSocketRotation(AIVisionAttachSocketName);
+		OutRotation.Pitch = 0;
+	}
+	else
+	{
+		Super::GetActorEyesViewPoint(OutLocation, OutRotation);
+	}
+}
+
 void ASAIController::OnTargetPerceptionUpdated(AActor* Target, FAIStimulus Stimulus)
 {
 	if (IsValid(Target) == false)

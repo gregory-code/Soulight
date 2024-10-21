@@ -21,7 +21,12 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
+
 private:
+	UPROPERTY(VisibleDefaultsOnly, Category = "AI")
+	FName AIVisionAttachSocketName = "Head";
+
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
