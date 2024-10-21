@@ -3,6 +3,8 @@
 
 #include "Interactable/SLamppost.h"
 
+#include "Components/PointLightComponent.h"
+
 #include "Framework/SFogCleaner.h"
 #include "Framework/SoulightGameMode.h"
 #include "Framework/SForestObjectiveActor.h"
@@ -11,6 +13,12 @@
 
 #include "Kismet/GameplayStatics.h"
 
+ASLamppost::ASLamppost()
+{
+	PointLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("Lamp Light"));
+	PointLight->SetupAttachment(RootComponent);
+}
+
 void ASLamppost::BeginPlay()
 {
 	Super::BeginPlay();
@@ -18,6 +26,11 @@ void ASLamppost::BeginPlay()
 	AGameModeBase* GameMode = UGameplayStatics::GetGameMode(this);
 
 	SoulightGameMode = Cast<ASoulightGameMode>(GameMode);
+
+	if (IsValid(PointLight))
+	{
+		PointLight->SetVisibility(false);
+	}
 }
 
 void ASLamppost::Interact(bool bActionable)
@@ -42,5 +55,10 @@ void ASLamppost::Interact(bool bActionable)
 	if (IsValid(FogCleaner)) 
 	{
 		FogCleaner->SetColliderRadius(1000.0f);
+	}
+
+	if (IsValid(PointLight))
+	{
+		PointLight->SetVisibility(true);
 	}
 }

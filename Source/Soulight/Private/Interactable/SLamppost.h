@@ -14,6 +14,9 @@ class ASLamppost : public ASInteractableObject
 {
 	GENERATED_BODY()
 
+public:
+	ASLamppost();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -26,6 +29,9 @@ private:
 
 	UPROPERTY()
 	class ASoulightGameMode* SoulightGameMode;
+
+	UPROPERTY(EditAnywhere, Category = "Light")
+	class UPointLightComponent* PointLight;
 
 public:
 	virtual void Interact(bool bActionable) override;

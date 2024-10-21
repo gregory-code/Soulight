@@ -12,6 +12,9 @@
 #include "Engine/StaticMesh.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/PointLightComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/SkeletalMeshSocket.h"
 
 #include "Abilities/SAbilityBase.h"
 #include "Animation/AnimInstance.h"
@@ -37,6 +40,10 @@ ASPlayer::ASPlayer()
 	FullHealthView = CreateDefaultSubobject<USceneComponent>("Full Health Pos");
 	EmptyHealthView = CreateDefaultSubobject<USceneComponent>("Empty Health Pos");
 	MainCamera = CreateDefaultSubobject<UCameraComponent>("Main Camera");
+	LampLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("Lamp Light"));
+	VisualLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("Visual Light"));
+
+	VisualLight->SetupAttachment(GetRootComponent());
 
 	FullHealthView->SetupAttachment(GetRootComponent());
 	FullHealthView->SetWorldLocation(FVector(-600, 0, 1000));
@@ -95,6 +102,17 @@ void ASPlayer::BeginPlay()
 	HUDInputAction->bTriggerWhenPaused = true;
 	SettingsInputAction->bTriggerWhenPaused = true;
 
+	if (IsValid(GetMesh()) && IsValid(LampLight))
+	{
+		if (GetMesh()->DoesSocketExist(LampSocket))
+		{
+			LampLight->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, LampSocket);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Socket %s does not exist on the skeletal mesh!"), *LampSocket.ToString());
+		}
+	}
 	FInputModeGameOnly input;
 	GetWorld()->GetFirstPlayerController()->SetInputMode(input);
 
@@ -327,6 +345,9 @@ void ASPlayer::HealthUpdated(const float newHealth)
 {
 	//This value of newHeath is nomalized from 0 - 1
 	FogCleaner->SetColliderRadius((newHealth + 0.2f) * 600.0f);
+
+	if(IsValid(VisualLight))
+		VisualLight->SetIntensity(LightIntensity * newHealth);
 
 	FVector interpolatedPos = FMath::Lerp(EmptyHealthView->GetRelativeLocation(), FullHealthView->GetRelativeLocation(), newHealth);
 	MoveCameraToLocalOffset(interpolatedPos);

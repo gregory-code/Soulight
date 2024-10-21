@@ -51,6 +51,19 @@ public:
 
 
 private:
+	UPROPERTY(EditAnywhere, Category = "Light")
+	class UPointLightComponent* LampLight;
+
+	// This is the one actually lighting things since the lamp light is too close
+	UPROPERTY(EditAnywhere, Category = "Light")
+	class UPointLightComponent* VisualLight;
+
+	UPROPERTY(EditAnywhere, Category = "Light")
+	float LightIntensity = 3000.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Light")
+	FName LampSocket;
+
 
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	class ASPlayerController* PlayerController;
