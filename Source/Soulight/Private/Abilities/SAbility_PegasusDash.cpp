@@ -65,6 +65,8 @@ void ASAbility_PegasusDash::EndDash()
 {
 	ElapsedTime = 0.0f;
 
+	bIsAbilityActive = false;
+
 	if (GetWorld()->GetTimerManager().IsTimerActive(DashTimer))
 		GetWorld()->GetTimerManager().ClearTimer(DashTimer);
 }
