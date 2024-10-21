@@ -13,6 +13,8 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 
+#include "Player/SPlayer.h"
+
 ASAIController::ASAIController()
 {
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>("AI Perception Component");
@@ -89,6 +91,12 @@ void ASAIController::OnTargetPerceptionUpdated(AActor* Target, FAIStimulus Stimu
 
 	if (!GetBlackboardComponent())
 	{
+		return;
+	}
+
+	if (!Target->IsA(ASPlayer::StaticClass()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Joseph"));
 		return;
 	}
 
