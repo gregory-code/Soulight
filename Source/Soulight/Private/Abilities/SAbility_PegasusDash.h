@@ -16,11 +16,16 @@ class ASAbility_PegasusDash : public ASAbilityBase
 
 public:
 	virtual void ExecuteAbility() override;
+	virtual void CancelAbility() override;
+	virtual void EndAbility() override;
 
 private:
 	UFUNCTION()
 	void StartDash();
 	void EndDash();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Pegasus Dash")
+	class UAnimMontage* CancelAttackMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Pegasus Dash")
 	float DashSpeed = 10.0f;

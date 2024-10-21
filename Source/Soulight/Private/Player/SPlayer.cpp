@@ -110,6 +110,13 @@ void ASPlayer::TakeDamage(float Damage)
 
 	EndCombo();
 
+	if (IsValid(CurrentSkill))
+		CurrentSkill->EndAbility();
+
+	if (IsValid(CurrentSpell))
+		CurrentSpell->EndAbility();
+
+
 	float NewHealth = (Health / MaxHealth);
 	NewHealth = NewHealth < 0 ? 0 : NewHealth;
 
@@ -194,6 +201,18 @@ void ASPlayer::Attack()
 	if (bCanAttack == false) return;
 
 	//if (GetMesh()->GetAnimInstance()->IsAnyMontagePlaying()) return;
+
+	if (IsValid(CurrentSkill) && CurrentSkill->GetAbilityActive())
+	{
+		CurrentSkill->CancelAbility();
+		return;
+	}
+
+	if (IsValid(CurrentSpell) && CurrentSpell->GetAbilityActive())
+	{
+		CurrentSkill->CancelAbility();
+		return;
+	}
 
 	AttackCombo();
 }

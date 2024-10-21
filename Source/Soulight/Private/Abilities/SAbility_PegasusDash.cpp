@@ -13,7 +13,38 @@ void ASAbility_PegasusDash::ExecuteAbility()
 
 	if (GetWorld()->GetTimerManager().IsTimerActive(DashTimer)) return;
 
+	bIsAbilityActive = true;
+
 	GetWorld()->GetTimerManager().SetTimer(DashTimer, this, &ASAbility_PegasusDash::StartDash, 1.0f / 60.0f, true);
+}
+
+void ASAbility_PegasusDash::CancelAbility()
+{
+	Super::CancelAbility();
+
+	EndAbility();
+
+	if (!IsValid(CancelAttackMontage)) return;
+
+	if (!IsValid(OwnerCharacter->GetMesh()) || !IsValid(CancelAttackMontage)) return;
+
+	if (!IsValid(OwnerCharacter->GetMesh()->GetAnimInstance())) return;
+
+	UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
+	if (IsValid(AnimInstance))
+	{
+		AnimInstance->Montage_Play(CancelAttackMontage, 1.0f);
+	}
+
+	bIsAbilityActive = false;
+}
+
+void ASAbility_PegasusDash::EndAbility()
+{
+	Super::EndAbility();
+	bIsAbilityActive = false;
+
+	EndDash();
 }
 
 void ASAbility_PegasusDash::StartDash()

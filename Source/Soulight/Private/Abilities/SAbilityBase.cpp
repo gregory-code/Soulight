@@ -30,9 +30,21 @@ void ASAbilityBase::SetAbilityOwner(ACharacter* OwningCharacter)
 
 void ASAbilityBase::ExecuteAbility()
 {
-	if (!IsValid(OwnerCharacter) || IsValid(AbilityData->GetAnimationMontage()) == false) return;
+	if (!IsValid(OwnerCharacter) || !IsValid(AbilityData->GetAnimationMontage())) return;
 
 	PlayMontage(AbilityData->GetAnimationMontage(), AbilityData->GetAnimSpeedMultiplier());
+}
+
+void ASAbilityBase::CancelAbility()
+{
+
+}
+
+void ASAbilityBase::EndAbility()
+{
+	if (!IsValid(OwnerCharacter) || !IsValid(AbilityData->GetAnimationMontage())) return;
+
+	StopMontage(AbilityData->GetAnimationMontage());
 }
 
 void ASAbilityBase::PlayMontage(UAnimMontage* MontageToPlay, const float& PlayRate)
@@ -42,8 +54,21 @@ void ASAbilityBase::PlayMontage(UAnimMontage* MontageToPlay, const float& PlayRa
 	if (!IsValid(OwnerCharacter->GetMesh()->GetAnimInstance())) return;
 
 	UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
-	if (IsValid(AnimInstance) && AnimInstance->IsAnyMontagePlaying() == false)
+	if (IsValid(AnimInstance) && !AnimInstance->Montage_IsPlaying(MontageToPlay))
 	{
 		AnimInstance->Montage_Play(MontageToPlay, PlayRate);
+	}
+}
+
+void ASAbilityBase::StopMontage(UAnimMontage* MontageToStop)
+{
+	if (!IsValid(OwnerCharacter->GetMesh()) || !IsValid(MontageToStop)) return;
+
+	if (!IsValid(OwnerCharacter->GetMesh()->GetAnimInstance())) return;
+
+	UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
+	if (IsValid(AnimInstance))
+	{
+		AnimInstance->Montage_Stop(0.0f, MontageToStop);
 	}
 }

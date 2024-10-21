@@ -26,12 +26,26 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Ability")
     virtual void ExecuteAbility();
 
+    UFUNCTION(BlueprintCallable, Category = "Ability")
+    virtual void CancelAbility();
+
+    UFUNCTION(BlueprintCallable, Category = "Ability")
+    virtual void EndAbility();
+
+    UFUNCTION()
+    bool GetAbilityActive() { return bIsAbilityActive; }
+
 protected:
     ACharacter* OwnerCharacter;
+
+    UPROPERTY()
+    bool bIsAbilityActive = false;
 
 private:
     UPROPERTY(EditDefaultsOnly, Category = "Ability")
     USAbilityDataBase* AbilityData;
 
     void PlayMontage(UAnimMontage* MontageToPlay, const float& PlayRate);
+    void StopMontage(UAnimMontage* MontageToStop);
+
 };
