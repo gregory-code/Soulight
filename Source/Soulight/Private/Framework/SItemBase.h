@@ -3,37 +3,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Framework/SInteractableObject.h"
 #include "SItemBase.generated.h"
 
 class ASAbilityBase;
 
 UCLASS()
-class ASItemBase : public AActor
+class ASItemBase : public ASInteractableObject
 {
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	ASItemBase();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, Category = "Item")
-	class UStaticMeshComponent* PickupMesh;
-
-	UPROPERTY(VisibleAnywhere, Category = "Item")
-	class UBoxComponent* GrabBox;
-
-	UPROPERTY(VisibleAnywhere, Category = "Item")
-	class USItemWidgetComponent* ItemWidgetComponent;
-
 private:
-	UPROPERTY()
-	bool bInRange;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
 	TSubclassOf<ASAbilityBase> AbilityItemClass;
 
@@ -48,29 +34,11 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
 	FColor AbilityReplacesColor;
 
-	UPROPERTY()
-	class ASPlayer* Player;
-
-	UPROPERTY(VisibleAnywhere)
-	class USItemUI* ItemUI;
-
 	UFUNCTION()
 	void SetAbilityItem(class ASAbilityBase* ability, FString upgrade, FColor abilityColor);
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	void Interact(bool bActionable) override;
 
-	//UPROPERTY()
-	//class EquipmentItem*
-
-	UFUNCTION(BlueprintCallable, Category = "Propeties")
-	void Interact(bool bActionable);
-
-	UFUNCTION(BlueprintCallable, Category = "Propeties")
-	void OnOverlapBegin(AActor* overlappedActor, AActor* otherActor);
-
-	UFUNCTION(BlueprintCallable, Category = "Propeties")
-	void OnOverlapEnd(AActor* overlappedActor, AActor* otherActor);
-
+	void OnOverlapBegin(AActor* overlappedActor, AActor* otherActor) override;
 };

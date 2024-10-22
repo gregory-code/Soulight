@@ -48,9 +48,6 @@ void ASLamppost::Interact(bool bActionable)
 		UE_LOG(LogTemp, Warning, TEXT("Incrementing Lamp Count"));
 	}
 
-	if(IsValid(Player))
-		Player->OnInteract.RemoveDynamic(this, &ASInteractableObject::Interact);
-
 	FogCleaner = GetWorld()->SpawnActor<ASFogCleaner>(FogCleanerClass, spawnPos, FRotator(0, 0, 0), spawnParam);
 	if (IsValid(FogCleaner)) 
 	{

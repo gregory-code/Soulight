@@ -25,17 +25,6 @@
 ASItemBase::ASItemBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	GrabBox = CreateDefaultSubobject<UBoxComponent>(TEXT("GrabBox"));
-	RootComponent = GrabBox;
-	FVector grabBoxRange = FVector(200, 200, 200);
-	GrabBox->SetBoxExtent(grabBoxRange);
-
-	PickupMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pickup Mesh"));
-	PickupMesh->SetupAttachment(GetRootComponent());
-
-	ItemWidgetComponent = CreateDefaultSubobject<USItemWidgetComponent>(TEXT("ItemComponent"));
-	ItemWidgetComponent->SetupAttachment(GetRootComponent());
 }
 
 void ASItemBase::BeginPlay()
@@ -50,22 +39,6 @@ void ASItemBase::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Creating Ability Item!"));
 
 		AbilityItem = GetWorld()->SpawnActor<ASAbilityBase>(AbilityItemClass);
-	}
-
-	ItemUI = Cast<USItemUI>(ItemWidgetComponent->GetWidget());
-	if (ItemUI)
-	{
-		ItemUI->Start();
-	}
-}
-
-void ASItemBase::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	if (ItemUI)
-	{
-		ItemUI->TickInRange(bInRange, DeltaTime);
 	}
 }
 
@@ -86,7 +59,7 @@ void ASItemBase::SetAbilityItem(ASAbilityBase* ability, FString upgrade, FColor 
 
 void ASItemBase::Interact(bool bActionable)
 {
-	if (!bInRange) return;
+	Super::Interact(bActionable);
 
 	if (Player == nullptr || IsValid(AbilityItem) == false)
 		return;
@@ -102,18 +75,9 @@ void ASItemBase::Interact(bool bActionable)
 
 void ASItemBase::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
 {
-	if (Player == nullptr)
-	{
-		Player = Cast<ASPlayer>(otherActor);
-	}
+	Super::OnOverlapBegin(overlappedActor, otherActor);
 
-	if (!Player) return;
-	if (Player != otherActor) return;
-	
-	if (!IsValid(AbilityItem)) 
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Ability Item Does Not Exist!"));
-	}
+	if (!IsValid(AbilityItem) || !IsValid(Player)) return;
 
 	switch (Player->GetItemStatus(AbilityItem, Player->GetItemTypeFromNew(AbilityItem)))
 	{
@@ -129,20 +93,5 @@ void ASItemBase::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
 			SetAbilityItem(AbilityItem, FString("Replaces -> "), AbilityReplacesColor);
 			break;
 	}
-
-	Player->OnInteract.AddDynamic(this, &ASItemBase::Interact);
-
-	bInRange = true;
-}
-
-void ASItemBase::OnOverlapEnd(AActor* overlappedActor, AActor* otherActor)
-{
-	if (!Player) return;
-	if (Player != otherActor) return;
-
-	Player->OnInteract.RemoveDynamic(this, &ASItemBase::Interact);
-
-	bInRange = false; 
-	//ItemWidgetComponent->SetVisibility(false, false);
 }
 

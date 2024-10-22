@@ -65,6 +65,11 @@ void ASInteractableObject::Tick(float DeltaTime)
 void ASInteractableObject::Interact(bool bActionable)
 {
 	UE_LOG(LogTemp, Warning, TEXT("I AM INTERACTING!"));
+
+	if(IsValid(Player))
+		Player->OnInteract.RemoveDynamic(this, &ASInteractableObject::Interact);
+
+	OnActorBeginOverlap.RemoveDynamic(this, &ASInteractableObject::OnOverlapBegin);
 }
 
 void ASInteractableObject::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
