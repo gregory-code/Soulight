@@ -86,12 +86,11 @@ void ASDungeonGenerationComponent::BeginPlay()
     TargetQuat = FQuat::MakeFromRotator(TargetRotation);
     StartingRooms[1]->SetActorRotation(TargetQuat);
 
-    GenerateDeadEnds();
-
     FindBestRoom();
 
-    //BranchPathRotation(IntermediatePath);
+    GenerateDeadEnds();
 
+    //BranchPathRotation(IntermediatePath);
     return;
 
     GenerateChests(MaxNumChests);
