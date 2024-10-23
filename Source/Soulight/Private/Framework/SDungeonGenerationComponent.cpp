@@ -1021,9 +1021,16 @@ void ASDungeonGenerationComponent::SpawnHallway(const int32& RoomIndex, const in
 
 void ASDungeonGenerationComponent::GenerateChests(const int32& NumChests)
 {
-    if (ChestClass == nullptr) return;
+    if (ChestClass == nullptr || NumChests == 0) return;
 
-    if (NumChests == 0 || ChestSpawnPoints.Num() == 0) return;
+    for(ASDungeonRoom* Room : AllRooms)
+    {
+        if (Room->GetIsHallway() == true) continue;
+
+        ChestSpawnPoints.Append(Room->GetChestSpawnPoints());
+    }
+
+    if (ChestSpawnPoints.Num() == 0) return;
 
     for (int i = NumChests; i > 0; i--)
     {

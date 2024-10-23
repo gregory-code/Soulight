@@ -242,7 +242,7 @@ void ASPlayer::Dodge()
 	if(bZoomOut == true)
 		MoveCameraToLocalOffset(FVector(-3500.0f, 0.0f, 10000.0f));
 	else
-		MoveCameraToLocalOffset(FVector(-450.0f, 0.0f, 700.0f));
+		MoveCameraToLocalOffset(FVector(-600.0f, 0.0f, 1000.0f));
 
 	//HealthUpdated(0.5f);
 }
