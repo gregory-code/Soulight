@@ -51,6 +51,8 @@ public:
 
 
 private:
+	bool bZoomOut = false;
+
 	UPROPERTY(EditAnywhere, Category = "Light")
 	class UPointLightComponent* LampLight;
 

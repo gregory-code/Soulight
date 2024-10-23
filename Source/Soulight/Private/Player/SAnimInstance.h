@@ -43,8 +43,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Animation", meta = (BlueprintThreadSafe))
 	float GetRightSpeed() const { return RightSpeed; }
-private:
 
+private:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	UAnimMontage* StartMontage;
 
@@ -58,6 +58,8 @@ private:
 
 	const ACharacter* OwnerCharacter;
 	const UCharacterMovementComponent* OwnerMovementComp;
+
+	float IdleTime = 0;
 
 	float Speed;
 	FRotator LookOffset;

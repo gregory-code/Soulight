@@ -91,7 +91,6 @@ void ASDungeonGenerationComponent::BeginPlay()
     GenerateDeadEnds();
 
     //BranchPathRotation(IntermediatePath);
-    return;
 
     GenerateChests(MaxNumChests);
 }
