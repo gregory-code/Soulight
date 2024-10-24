@@ -43,7 +43,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION()
-	virtual void Interact(bool bActionable);
+	virtual void Interact();
 
 	UFUNCTION(BlueprintCallable, Category = "Propeties")
 	virtual void OnOverlapBegin(AActor* overlappedActor, AActor* otherActor);

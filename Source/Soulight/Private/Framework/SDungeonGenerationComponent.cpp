@@ -1027,7 +1027,11 @@ void ASDungeonGenerationComponent::GenerateChests(const int32& NumChests)
 
     for(ASDungeonRoom* Room : AllRooms)
     {
+        if (!IsValid(Room)) continue;
+
         if (Room->GetIsHallway() == true) continue;
+
+        if(Room->GetChestSpawnPoints().Num() > 0)
 
         ChestSpawnPoints.Append(Room->GetChestSpawnPoints());
     }

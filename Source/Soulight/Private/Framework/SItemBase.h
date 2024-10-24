@@ -38,7 +38,7 @@ private:
 	void SetAbilityItem(class ASAbilityBase* ability, FString upgrade, FColor abilityColor);
 
 public:	
-	void Interact(bool bActionable) override;
+	void Interact() override;
 
 	void OnOverlapBegin(AActor* overlappedActor, AActor* otherActor) override;
 };

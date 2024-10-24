@@ -33,9 +33,9 @@ void ASLamppost::BeginPlay()
 	}
 }
 
-void ASLamppost::Interact(bool bActionable)
+void ASLamppost::Interact()
 {
-	Super::Interact(bActionable);
+	Super::Interact();
 
 	if (!IsValid(FogCleanerClass)) return;
 

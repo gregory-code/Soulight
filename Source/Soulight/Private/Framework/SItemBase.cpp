@@ -31,9 +31,6 @@ void ASItemBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	OnActorBeginOverlap.AddDynamic(this, &ASItemBase::OnOverlapBegin);
-	OnActorEndOverlap.AddDynamic(this, &ASItemBase::OnOverlapEnd);
-
 	if (IsValid(AbilityItemClass))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Creating Ability Item!"));
@@ -57,9 +54,9 @@ void ASItemBase::SetAbilityItem(ASAbilityBase* ability, FString upgrade, FColor 
 	}
 }
 
-void ASItemBase::Interact(bool bActionable)
+void ASItemBase::Interact()
 {
-	Super::Interact(bActionable);
+	Super::Interact();
 
 	if (Player == nullptr || IsValid(AbilityItem) == false)
 		return;

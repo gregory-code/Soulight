@@ -34,6 +34,6 @@ private:
 	class UPointLightComponent* PointLight;
 
 public:
-	virtual void Interact(bool bActionable) override;
+	virtual void Interact() override;
 
 };

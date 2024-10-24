@@ -3,9 +3,9 @@
 
 #include "Interactable/SChest.h"
 
-void ASChest::Interact(bool bActionable)
+void ASChest::Interact()
 {
-	Super::Interact(bActionable);
+	Super::Interact();
 
 	if (ItemPool.Num() == 0) return;
 

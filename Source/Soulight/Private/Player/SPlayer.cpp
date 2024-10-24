@@ -211,7 +211,7 @@ void ASPlayer::Interact()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Interacted"));
 
-	OnInteract.Broadcast(true);
+	OnInteract.Broadcast();
 }
 
 void ASPlayer::Attack()

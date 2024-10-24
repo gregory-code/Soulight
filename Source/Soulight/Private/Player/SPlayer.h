@@ -6,7 +6,7 @@
 #include "Framework/SCharacterBase.h"
 #include "SPlayer.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteract, bool, bActionable);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteract);
 /**
  *
  */
