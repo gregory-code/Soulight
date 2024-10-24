@@ -12,6 +12,7 @@
 
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AISenseConfig_Hearing.h"
 
 #include "Player/SPlayer.h"
 
@@ -47,25 +48,26 @@ void ASAIController::BeginPlay()
 		RunBehaviorTree(BehaviorTree);
 	}
 
+	if(GetBrainComponent())
+		GetBrainComponent()->StartLogic();
+
 	AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &ASAIController::OnTargetPerceptionUpdated);
 	AIPerceptionComponent->OnTargetPerceptionForgotten.AddDynamic(this, &ASAIController::OnTargetForgotten);
 
 	AIPerceptionComponent->SetSenseEnabled(UAISense_Sight::StaticClass(), true);
 	AIPerceptionComponent->Activate(true);
-
-	Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 }
 
 void ASAIController::Tick(float DeltaTime)
 {
-	return;
-
+	/*
 	if (IsValid(Player))
 	{
 		FVector const PlayerLocation = Player->GetActorLocation();
 
 		GetBlackboardComponent()->SetValueAsVector(TargetBBKeyName, PlayerLocation);
 	}
+	*/
 }
 
 void ASAIController::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const
@@ -82,6 +84,39 @@ void ASAIController::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRo
 	}
 }
 
+void ASAIController::SenseSightStimulus(AActor* Target, FAIStimulus Stimulus)
+{
+	if (Stimulus.Type != UAISense::GetSenseID<UAISense_Sight>()) return;
+
+	if (Stimulus.WasSuccessfullySensed())
+	{
+		GetBlackboardComponent()->SetValueAsObject(PlayerBBKeyName, Target);
+	}
+	else
+	{
+		GetBlackboardComponent()->ClearValue(PlayerBBKeyName);
+	}
+}
+
+void ASAIController::SenseHearingStimulus(AActor* Target, FAIStimulus Stimulus)
+{
+	if (Stimulus.Type != UAISense::GetSenseID<UAISense_Hearing>()) return;
+
+	UE_LOG(LogTemp, Warning, TEXT("AI Hearing Perceived!"));
+
+	if (Stimulus.WasSuccessfullySensed())
+	{
+		GetBlackboardComponent()->SetValueAsVector(LocationBBKeyName, Stimulus.StimulusLocation);
+		UE_LOG(LogTemp, Warning, TEXT("Hearing Successful!"));
+
+	}
+	else
+	{
+		GetBlackboardComponent()->ClearValue(LocationBBKeyName);
+		UE_LOG(LogTemp, Warning, TEXT("Hearing Failed!"));
+	}
+}
+
 void ASAIController::OnTargetPerceptionUpdated(AActor* Target, FAIStimulus Stimulus)
 {
 	if (IsValid(Target) == false)
@@ -94,36 +129,26 @@ void ASAIController::OnTargetPerceptionUpdated(AActor* Target, FAIStimulus Stimu
 		return;
 	}
 
-	if (!Target->IsA(ASPlayer::StaticClass()))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Joseph"));
-		return;
-	}
+	SenseHearingStimulus(Target, Stimulus);
 
-	if (Stimulus.WasSuccessfullySensed())
-	{
-		GetBlackboardComponent()->SetValueAsObject(TargetBBKeyName, Target);
-	}
-	else
-	{
-		GetBlackboardComponent()->ClearValue(TargetBBKeyName);
-	}
+	if (!Target->IsA(ASPlayer::StaticClass())) return;
+
+	SenseSightStimulus(Target, Stimulus);
 }
 
 void ASAIController::OnTargetForgotten(AActor* Target)
 {
-	AActor* CurrentTarget = Cast<AActor>(GetBlackboardComponent()->GetValueAsObject(TargetBBKeyName));
+	UE_LOG(LogTemp, Warning, TEXT("I Forgor!"));
+
+	AActor* CurrentTarget = Cast<AActor>(GetBlackboardComponent()->GetValueAsObject(PlayerBBKeyName));
 	if (CurrentTarget == Target)
 	{
-		TArray<AActor*> OtherTargets;
-		AIPerceptionComponent->GetPerceivedHostileActors(OtherTargets);
-		if (OtherTargets.Num() != 0)
-		{
-			GetBlackboardComponent()->SetValueAsObject(TargetBBKeyName, OtherTargets[0]);
-		}
-		else
-		{
-			GetBlackboardComponent()->ClearValue(TargetBBKeyName);
-		}
+		GetBlackboardComponent()->ClearValue(PlayerBBKeyName);
+		return;
 	}
+	else
+	{
+		GetBlackboardComponent()->ClearValue(LocationBBKeyName);
+	}
+
 }

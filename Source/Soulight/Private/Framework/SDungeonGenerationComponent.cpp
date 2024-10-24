@@ -1023,6 +1023,8 @@ void ASDungeonGenerationComponent::GenerateChests(const int32& NumChests)
 {
     if (ChestClass == nullptr || NumChests == 0) return;
 
+    ChestSpawnPoints.Empty();
+
     for(ASDungeonRoom* Room : AllRooms)
     {
         if (Room->GetIsHallway() == true) continue;

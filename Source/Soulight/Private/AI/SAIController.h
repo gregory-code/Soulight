@@ -24,6 +24,10 @@ public:
 	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
 
 private:
+	void SenseSightStimulus(AActor* Target, FAIStimulus Stimulus);
+	void SenseHearingStimulus(AActor* Target, FAIStimulus Stimulus);
+
+private:
 	UPROPERTY(VisibleDefaultsOnly, Category = "AI")
 	FName AIVisionAttachSocketName = "Head";
 
@@ -43,7 +47,8 @@ private:
 	class UBehaviorTree* BehaviorTree;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	FName TargetBBKeyName = "TargetLocation";
+	FName PlayerBBKeyName = "Target";
 
-	const ACharacter* Player;
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	FName LocationBBKeyName = "TargetLocation";
 };

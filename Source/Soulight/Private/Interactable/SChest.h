@@ -15,7 +15,7 @@ class ASChest : public ASInteractableObject
 	GENERATED_BODY()
 	
 public:
-	virtual void Interact(bool bActionable);
+	virtual void Interact(bool bActionable) override;
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Chest")
