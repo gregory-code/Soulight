@@ -66,10 +66,20 @@ void ASInteractableObject::Interact()
 {
 	UE_LOG(LogTemp, Warning, TEXT("I AM INTERACTING!"));
 
-	if(IsValid(Player))
-		Player->OnInteract.RemoveDynamic(this, &ASInteractableObject::Interact);
+	if (!IsValid(Player)) return;
 
+	Player->OnInteract.RemoveDynamic(this, &ASInteractableObject::Interact);
 	OnActorBeginOverlap.RemoveDynamic(this, &ASInteractableObject::OnOverlapBegin);
+
+	if (!IsValid(Player->GetMesh()) || !IsValid(InteractMontage)) return;
+
+	if (!IsValid(Player->GetMesh()->GetAnimInstance())) return;
+
+	UAnimInstance* AnimInstance = Player->GetMesh()->GetAnimInstance();
+	if (IsValid(AnimInstance))
+	{
+		AnimInstance->Montage_Play(InteractMontage, 1.0f);
+	}
 }
 
 void ASInteractableObject::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)

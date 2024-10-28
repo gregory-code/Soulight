@@ -32,6 +32,9 @@ protected:
 	class ASPlayer* Player;
 
 private:
+	UPROPERTY(EditAnywhere, Category = "Interactable")
+	class UAnimMontage* InteractMontage;
+
 	UPROPERTY()
 	bool bInRange;
 

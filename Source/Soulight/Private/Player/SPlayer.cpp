@@ -360,6 +360,11 @@ void ASPlayer::HealthUpdated(const float newHealth)
 	MoveCameraToLocalOffset(interpolatedPos);
 }
 
+void ASPlayer::EquipItem(USStatData* EquipmentData)
+{
+
+}
+
 bool ASPlayer::ObtainItem(ASAbilityBase* newItem)
 {
 	if (IsValid(newItem) == false) 

@@ -3,6 +3,8 @@
 
 #include "Framework/SCharacterBase.h"
 
+#include "Framework/SStatData.h"
+
 // Sets default values
 ASCharacterBase::ASCharacterBase()
 {
@@ -58,4 +60,22 @@ void ASCharacterBase::TakeDamage(float Damage)
 	{
 		StartDeath();
 	}
+}
+
+void ASCharacterBase::AddStats(const USStatData* Stats)
+{
+	MaxHealth += Stats->GetMaxHealthStat();
+	Strength += Stats->GetStrengthStat();
+	Defense += Stats->GetDefenseStat();
+	Agility += Stats->GetAgilityStat();
+	Soul += Stats->GetSoulStat();
+}
+
+void ASCharacterBase::RemoveStats(const USStatData* Stats)
+{
+	MaxHealth -= Stats->GetMaxHealthStat();
+	Strength -= Stats->GetStrengthStat();
+	Defense -= Stats->GetDefenseStat();
+	Agility -= Stats->GetAgilityStat();
+	Soul -= Stats->GetSoulStat();
 }

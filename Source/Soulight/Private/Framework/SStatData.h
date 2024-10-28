@@ -3,47 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
-#include "SCharacterBase.generated.h"
+#include "Engine/DataAsset.h"
+#include "SStatData.generated.h"
 
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDead, bool, bIsDead);
-
-class USStatData;
-
+/**
+ * 
+ */
 UCLASS()
-class ASCharacterBase : public ACharacter
+class USStatData : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 
 public:
-	ASCharacterBase();
-
-	FOnDead OnDead;
-
-protected:
-	virtual void BeginPlay() override;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Animation")
-	class UAnimMontage* HitReactionMontage;
-
-public:
-	virtual void Tick(float DeltaTime) override;
-
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-private:
-	void StartDeath();
-	
-public:
-	virtual void TakeDamage(float Damage);
-
-public:
-	void AddStats(const USStatData* Stats);
-	void RemoveStats(const USStatData* Stats);
-
-	UFUNCTION()
-	float GetHealthStat() const { return Health; }
 	UFUNCTION()
 	float GetMaxHealthStat() const { return MaxHealth; }
 	UFUNCTION()
@@ -55,15 +26,11 @@ public:
 	UFUNCTION()
 	float GetSoulStat() const { return Soul; }
 
-
-	// v rework this v
 protected:
 	///////////////////////////////
 	/*          Stats           */
 	/////////////////////////////
 
-	UPROPERTY(EditDefaultsOnly, Category = "Stats")
-	float Health;
 	UPROPERTY(EditDefaultsOnly, Category = "Stats")
 	float MaxHealth = 100.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Stats")
@@ -74,6 +41,4 @@ protected:
 	float Agility = 10.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Stats")
 	float Soul = 10.0f;
-
-
 };

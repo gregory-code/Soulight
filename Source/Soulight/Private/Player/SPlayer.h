@@ -49,7 +49,6 @@ public:
 	UPROPERTY()
 	bool bHasAttacked = false;
 
-
 private:
 	bool bZoomOut = false;
 
@@ -226,6 +225,16 @@ private:
 	ASAbilityBase* CurrentPassive;
 
 public:
+	///////////////////////////////
+	/*        Equipment         */
+	/////////////////////////////
+
+	void EquipItem(class USStatData* EquipmentData);
+
+public:
+	///////////////////////////////
+	/*        Abilities         */
+	/////////////////////////////
 
 	UFUNCTION()
 	bool ObtainItem(ASAbilityBase* newItem);
