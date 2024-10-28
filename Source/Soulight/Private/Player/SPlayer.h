@@ -13,6 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteract);
 
 class USAbilityDataBase;
 class ASAbilityBase;
+class USStatData;
 
 UCLASS()
 class ASPlayer : public ASCharacterBase
@@ -229,7 +230,14 @@ public:
 	/*        Equipment         */
 	/////////////////////////////
 
-	void EquipItem(class USStatData* EquipmentData);
+	void EquipItem(USStatData* EquipmentData);
+
+private:
+	USStatData* WeaponItemStats;
+
+	USStatData* ChestItemStats;
+	USStatData* HeadItemStats;
+	USStatData* BootItemStats;
 
 public:
 	///////////////////////////////
