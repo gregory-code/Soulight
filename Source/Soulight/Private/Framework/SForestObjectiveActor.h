@@ -14,6 +14,9 @@ class ASForestObjectiveActor : public AActor
 public:	
 	ASForestObjectiveActor();
 
+	UFUNCTION(BlueprintCallable)
+	int32 GetActiveLamps() const { return ActiveLampCount; }
+
 protected:
 	virtual void BeginPlay() override;
 

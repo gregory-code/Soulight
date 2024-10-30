@@ -22,9 +22,11 @@ void ASForestObjectiveActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	/*
 	if (ActiveLampCount >= TargetLampCount) 
 	{
 		UGameplayStatics::OpenLevel(this, CastleLevelName);
 	}
+	*/
 }
 

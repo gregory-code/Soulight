@@ -16,6 +16,7 @@ class ASoulightGameMode : public AGameModeBase
 	GENERATED_BODY()
 	
 public:
+	UFUNCTION(BlueprintCallable)
 	ASForestObjectiveActor* GetForestObjectiveTracker() { return ForestObjectiveTracker; }
 
 protected:

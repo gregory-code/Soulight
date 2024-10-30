@@ -15,6 +15,12 @@ class USGameInstance : public UGameInstance
 	GENERATED_BODY()
 	
 public:
+	///////////////////////////////
+	/*         Dungeon          */
+	/////////////////////////////
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dungeon")
+	int32 CurrentProgress = 0;
 
 	///////////////////////////////
 	/*            Fog           */
