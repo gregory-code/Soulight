@@ -24,6 +24,9 @@ public:
 	ASPlayer();
 
 public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera")
+	class UCameraComponent* MainCamera;
+
 	FOnInteract OnInteract;
 
 	// Called every frame
@@ -82,9 +85,6 @@ private:
 
 	UPROPERTY(visibleAnywhere, Category = "Camera")
 	class USceneComponent* EmptyHealthView;
-
-	UPROPERTY(visibleAnywhere, Category = "Camera")
-	class UCameraComponent* MainCamera;
 
 	UPROPERTY(visibleAnywhere, Category = "Camera")
 	class USceneCaptureComponent2D* MiniMapCamera;
