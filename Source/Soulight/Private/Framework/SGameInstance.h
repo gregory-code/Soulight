@@ -20,7 +20,7 @@ public:
 	/////////////////////////////
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dungeon")
-	int32 CurrentProgress = 0;
+	int32 CurrentProgress = 1;
 
 	///////////////////////////////
 	/*            Fog           */
