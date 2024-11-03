@@ -22,6 +22,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dungeon")
 	int32 CurrentProgress = 1;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dungeon")
+	int32 MaxProgress = 4;
+
 	///////////////////////////////
 	/*            Fog           */
 	/////////////////////////////
