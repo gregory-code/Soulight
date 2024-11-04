@@ -25,6 +25,7 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "Framework/SFogCleaner.h"
+#include "Framework/SEquipmentData.h"
 
 #include "Player/Abilities/SAbilityDataBase.h"
 
@@ -131,7 +132,7 @@ void ASPlayer::BeginPlay()
 void ASPlayer::TakeDamage(float Damage)
 {
 	if (bIsDead) return;
-
+	
 	Super::TakeDamage(Damage);
 
 	EndCombo();
@@ -141,7 +142,6 @@ void ASPlayer::TakeDamage(float Damage)
 
 	if (IsValid(CurrentSpell))
 		CurrentSpell->EndAbility();
-
 
 	float NewHealth = (Health / MaxHealth);
 	NewHealth = NewHealth < 0 ? 0 : NewHealth;
@@ -407,9 +407,11 @@ void ASPlayer::HealthUpdated(const float newHealth)
 	MoveCameraToLocalOffset(interpolatedPos);
 }
 
-void ASPlayer::EquipItem(USStatData* EquipmentData)
+void ASPlayer::EquipItem(USEquipmentData* EquipmentData)
 {
+	AddStats(EquipmentData->EquipmentStats);
 
+	UE_LOG(LogTemp, Warning, TEXT("Equipping Item"));
 }
 
 bool ASPlayer::ObtainItem(ASAbilityBase* newItem)

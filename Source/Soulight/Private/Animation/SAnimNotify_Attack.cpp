@@ -25,6 +25,9 @@ void USAnimNotify_Attack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequence
     FCollisionQueryParams QueryParams;
     QueryParams.AddIgnoredActor(Owner);
 
+    ASCharacterBase* OwningCharacter = Cast<ASCharacterBase>(Owner);
+    if (!IsValid(OwningCharacter)) return;
+
     if (Owner->GetWorld()->OverlapMultiByChannel(
         OverlapResults,
         AttackLocation,
@@ -43,7 +46,7 @@ void USAnimNotify_Attack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequence
                 UE_LOG(LogTemp, Warning, TEXT("Hit Enemy: %s"), *HitCharacter->GetName());
 
                 // Replace Damage for player/enemy attack damage
-                HitCharacter->TakeDamage(AttackDamage);
+                HitCharacter->TakeDamage(OwningCharacter->GetStrengthStat());
             }
         }
     }

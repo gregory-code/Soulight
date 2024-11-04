@@ -4,7 +4,7 @@
 #include "Interactable/SEquipment.h"
 
 #include "Player/SPlayer.h"
-#include "Framework/SStatData.h"
+#include "Framework/SEquipmentData.h"
 
 void ASEquipment::Interact()
 {
@@ -12,7 +12,7 @@ void ASEquipment::Interact()
 
 	if (!IsValid(Player)) return;
 
-	if (!IsValid(EquipmentStats)) return;
+	if (!IsValid(Equipment)) return;
 
-	Player->EquipItem(EquipmentStats);
+	Player->EquipItem(Equipment);
 }

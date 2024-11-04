@@ -42,8 +42,8 @@ public:
 	virtual void TakeDamage(float Damage);
 
 public:
-	void AddStats(const USStatData* Stats);
-	void RemoveStats(const USStatData* Stats);
+	void AddStats(USStatData* Stats);
+	void RemoveStats(USStatData* Stats);
 
 	UFUNCTION()
 	float GetHealthStat() const { return Health; }

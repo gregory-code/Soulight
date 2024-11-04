@@ -42,7 +42,11 @@ void ASCharacterBase::StartDeath()
 
 void ASCharacterBase::TakeDamage(float Damage)
 {
-	Health = FMath::Clamp(Health - Damage, 0, MaxHealth);
+	float TotalDamage = Damage - Defense;
+
+	TotalDamage = TotalDamage < 0 ? 0 : TotalDamage;
+
+	Health = FMath::Clamp(Health - TotalDamage, 0, MaxHealth);
 
 	if (IsValid(HitReactionMontage)) 
 	{
@@ -63,7 +67,7 @@ void ASCharacterBase::TakeDamage(float Damage)
 	}
 }
 
-void ASCharacterBase::AddStats(const USStatData* Stats)
+void ASCharacterBase::AddStats(USStatData* Stats)
 {
 	MaxHealth += Stats->GetMaxHealthStat();
 	Strength += Stats->GetStrengthStat();
@@ -72,7 +76,7 @@ void ASCharacterBase::AddStats(const USStatData* Stats)
 	Soul += Stats->GetSoulStat();
 }
 
-void ASCharacterBase::RemoveStats(const USStatData* Stats)
+void ASCharacterBase::RemoveStats(USStatData* Stats)
 {
 	MaxHealth -= Stats->GetMaxHealthStat();
 	Strength -= Stats->GetStrengthStat();

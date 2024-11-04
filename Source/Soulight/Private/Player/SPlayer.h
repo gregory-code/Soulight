@@ -11,6 +11,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteract);
  *
  */
 
+class USEquipmentData;
 class USAbilityDataBase;
 class ASAbilityBase;
 class USStatData;
@@ -244,14 +245,14 @@ public:
 	/*        Equipment         */
 	/////////////////////////////
 
-	void EquipItem(USStatData* EquipmentData);
+	void EquipItem(USEquipmentData* EquipmentData);
 
 private:
-	USStatData* WeaponItemStats;
+	USEquipmentData* WeaponItemStats;
 
-	USStatData* ChestItemStats;
-	USStatData* HeadItemStats;
-	USStatData* BootItemStats;
+	USEquipmentData* ChestItemStats;
+	USEquipmentData* HeadItemStats;
+	USEquipmentData* BootItemStats;
 
 public:
 	///////////////////////////////

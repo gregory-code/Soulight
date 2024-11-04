@@ -18,6 +18,7 @@ public:
 	virtual void Interact() override;
 
 private:
-	class USStatData* EquipmentStats;
+	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
+	class USEquipmentData* Equipment;
 
 };
