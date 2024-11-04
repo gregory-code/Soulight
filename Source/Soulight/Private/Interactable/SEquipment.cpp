@@ -15,4 +15,6 @@ void ASEquipment::Interact()
 	if (!IsValid(Equipment)) return;
 
 	Player->EquipItem(Equipment);
+
+	Destroy();
 }

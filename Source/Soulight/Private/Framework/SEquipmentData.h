@@ -15,6 +15,14 @@ enum class EEquipmentType : uint8
 	WEAPON	UMETA(DisplayName = "Weapon")
 };
 
+UENUM(BlueprintType)
+enum class EEquipmentRarity : uint8
+{
+	COMMON		UMETA(DisplayName = "Common"),
+	UNCOMMON	UMETA(DisplayName = "Uncommon"),
+	RARE		UMETA(DisplayName = "Rare")
+};
+
 /**
  * 
  */
@@ -26,6 +34,9 @@ class USEquipmentData : public UPrimaryDataAsset
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
 	EEquipmentType EquipmentType;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
+	EEquipmentRarity EquipmentRarity;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
 	class UStaticMesh* EquipmentMesh;

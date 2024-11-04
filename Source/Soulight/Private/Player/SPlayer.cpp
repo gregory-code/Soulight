@@ -409,9 +409,47 @@ void ASPlayer::HealthUpdated(const float newHealth)
 
 void ASPlayer::EquipItem(USEquipmentData* EquipmentData)
 {
+	// TODO: Make this also set the mesh for these
+	switch (EquipmentData->EquipmentType) 
+	{
+		case EEquipmentType::WEAPON:
+			if (IsValid(WeaponEquipmentData))
+				RemoveStats(WeaponEquipmentData->EquipmentStats);
+
+			UE_LOG(LogTemp, Warning, TEXT("Equipping Weapon"));
+
+			WeaponEquipmentData = EquipmentData;
+			break;
+		case EEquipmentType::HEAD:
+			if (IsValid(HeadEquipmentData))
+				RemoveStats(HeadEquipmentData->EquipmentStats);
+
+			UE_LOG(LogTemp, Warning, TEXT("Equipping Head Gear"));
+
+			HeadEquipmentData = EquipmentData;
+			break;
+		case EEquipmentType::CHEST:
+			if (IsValid(ChestEquipmentData))
+				RemoveStats(ChestEquipmentData->EquipmentStats);
+
+			UE_LOG(LogTemp, Warning, TEXT("Equipping Chest Gear"));
+
+			ChestEquipmentData = EquipmentData;
+			break;
+		case EEquipmentType::BOOTS:
+			if (IsValid(BootEquipmentData))
+				RemoveStats(BootEquipmentData->EquipmentStats);
+
+			UE_LOG(LogTemp, Warning, TEXT("Equipping Boots Gear"));
+
+			BootEquipmentData = EquipmentData;
+			break;
+	}
+
 	AddStats(EquipmentData->EquipmentStats);
 
-	UE_LOG(LogTemp, Warning, TEXT("Equipping Item"));
+	GetCharacterMovement()->MaxWalkSpeed = MoveSpeedCurve->GetFloatValue(Agility);
+
 }
 
 bool ASPlayer::ObtainItem(ASAbilityBase* newItem)

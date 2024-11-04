@@ -248,11 +248,11 @@ public:
 	void EquipItem(USEquipmentData* EquipmentData);
 
 private:
-	USEquipmentData* WeaponItemStats;
+	USEquipmentData* WeaponEquipmentData;
 
-	USEquipmentData* ChestItemStats;
-	USEquipmentData* HeadItemStats;
-	USEquipmentData* BootItemStats;
+	USEquipmentData* ChestEquipmentData;
+	USEquipmentData* HeadEquipmentData;
+	USEquipmentData* BootEquipmentData;
 
 public:
 	///////////////////////////////
