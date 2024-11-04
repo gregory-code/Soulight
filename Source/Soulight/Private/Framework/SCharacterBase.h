@@ -27,12 +27,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	class UAnimMontage* HitReactionMontage;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	class UAnimMontage* DeathMontage;
+
 public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-private:
+protected:
 	void StartDeath();
 	
 public:

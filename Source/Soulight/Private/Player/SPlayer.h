@@ -54,6 +54,9 @@ public:
 	bool bHasAttacked = false;
 
 private:
+	void StartDeath(bool IsDead);
+
+private:
 	bool bZoomOut = false;
 
 	UPROPERTY(EditAnywhere, Category = "Light")

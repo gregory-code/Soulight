@@ -120,6 +120,8 @@ void ASPlayer::BeginPlay()
 	FVector spawnPos = GetActorLocation();
 
 	FogCleaner = GetWorld()->SpawnActor<ASFogCleaner>(mFogCleanerClass, spawnPos, FRotator(0, 0, 0), spawnParam);
+
+	OnDead.AddDynamic(this, &ASPlayer::StartDeath);
 }
 
 void ASPlayer::TakeDamage(float Damage)
@@ -309,6 +311,13 @@ void ASPlayer::EndCombo()
 	bHasAttacked = false;
 	bCanAttack = true;
 	CurrentCombo = 0;
+}
+
+void ASPlayer::StartDeath(bool IsDead)
+{
+	// Do Lineage Stuff
+
+	// Load Spirits Keep
 }
 
 void ASPlayer::GetGrabbed()

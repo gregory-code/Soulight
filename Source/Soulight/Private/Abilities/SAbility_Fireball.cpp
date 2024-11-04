@@ -7,8 +7,10 @@ void ASAbility_Fireball::ExecuteAbility()
 {
 	Super::ExecuteAbility();
 
+	/*
 	if (IsValid(FireballActorClass))
 		GetWorld()->SpawnActor<AActor>(FireballActorClass);
+		*/
 }
 
 void ASAbility_Fireball::EndAbility()
