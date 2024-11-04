@@ -16,6 +16,8 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 
+#include "Curves/CurveFloat.h"
+
 #include "Abilities/SAbilityBase.h"
 #include "Animation/AnimInstance.h"
 
@@ -122,6 +124,8 @@ void ASPlayer::BeginPlay()
 	FogCleaner = GetWorld()->SpawnActor<ASFogCleaner>(mFogCleanerClass, spawnPos, FRotator(0, 0, 0), spawnParam);
 
 	OnDead.AddDynamic(this, &ASPlayer::StartDeath);
+
+	GetCharacterMovement()->MaxWalkSpeed = MoveSpeedCurve->GetFloatValue(Agility);
 }
 
 void ASPlayer::TakeDamage(float Damage)
@@ -320,7 +324,7 @@ void ASPlayer::AttackCombo()
 
 	//GetMesh()->GetAnimInstance()->StopAllMontages(1.0f);
 
-	GetMesh()->GetAnimInstance()->Montage_Play(ComboSectionMontages[CurrentCombo]);
+	GetMesh()->GetAnimInstance()->Montage_Play(ComboSectionMontages[CurrentCombo], AttackSpeedCurve->GetFloatValue(Agility));
 }
 
 void ASPlayer::EndCombo()
