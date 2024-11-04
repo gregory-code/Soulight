@@ -66,6 +66,12 @@ protected:
 	/////////////////////////////
 
 	UPROPERTY(EditDefaultsOnly, Category = "Stats")
+	class UCurveFloat* MoveSpeedCurve;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Stats")
+	class UCurveFloat* AttackSpeedCurve;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Stats")
 	float Health;
 	UPROPERTY(EditDefaultsOnly, Category = "Stats")
 	float MaxHealth = 100.0f;
