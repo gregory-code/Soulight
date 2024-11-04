@@ -167,6 +167,8 @@ void ASPlayer::SetInputMapping(bool bPlayerMapping)
 	}
 }
 
+#pragma region Input Functions
+
 void ASPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -334,9 +336,15 @@ void ASPlayer::EndCombo()
 	CurrentCombo = 0;
 }
 
+#pragma endregion
+
 void ASPlayer::StartDeath(bool IsDead)
 {
 	bIsDead = IsDead;
+
+	if (IsValid(GetMesh()->GetAnimInstance()))
+		GetMesh()->GetAnimInstance()->StopAllMontages(1.0f);
+
 
 	// Do Lineage Stuff
 
