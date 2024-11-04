@@ -126,6 +126,8 @@ void ASPlayer::BeginPlay()
 
 void ASPlayer::TakeDamage(float Damage)
 {
+	if (bIsDead) return;
+
 	Super::TakeDamage(Damage);
 
 	EndCombo();
@@ -177,11 +179,14 @@ void ASPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		enhancedInputComponent->BindAction(InteractInputAction, ETriggerEvent::Started, this, &ASPlayer::Interact);
 		enhancedInputComponent->BindAction(HUDInputAction, ETriggerEvent::Started, this, &ASPlayer::HUD);
 		enhancedInputComponent->BindAction(SettingsInputAction, ETriggerEvent::Started, this, &ASPlayer::Settings);
+		enhancedInputComponent->BindAction(ModifyHealthInputAction, ETriggerEvent::Triggered, this, &ASPlayer::DEBUG_ModifyHealth);
 	}
 }
 
 void ASPlayer::Move(const FInputActionValue& InputValue)
 {
+	if (bIsDead) return;
+
 	FVector2D input = InputValue.Get<FVector2D>();
 	input.Normalize();
 
@@ -199,6 +204,8 @@ void ASPlayer::Move(const FInputActionValue& InputValue)
 
 void ASPlayer::Aim(const FInputActionValue& InputValue)
 {
+	if (bIsDead) return;
+
 	FVector2D input = InputValue.Get<FVector2D>();
 	input.Normalize();
 
@@ -211,6 +218,8 @@ void ASPlayer::Aim(const FInputActionValue& InputValue)
 
 void ASPlayer::Interact()
 {
+	if (bIsDead) return;
+
 	UE_LOG(LogTemp, Warning, TEXT("Interacted"));
 
 	OnInteract.Broadcast();
@@ -218,6 +227,8 @@ void ASPlayer::Interact()
 
 void ASPlayer::Attack()
 {
+	if (bIsDead) return;
+
 	if (bCanAttack == false) return;
 
 	//if (GetMesh()->GetAnimInstance()->IsAnyMontagePlaying()) return;
@@ -239,6 +250,8 @@ void ASPlayer::Attack()
 
 void ASPlayer::Dodge()
 {
+	if (bIsDead) return;
+
 	bZoomOut = !bZoomOut;
 
 	if(bZoomOut == true)
@@ -251,6 +264,8 @@ void ASPlayer::Dodge()
 
 void ASPlayer::Skill()
 {
+	if (bIsDead) return;
+
 	if (!IsValid(CurrentSkill)) 
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Skill Slot Is Null"));
@@ -264,6 +279,8 @@ void ASPlayer::Skill()
 
 void ASPlayer::Spell()
 {
+	if (bIsDead) return;
+
 	if (!IsValid(CurrentSpell)) 
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Spell Slot Is Null"));
@@ -315,9 +332,26 @@ void ASPlayer::EndCombo()
 
 void ASPlayer::StartDeath(bool IsDead)
 {
+	bIsDead = IsDead;
+
 	// Do Lineage Stuff
 
 	// Load Spirits Keep
+}
+
+void ASPlayer::DEBUG_ModifyHealth(const FInputActionValue& InputValue)
+{
+	const float Delta = InputValue.Get<float>();
+
+	Health += (Delta * 5.0f);
+
+	Health = FMath::Clamp(Health, 0, MaxHealth);
+
+	float NewHealth = (Health / MaxHealth);
+
+	NewHealth = FMath::Clamp(NewHealth, 0, 1);
+
+	HealthUpdated(NewHealth);
 }
 
 void ASPlayer::GetGrabbed()
@@ -363,7 +397,7 @@ void ASPlayer::HealthUpdated(const float newHealth)
 	FogCleaner->SetColliderRadius((newHealth + 0.2f) * 600.0f);
 
 	if(IsValid(VisualLight))
-		VisualLight->SetIntensity(LightIntensity * newHealth);
+		LampLight->SetIntensity(LightIntensity * newHealth);
 
 	FVector interpolatedPos = FMath::Lerp(EmptyHealthView->GetRelativeLocation(), FullHealthView->GetRelativeLocation(), newHealth);
 	MoveCameraToLocalOffset(interpolatedPos);

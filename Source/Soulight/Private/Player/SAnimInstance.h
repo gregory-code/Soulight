@@ -44,6 +44,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Animation", meta = (BlueprintThreadSafe))
 	float GetRightSpeed() const { return RightSpeed; }
 
+	UFUNCTION(BlueprintCallable, Category = "Animation", meta = (BlueprintThreadSafe))
+	bool GetIsDead() const { return bIsDead; }
+
+
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	UAnimMontage* StartMontage;
@@ -59,6 +63,8 @@ private:
 	const ACharacter* OwnerCharacter;
 	const UCharacterMovementComponent* OwnerMovementComp;
 
+	const class ASPlayer* OwnerPlayer;
+
 	float IdleTime = 0;
 
 	float Speed;
@@ -71,6 +77,7 @@ private:
 	float RightSpeed;
 
 	bool bIsAiming;
+	bool bIsDead;
 
 	void AimingTagChanged(bool state);
 };

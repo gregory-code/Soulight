@@ -2,8 +2,11 @@
 
 
 #include "Player/SAnimInstance.h"
+
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+
+#include "Player/SPlayer.h"
 
 bool USAnimInstance::ShouldDoUpperBody() const
 {
@@ -19,6 +22,8 @@ void USAnimInstance::NativeInitializeAnimation()
 		OwnerMovementComp = OwnerCharacter->GetCharacterMovement();
 		PrevRot = OwnerCharacter->GetActorRotation();
 	}
+
+	OwnerPlayer = Cast<ASPlayer>(OwnerCharacter);
 
 	if (StartMontage)
 	{
@@ -50,6 +55,11 @@ void USAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 		LookDir.Normalize();
 		FwdSpeed = Velocity.Dot(LookDir);
 		RightSpeed = -Velocity.Dot(LookDir.Cross(FVector::UpVector));
+	}
+
+	if (IsValid(OwnerPlayer))
+	{
+		bIsDead = OwnerPlayer->GetIsDead();
 	}
 }
 

@@ -53,8 +53,19 @@ public:
 	UPROPERTY()
 	bool bHasAttacked = false;
 
+	UFUNCTION()
+	bool GetIsDead() const { return bIsDead; }
+
 private:
+	UFUNCTION()
 	void StartDeath(bool IsDead);
+
+	bool bIsDead = false;
+
+	void DEBUG_ModifyHealth(const FInputActionValue& InputValue);
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* ModifyHealthInputAction;
+
 
 private:
 	bool bZoomOut = false;

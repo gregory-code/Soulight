@@ -59,6 +59,7 @@ void ASCharacterBase::TakeDamage(float Damage)
 	if (Health <= 0)
 	{
 		StartDeath();
+		UE_LOG(LogTemp, Warning, TEXT("Character Dead"));
 	}
 }
 
