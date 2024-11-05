@@ -133,6 +133,8 @@ void ASPlayer::TakeDamage(float Damage)
 {
 	if (bIsDead) return;
 	
+	CameraShake_BlueprintEvent();
+
 	Super::TakeDamage(Damage);
 
 	EndCombo();

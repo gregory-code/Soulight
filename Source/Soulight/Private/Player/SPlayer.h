@@ -15,7 +15,6 @@ class USEquipmentData;
 class USAbilityDataBase;
 class ASAbilityBase;
 class USStatData;
-class UCameraShake;
 
 UCLASS()
 class ASPlayer : public ASCharacterBase
@@ -59,9 +58,9 @@ public:
 	bool GetIsDead() const { return bIsDead; }
 
 public:
-	UPROPERTY(BlueprintImplementableEvent, Category = "VFX")
-	void CameraShake_ImplementableEvent();
-
+	UFUNCTION(BlueprintImplementableEvent, Category = "VFX")
+	void CameraShake_BlueprintEvent();
+	
 private:
 	UFUNCTION()
 	void StartDeath(bool IsDead);
