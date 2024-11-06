@@ -6,6 +6,7 @@
 #include "Engine/GameInstance.h"
 #include "SGameInstance.generated.h"
 
+class ASAbilityBase;
 /**
  * 
  */
@@ -16,6 +17,15 @@ class USGameInstance : public UGameInstance
 	
 public:
 	///////////////////////////////
+	/*         Lineage          */
+	/////////////////////////////
+
+	void InheritAbilities(ASAbilityBase* Ability);
+
+	UPROPERTY()
+	ASAbilityBase* InheritedAbility;
+
+	///////////////////////////////
 	/*         Dungeon          */
 	/////////////////////////////
 
@@ -24,6 +34,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dungeon")
 	int32 MaxProgress = 4;
+
+	int32 PrevProgess = 0;
+
+	void UpdateProgress();
 
 	///////////////////////////////
 	/*            Fog           */

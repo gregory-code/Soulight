@@ -58,12 +58,23 @@ public:
 	bool GetIsDead() const { return bIsDead; }
 
 public:
+	/*
+	*	Using Blueprint Events here as running the Camera Manager code in 
+	*	c++ is wierd
+	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "VFX")
 	void CameraShake_BlueprintEvent();
 	
+	UFUNCTION(BlueprintImplementableEvent, Category = "VFX")
+	void CameraFade_BlueprintEvent(const float& Duration);
+
+
 private:
 	UFUNCTION()
 	void StartDeath(bool IsDead);
+
+	UFUNCTION()
+	void LoadSpiritsKeep();
 
 	bool bIsDead = false;
 

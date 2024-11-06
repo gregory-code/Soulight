@@ -2,12 +2,14 @@
 
 
 #include "Framework/SoulightGameMode.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "GameFramework/PlayerInput.h"
-#include "Framework/SGameInstance.h"
-#include "Kismet/GameplayStatics.h"
-#include "GameFramework/Actor.h"
+
+#include "Abilities/SAbilityBase.h"
 #include "Engine/World.h"
+#include "Framework/SGameInstance.h"
+#include "GameFramework/PlayerInput.h"
+#include "GameFramework/Actor.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 void ASoulightGameMode::BeginPlay()
 {
@@ -22,6 +24,11 @@ void ASoulightGameMode::BeginPlay()
 		if (SoulightGameInstance)
 		{
 			SoulightGameInstance->CreateFog();
+
+			if (IsValid(SoulightGameInstance->InheritedAbility))
+			{
+
+			}
 		}
 	}
 }

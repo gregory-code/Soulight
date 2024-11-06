@@ -26,6 +26,7 @@
 
 #include "Framework/SFogCleaner.h"
 #include "Framework/SEquipmentData.h"
+#include "Framework/SGameInstance.h"
 
 #include "Player/Abilities/SAbilityDataBase.h"
 
@@ -347,10 +348,21 @@ void ASPlayer::StartDeath(bool IsDead)
 	if (IsValid(GetMesh()->GetAnimInstance()))
 		GetMesh()->GetAnimInstance()->StopAllMontages(1.0f);
 
+	CameraFade_BlueprintEvent(2.5f);
 
-	// Do Lineage Stuff
+	FTimerHandle DeathTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, this, &ASPlayer::LoadSpiritsKeep, 1.0f, false, 2.5f);
+}
 
-	// Load Spirits Keep
+void ASPlayer::LoadSpiritsKeep()
+{
+	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
+	if (IsValid(GameInstance))
+	{
+		GameInstance->UpdateProgress();
+	}
+
+	UGameplayStatics::OpenLevel(GetWorld(), FName("Spirits_Keep"));
 }
 
 void ASPlayer::DEBUG_ModifyHealth(const FInputActionValue& InputValue)
