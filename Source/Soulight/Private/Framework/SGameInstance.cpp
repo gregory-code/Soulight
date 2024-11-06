@@ -11,6 +11,16 @@
 #include "Engine/World.h"
 #include "Framework/SFog.h"
 
+void USGameInstance::InheritAbilities(ASAbilityBase* Ability)
+{
+	InheritedAbility = Ability;
+}
+
+void USGameInstance::UpdateProgress()
+{
+	PrevProgess = CurrentProgress;
+}
+
 void USGameInstance::CreateFog()
 {
 	if (mFogClass == nullptr)
