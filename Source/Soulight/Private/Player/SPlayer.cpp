@@ -103,6 +103,8 @@ void ASPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	UpdateEquippedIfAny();
+
 	HUDInputAction->bTriggerWhenPaused = true;
 	SettingsInputAction->bTriggerWhenPaused = true;
 
@@ -128,6 +130,44 @@ void ASPlayer::BeginPlay()
 	OnDead.AddDynamic(this, &ASPlayer::StartDeath);
 
 	GetCharacterMovement()->MaxWalkSpeed = MoveSpeedCurve->GetFloatValue(Agility);
+}
+
+/*
+*	This looks pretty ugly but it just reads the struct from the Game Instance
+*	then equips the any ability/equipment that was previously owned from another scene.
+*/
+void ASPlayer::UpdateEquippedIfAny()
+{
+	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
+	if (!IsValid(GameInstance)) return;
+
+	CurrentSkill = GameInstance->EquippedItems.EquippedSkill;
+	if (IsValid(CurrentSkill))
+		ObtainItem(CurrentSkill);
+
+	CurrentSpell = GameInstance->EquippedItems.EquippedSpell;
+	if (IsValid(CurrentSpell))
+		ObtainItem(CurrentSpell);
+
+	CurrentPassive = GameInstance->EquippedItems.EquippedPassive;
+	if (IsValid(CurrentPassive))
+		ObtainItem(CurrentPassive);
+
+	WeaponEquipmentData = GameInstance->EquippedItems.EquippedWeapon;
+	if (IsValid(WeaponEquipmentData))
+		EquipItem(WeaponEquipmentData);
+
+	ChestEquipmentData = GameInstance->EquippedItems.EquippedChest;
+	if (IsValid(ChestEquipmentData))
+		EquipItem(ChestEquipmentData);
+
+	HeadEquipmentData = GameInstance->EquippedItems.EquippedHead;
+	if (IsValid(HeadEquipmentData))
+		EquipItem(HeadEquipmentData);
+
+	BootEquipmentData = GameInstance->EquippedItems.EquippedBoot;
+	if (IsValid(BootEquipmentData))
+		EquipItem(BootEquipmentData);
 }
 
 void ASPlayer::TakeDamage(float Damage)
@@ -348,6 +388,13 @@ void ASPlayer::StartDeath(bool IsDead)
 	if (IsValid(GetMesh()->GetAnimInstance()))
 		GetMesh()->GetAnimInstance()->StopAllMontages(1.0f);
 
+	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
+	if (IsValid(GameInstance))
+	{
+		GameInstance->ClearEquippedItems();
+	}
+
+
 	CameraFade_BlueprintEvent(2.5f);
 
 	FTimerHandle DeathTimerHandle;
@@ -431,6 +478,8 @@ void ASPlayer::HealthUpdated(const float newHealth)
 
 void ASPlayer::EquipItem(USEquipmentData* EquipmentData)
 {
+	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
+
 	// TODO: Make this also set the mesh for these
 	switch (EquipmentData->EquipmentType) 
 	{
@@ -441,6 +490,11 @@ void ASPlayer::EquipItem(USEquipmentData* EquipmentData)
 			UE_LOG(LogTemp, Warning, TEXT("Equipping Weapon"));
 
 			WeaponEquipmentData = EquipmentData;
+			if (IsValid(GameInstance))
+			{
+				GameInstance->EquippedItems.EquippedWeapon = WeaponEquipmentData;
+			}
+
 			break;
 		case EEquipmentType::HEAD:
 			if (IsValid(HeadEquipmentData))
@@ -449,6 +503,11 @@ void ASPlayer::EquipItem(USEquipmentData* EquipmentData)
 			UE_LOG(LogTemp, Warning, TEXT("Equipping Head Gear"));
 
 			HeadEquipmentData = EquipmentData;
+			if (IsValid(GameInstance))
+			{
+				GameInstance->EquippedItems.EquippedHead = HeadEquipmentData;
+			}
+
 			break;
 		case EEquipmentType::CHEST:
 			if (IsValid(ChestEquipmentData))
@@ -457,6 +516,10 @@ void ASPlayer::EquipItem(USEquipmentData* EquipmentData)
 			UE_LOG(LogTemp, Warning, TEXT("Equipping Chest Gear"));
 
 			ChestEquipmentData = EquipmentData;
+			if (IsValid(GameInstance))
+			{
+				GameInstance->EquippedItems.EquippedChest = ChestEquipmentData;
+			}
 			break;
 		case EEquipmentType::BOOTS:
 			if (IsValid(BootEquipmentData))
@@ -465,10 +528,17 @@ void ASPlayer::EquipItem(USEquipmentData* EquipmentData)
 			UE_LOG(LogTemp, Warning, TEXT("Equipping Boots Gear"));
 
 			BootEquipmentData = EquipmentData;
+			if (IsValid(GameInstance))
+			{
+				GameInstance->EquippedItems.EquippedBoot = BootEquipmentData;
+				UE_LOG(LogTemp, Warning, TEXT("Inherited Boots Gear"));
+			}
 			break;
 	}
 
 	AddStats(EquipmentData->EquipmentStats);
+
+	UE_LOG(LogTemp, Warning, TEXT("Agility: %f"), Agility);
 
 	GetCharacterMovement()->MaxWalkSpeed = MoveSpeedCurve->GetFloatValue(Agility);
 
@@ -536,18 +606,32 @@ void ASPlayer::SetNewAbility(ASAbilityBase* newItem, USAbilityDataBase* NewAbili
 {
 	if (!IsValid(newItem) || !IsValid(NewAbilityData)) return;
 
+	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
+
 	switch (NewAbilityData->GetType())
 	{
 	case EType::Passive:
 		CurrentPassive = newItem;
+		if (IsValid(GameInstance))
+		{
+			GameInstance->EquippedItems.EquippedPassive = CurrentPassive;
+		}
 		break;
 
 	case EType::Skill:
 		CurrentSkill = newItem;
+		if (IsValid(GameInstance))
+		{
+			GameInstance->EquippedItems.EquippedPassive = CurrentSkill;
+		}
 		break;
 
 	case EType::Spell:
 		CurrentSpell = newItem;
+		if (IsValid(GameInstance))
+		{
+			GameInstance->EquippedItems.EquippedPassive = CurrentSpell;
+		}
 		break;
 	}
 }

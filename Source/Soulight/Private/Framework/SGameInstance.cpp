@@ -11,7 +11,18 @@
 #include "Engine/World.h"
 #include "Framework/SFog.h"
 
-void USGameInstance::InheritAbilities(ASAbilityBase* Ability)
+void USGameInstance::ClearEquippedItems()
+{
+	EquippedItems.EquippedSkill = nullptr;
+	EquippedItems.EquippedSpell = nullptr;
+	EquippedItems.EquippedPassive = nullptr;
+	EquippedItems.EquippedWeapon = nullptr;
+	EquippedItems.EquippedChest = nullptr;
+	EquippedItems.EquippedHead = nullptr;
+	EquippedItems.EquippedBoot = nullptr;
+}
+
+void USGameInstance::InheritAbility(ASAbilityBase* Ability)
 {
 	InheritedAbility = Ability;
 }

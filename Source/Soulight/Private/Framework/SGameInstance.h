@@ -7,6 +7,42 @@
 #include "SGameInstance.generated.h"
 
 class ASAbilityBase;
+class USEquipmentData;
+
+USTRUCT(BlueprintType)
+struct FEquippedItems 
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Equipped Items")
+	ASAbilityBase* EquippedSkill;
+
+	UPROPERTY(EditAnywhere, Category = "Equipped Items")
+	ASAbilityBase* EquippedSpell;
+
+	UPROPERTY(EditAnywhere, Category = "Equipped Items")
+	ASAbilityBase* EquippedPassive;
+
+	UPROPERTY(EditAnywhere, Category = "Equipped Items")
+	USEquipmentData* EquippedWeapon;
+
+	UPROPERTY(EditAnywhere, Category = "Equipped Items")
+	USEquipmentData* EquippedChest;
+
+	UPROPERTY(EditAnywhere, Category = "Equipped Items")
+	USEquipmentData* EquippedHead;
+
+	UPROPERTY(EditAnywhere, Category = "Equipped Items")
+	USEquipmentData* EquippedBoot;
+
+	FEquippedItems()
+		: EquippedSkill(nullptr), EquippedSpell(nullptr), EquippedPassive(nullptr),
+		EquippedWeapon(nullptr), EquippedChest(nullptr), EquippedHead(nullptr), EquippedBoot(nullptr)
+	{
+	}
+
+};
+
 /**
  * 
  */
@@ -17,10 +53,19 @@ class USGameInstance : public UGameInstance
 	
 public:
 	///////////////////////////////
+	/*         Player           */
+	/////////////////////////////
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	FEquippedItems EquippedItems;
+
+	void ClearEquippedItems();
+
+	///////////////////////////////
 	/*         Lineage          */
 	/////////////////////////////
 
-	void InheritAbilities(ASAbilityBase* Ability);
+	void InheritAbility(ASAbilityBase* Ability);
 
 	UPROPERTY()
 	ASAbilityBase* InheritedAbility;

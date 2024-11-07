@@ -57,6 +57,18 @@ public:
 	UFUNCTION()
 	bool GetIsDead() const { return bIsDead; }
 
+	UFUNCTION()
+	ASAbilityBase* GetCurrentSkill() const { return CurrentSkill; }
+
+	UFUNCTION()
+	ASAbilityBase* GetCurrentSpell() const { return CurrentSpell; }
+
+	UFUNCTION()
+	ASAbilityBase* GetCurrentPassive() const { return CurrentPassive; }
+
+private:
+	void UpdateEquippedIfAny();
+
 public:
 	/*
 	*	Using Blueprint Events here as running the Camera Manager code in 
