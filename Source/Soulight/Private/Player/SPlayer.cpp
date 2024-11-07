@@ -142,32 +142,32 @@ void ASPlayer::UpdateEquippedIfAny()
 	if (!IsValid(GameInstance)) return;
 
 	CurrentSkill = GameInstance->EquippedItems.EquippedSkill;
-	if (IsValid(CurrentSkill))
-		ObtainItem(CurrentSkill);
+	if (IsValid(CurrentSkill)) ObtainItem(CurrentSkill);
+	else UE_LOG(LogTemp, Warning, TEXT("Skill Is null"));
 
 	CurrentSpell = GameInstance->EquippedItems.EquippedSpell;
-	if (IsValid(CurrentSpell))
-		ObtainItem(CurrentSpell);
+	if (IsValid(CurrentSpell)) ObtainItem(CurrentSpell);
+	else UE_LOG(LogTemp, Warning, TEXT("Spell Is null"));
 
 	CurrentPassive = GameInstance->EquippedItems.EquippedPassive;
-	if (IsValid(CurrentPassive))
-		ObtainItem(CurrentPassive);
+	if (IsValid(CurrentPassive)) ObtainItem(CurrentPassive);
+	else UE_LOG(LogTemp, Warning, TEXT("Passive Is null"));
 
 	WeaponEquipmentData = GameInstance->EquippedItems.EquippedWeapon;
-	if (IsValid(WeaponEquipmentData))
-		EquipItem(WeaponEquipmentData);
+	if (IsValid(WeaponEquipmentData)) AddStats(WeaponEquipmentData->EquipmentStats);
+	else UE_LOG(LogTemp, Warning, TEXT("Weapon Is null"));
 
 	ChestEquipmentData = GameInstance->EquippedItems.EquippedChest;
-	if (IsValid(ChestEquipmentData))
-		EquipItem(ChestEquipmentData);
+	if (IsValid(ChestEquipmentData)) AddStats(ChestEquipmentData->EquipmentStats);
+	else UE_LOG(LogTemp, Warning, TEXT("Chest Is null"));
 
 	HeadEquipmentData = GameInstance->EquippedItems.EquippedHead;
-	if (IsValid(HeadEquipmentData))
-		EquipItem(HeadEquipmentData);
+	if (IsValid(HeadEquipmentData)) AddStats(HeadEquipmentData->EquipmentStats);
+	else UE_LOG(LogTemp, Warning, TEXT("Head Is null"));
 
 	BootEquipmentData = GameInstance->EquippedItems.EquippedBoot;
-	if (IsValid(BootEquipmentData))
-		EquipItem(BootEquipmentData);
+	if (IsValid(BootEquipmentData)) AddStats(BootEquipmentData->EquipmentStats);
+	else UE_LOG(LogTemp, Warning, TEXT("Boots Is null"));
 }
 
 void ASPlayer::TakeDamage(float Damage)

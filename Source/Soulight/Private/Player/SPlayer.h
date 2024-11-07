@@ -275,10 +275,14 @@ public:
 	void EquipItem(USEquipmentData* EquipmentData);
 
 private:
+	UPROPERTY()
 	USEquipmentData* WeaponEquipmentData;
 
+	UPROPERTY()
 	USEquipmentData* ChestEquipmentData;
+	UPROPERTY()
 	USEquipmentData* HeadEquipmentData;
+	UPROPERTY()
 	USEquipmentData* BootEquipmentData;
 
 public:

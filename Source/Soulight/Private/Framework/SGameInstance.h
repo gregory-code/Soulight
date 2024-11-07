@@ -36,9 +36,8 @@ struct FEquippedItems
 	USEquipmentData* EquippedBoot;
 
 	FEquippedItems()
-		: EquippedSkill(nullptr), EquippedSpell(nullptr), EquippedPassive(nullptr),
-		EquippedWeapon(nullptr), EquippedChest(nullptr), EquippedHead(nullptr), EquippedBoot(nullptr)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Creating FEquippedItems Struct!"));
 	}
 
 };
