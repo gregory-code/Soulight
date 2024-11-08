@@ -90,6 +90,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Customization")
 	FName WeaponSocketName;
 
+	UFUNCTION()
+	void WearItem(EEquipmentType EquipmentType, UStaticMesh* StaticMesh);
 
 public:
 	/*
