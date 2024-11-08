@@ -69,6 +69,28 @@ public:
 private:
 	void UpdateEquippedIfAny();
 
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Customization")
+	UStaticMeshComponent* HeadMesh;
+	UPROPERTY(EditDefaultsOnly, Category = "Customization")
+	FName HeadSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Customization")
+	UStaticMeshComponent* ChestMesh;
+	UPROPERTY(EditDefaultsOnly, Category = "Customization")
+	FName ChestSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Customization")
+	UStaticMeshComponent* BootsMesh;
+	UPROPERTY(EditDefaultsOnly, Category = "Customization")
+	FName BootsSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Customization")
+	UStaticMeshComponent* WeaponMesh;
+	UPROPERTY(EditDefaultsOnly, Category = "Customization")
+	FName WeaponSocketName;
+
+
 public:
 	/*
 	*	Using Blueprint Events here as running the Camera Manager code in 

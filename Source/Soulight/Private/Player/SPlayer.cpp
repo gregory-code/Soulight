@@ -79,6 +79,14 @@ ASPlayer::ASPlayer()
 		MinimapPlayerIcon->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
 	}
 
+	if (IsValid(GetMesh())) 
+	{
+		HeadMesh = CreateDefaultSubobject<UStaticMeshComponent>("Head Mesh");
+		ChestMesh = CreateDefaultSubobject<UStaticMeshComponent>("Chest Mesh");
+		BootsMesh = CreateDefaultSubobject<UStaticMeshComponent>("Boots Mesh");
+		WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>("Weapon Mesh");
+	}
+
 	bUseControllerRotationYaw = false;
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -104,6 +112,15 @@ void ASPlayer::BeginPlay()
 	Super::BeginPlay();
 
 	UpdateEquippedIfAny();
+
+	if(IsValid(HeadMesh))
+		HeadMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, HeadSocketName);
+	if (IsValid(ChestMesh))
+		ChestMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, ChestSocketName);
+	if (IsValid(BootsMesh))
+		BootsMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, BootsSocketName);
+	if (IsValid(WeaponMesh))
+		WeaponMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocketName);
 
 	HUDInputAction->bTriggerWhenPaused = true;
 	SettingsInputAction->bTriggerWhenPaused = true;
