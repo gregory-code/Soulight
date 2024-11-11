@@ -47,6 +47,11 @@ void ASInteractableObject::BeginPlay()
 	{
 		ItemUI->Start();
 	}
+	else if (IsValid(ItemWidgetComponent->GetWidget()))
+	{
+		ItemWidgetComponent->GetWidget()->SetVisibility(ESlateVisibility::Hidden);
+	}
+
 
 	OnActorBeginOverlap.AddDynamic(this, &ASInteractableObject::OnOverlapBegin);
 	OnActorEndOverlap.AddDynamic(this, &ASInteractableObject::OnOverlapEnd);
@@ -89,6 +94,11 @@ void ASInteractableObject::OnOverlapBegin(AActor* overlappedActor, AActor* other
 
 	if (!IsValid(Player) || Player != otherActor) return;
 
+	if (!IsValid(ItemUI) && IsValid(ItemWidgetComponent->GetWidget()))
+	{
+		ItemWidgetComponent->GetWidget()->SetVisibility(ESlateVisibility::Visible);
+	}
+
 	Player->OnInteract.RemoveDynamic(this, &ASInteractableObject::Interact);
 	Player->OnInteract.AddDynamic(this, &ASInteractableObject::Interact);
 
@@ -100,6 +110,11 @@ void ASInteractableObject::OnOverlapEnd(AActor* overlappedActor, AActor* otherAc
 	if (!IsValid(Player)) return;
 
 	if (Player != otherActor) return;
+
+	if (!IsValid(ItemUI) && IsValid(ItemWidgetComponent->GetWidget()))
+	{
+		ItemWidgetComponent->GetWidget()->SetVisibility(ESlateVisibility::Hidden);
+	}
 
 	Player->OnInteract.RemoveDynamic(this, &ASInteractableObject::Interact);
 

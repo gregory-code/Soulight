@@ -158,6 +158,11 @@ void ASPlayer::UpdateEquippedIfAny()
 	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
 	if (!IsValid(GameInstance)) return;
 
+	ObtainItem(GameInstance->EquippedItems.EquippedSkill);
+	ObtainItem(GameInstance->EquippedItems.EquippedSpell);
+	ObtainItem(GameInstance->EquippedItems.EquippedPassive);
+
+	/*
 	CurrentSkill = GameInstance->EquippedItems.EquippedSkill;
 	if (IsValid(CurrentSkill)) 
 	{
@@ -178,6 +183,7 @@ void ASPlayer::UpdateEquippedIfAny()
 		ObtainItem(CurrentPassive); 
 	}
 	else UE_LOG(LogTemp, Warning, TEXT("Passive Is null"));
+	*/
 
 	WeaponEquipmentData = GameInstance->EquippedItems.EquippedWeapon;
 	if (IsValid(WeaponEquipmentData))
