@@ -67,6 +67,18 @@ public:
 	ASAbilityBase* GetCurrentPassive() const { return CurrentPassive; }
 
 private:
+	///////////////////////////////
+	/*         Dialogue         */
+	/////////////////////////////
+	UFUNCTION(BlueprintCallable)
+	void Speak(const FString& Dialogue);
+	UFUNCTION(BlueprintCallable)
+	void ClearSpeakText();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dialogue")
+	class UWidgetComponent* WidgetComponent;
+
+private:
 	void UpdateEquippedIfAny();
 
 private:

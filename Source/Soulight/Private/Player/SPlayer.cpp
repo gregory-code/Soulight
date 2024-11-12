@@ -9,18 +9,19 @@
 #include "InputCoreTypes.h"
 #include "GameFramework/PlayerInput.h"
 
-#include "Engine/StaticMesh.h"
-#include "UObject/ConstructorHelpers.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/WidgetComponent.h"
+#include "Components/SceneComponent.h"
+
 #include "Engine/SkeletalMeshSocket.h"
+#include "Engine/StaticMesh.h"
 
 #include "Curves/CurveFloat.h"
 
 #include "Abilities/SAbilityBase.h"
 #include "Animation/AnimInstance.h"
-
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -36,7 +37,10 @@
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Components/SceneComponent.h"
+
+#include "UObject/ConstructorHelpers.h"
+
+#include "Widgets/STextPrompt.h"
 
 ASPlayer::ASPlayer()
 {
@@ -86,6 +90,9 @@ ASPlayer::ASPlayer()
 		BootsMesh = CreateDefaultSubobject<UStaticMeshComponent>("Boots Mesh");
 		WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>("Weapon Mesh");
 	}
+
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("Widget Component"));
+	WidgetComponent->SetupAttachment(GetRootComponent());
 
 	bUseControllerRotationYaw = false;
 
@@ -147,6 +154,33 @@ void ASPlayer::BeginPlay()
 	OnDead.AddDynamic(this, &ASPlayer::StartDeath);
 
 	GetCharacterMovement()->MaxWalkSpeed = MoveSpeedCurve->GetFloatValue(Agility);
+}
+
+void ASPlayer::Speak(const FString& Dialogue)
+{
+	if (!IsValid(WidgetComponent)) return;
+	if (!IsValid(WidgetComponent->GetWidget())) return;
+
+	USTextPrompt* TextPrompt = Cast<USTextPrompt>(WidgetComponent->GetWidget());
+	if (!IsValid(TextPrompt)) return;
+
+	const FText Text = FText::FromString(Dialogue);
+	TextPrompt->SetText(Text);
+
+	FTimerHandle ClearSpeakHandle;
+	GetWorld()->GetTimerManager().SetTimer(ClearSpeakHandle, this, &ASPlayer::ClearSpeakText, 1.0f, false, 5.0f);
+}
+
+void ASPlayer::ClearSpeakText()
+{
+	if (!IsValid(WidgetComponent)) return;
+	if (!IsValid(WidgetComponent->GetWidget())) return;
+
+	USTextPrompt* TextPrompt = Cast<USTextPrompt>(WidgetComponent->GetWidget());
+	if (!IsValid(TextPrompt)) return;
+
+	const FText Text = FText::FromString("");
+	TextPrompt->SetText(Text);
 }
 
 /*

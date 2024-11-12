@@ -18,31 +18,23 @@ FString USGameInstance::GetResponse(const FName& Personality, const FString& Int
 {
     if (!MyDataTable) return FString("Data Table Is Null!");
 
-    // Find the row for the specified tone
 	FDialogueData* Row = MyDataTable->FindRow<FDialogueData>(Personality, FString(""));
 
     if (!Row) return FString("Row Is Null!");
 
-    // Use reflection to search for the property by name
     FString Response = "!";
-    FName NPCPropertyName = FName(*InteractionName);
+    FName InteractionPropertyName = FName(*InteractionName);
 
-    // Get the class of the struct
     UStruct* RowStruct = FDialogueData::StaticStruct();
-
-    // Loop over all properties in the struct
     for (TFieldIterator<FProperty> PropIt(RowStruct); PropIt; ++PropIt)
     {
         FProperty* Property = *PropIt;
 
-        // Check if the property name matches our target column (e.g., "NPC1Response", "NPC2Response")
-        if (Property->GetFName() == NPCPropertyName)
+        if (Property->GetFName() == InteractionPropertyName)
         {
-            // Cast and retrieve the value from the row struct
             FStrProperty* StrProp = CastField<FStrProperty>(Property);
             if (StrProp)
             {
-                // Access the property value and set it to Response
                 Response = StrProp->GetPropertyValue_InContainer(Row);
                 break;
             }
