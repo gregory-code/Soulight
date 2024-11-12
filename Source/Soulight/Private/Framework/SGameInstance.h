@@ -42,6 +42,63 @@ struct FEquippedItems
 
 };
 
+
+/*
+*	This is a lot of variables only because Unreal demands you use a custom
+*	Struct in c++ in order to read the row data. Otherwise we could've just
+*	used a structure in the editor.
+*/
+USTRUCT(BlueprintType)
+struct FDialogueData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString Arrival_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString TalkToBlacksmith_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString TalkToFisher_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString TalkToMerchant_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString EnterForest_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString GrabbedByMistHand_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString LightsLampost_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString RevealsProwlerWithLight_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString HearsWendigo_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString SeesArborelHive_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString EnterCastle_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString SeesDreadstormFireball_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString OpensChest_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString TriggersMimic_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString SendsOffLetter_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString FindsSoul_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString KillsEnemy_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString EquipsMaxTierItem_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString ObtainsMaxTierAbility_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString SeesDreadstorm_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString Dies_Default;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString WinsGame_Default;
+};
+
 /**
  * 
  */
@@ -51,6 +108,15 @@ class USGameInstance : public UGameInstance
 	GENERATED_BODY()
 	
 public:
+	///////////////////////////////
+	/*        Dialogue          */
+	/////////////////////////////
+	UFUNCTION(BlueprintCallable)
+	FString GetResponse(const FName& Personality, const FString& InteractionName) const;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dialogue")
+	class UDataTable* MyDataTable;
+
 	///////////////////////////////
 	/*         Player           */
 	/////////////////////////////
@@ -91,6 +157,7 @@ public:
 	void CreateFog();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Fog")
+
 	TSubclassOf<class ASFog> mFogClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Fog")
