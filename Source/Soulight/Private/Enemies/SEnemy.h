@@ -24,4 +24,7 @@ private:
 	UPROPERTY(VisibleDefaultsOnly, Category = "AI")
 	class UAIPerceptionStimuliSourceComponent* AIPerceptionSourceComp;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Loot")
+	TArray<TSubclassOf<class ASItemBase>> LootPool;
+
 };

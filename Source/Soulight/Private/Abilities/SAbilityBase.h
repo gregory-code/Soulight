@@ -6,6 +6,10 @@
 
 class USAbilityDataBase;
 
+
+/*
+*   TODO: Add Ability Cooldowns;
+*/
 UCLASS(BlueprintType)
 class ASAbilityBase : public AActor
 {

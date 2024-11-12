@@ -57,8 +57,6 @@ void ASAbility_PegasusDash::StartDash()
 	FVector OwnerForward = OwnerCharacter->GetActorForwardVector();
 	OwnerForward.Normalize();
 
-	//OwnerCharacter->AddMovementInput(OwnerForward, 1.0f, true);
-
 	OwnerCharacter->GetCharacterMovement()->Launch(OwnerForward * (OwnerCharacter->GetCharacterMovement()->MaxWalkSpeed + DashSpeed));
 
 	ElapsedTime += GetWorld()->GetDeltaSeconds();
