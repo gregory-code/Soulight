@@ -9,7 +9,7 @@
 
 #include "Engine/World.h"
 
-#include "Framework/SItemBase.h"
+#include "Framework/SInteractableObject.h"
 
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
@@ -36,7 +36,7 @@ void ASEnemy::StartDeath(bool IsDead)
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		ASItemBase* Ability = GetWorld()->SpawnActor<ASItemBase>(LootPool[rand], GetActorLocation(), GetActorRotation(), SpawnParams);
+		ASInteractableObject* Ability = GetWorld()->SpawnActor<ASInteractableObject>(LootPool[rand], GetActorLocation(), GetActorRotation(), SpawnParams);
 	}
 
 	Destroy();

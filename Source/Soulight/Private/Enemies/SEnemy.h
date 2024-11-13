@@ -17,14 +17,15 @@ class ASEnemy : public ASCharacterBase
 public:
 	ASEnemy();
 
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Loot")
+	TArray<TSubclassOf<class ASItemBase>> LootPool;
+
 private:
 	UFUNCTION()
-	void StartDeath(bool IsDead);
+	virtual void StartDeath(bool IsDead);
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "AI")
 	class UAIPerceptionStimuliSourceComponent* AIPerceptionSourceComp;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Loot")
-	TArray<TSubclassOf<class ASItemBase>> LootPool;
 
 };
