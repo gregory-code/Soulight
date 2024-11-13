@@ -19,7 +19,7 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Loot")
-	TArray<TSubclassOf<class ASItemBase>> LootPool;
+	TArray<TSubclassOf<class ASInteractableObject>> LootPool;
 
 private:
 	UFUNCTION()

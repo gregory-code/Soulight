@@ -91,11 +91,11 @@ void ASAIController::SenseSightStimulus(AActor* Target, FAIStimulus Stimulus)
 	if (Stimulus.WasSuccessfullySensed())
 	{
 		GetBlackboardComponent()->SetValueAsObject(PlayerBBKeyName, Target);
-	}
+	} /*
 	else
 	{
 		GetBlackboardComponent()->ClearValue(PlayerBBKeyName);
-	}
+	} */
 }
 
 void ASAIController::SenseHearingStimulus(AActor* Target, FAIStimulus Stimulus)

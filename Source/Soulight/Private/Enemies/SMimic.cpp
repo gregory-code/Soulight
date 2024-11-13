@@ -7,31 +7,51 @@
 
 #include "Framework/SInteractableObject.h"
 
+void ASMimic::BeginPlay()
+{
+	Super::BeginPlay();
+
+	FTimerHandle EscapeTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(EscapeTimerHandle, this, &ASMimic::Escape, 1.0f, false, EscapeDelay);
+
+	LastSound = 0.0f;
+}
+
+void ASMimic::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	LastSound++;
+	if (LastSound > SoundIncrement)
+	{
+		MakeSound();
+		LastSound = 0.0f;
+	}
+}
+
 void ASMimic::StartDeath(bool IsDead)
 {
-	float RNG = FMath::RandRange(0, 100);
+	UE_LOG(LogTemp, Warning, TEXT("I Am Doing this"));
 
-	if (RNG > 50)
+	if (LootPool.IsEmpty() == false) 
 	{
-		if (LootPool.IsEmpty()) return;
+		UE_LOG(LogTemp, Warning, TEXT("Loot Table Is Not Empty"));
 
 		const int32 rand = FMath::RandRange(0, LootPool.Num() - 1);
 
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		ASInteractableObject* Ability = GetWorld()->SpawnActor<ASInteractableObject>(LootPool[rand], GetActorLocation(), GetActorRotation(), SpawnParams);
-	}
-	else
-	{
-		if (EquipmentLootPool.IsEmpty()) return;
-
-		const int32 rand = FMath::RandRange(0, EquipmentLootPool.Num() - 1);
-
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-		ASInteractableObject* Equipment = GetWorld()->SpawnActor<ASInteractableObject>(EquipmentLootPool[rand], GetActorLocation(), GetActorRotation(), SpawnParams);
+		ASInteractableObject* Equipment = GetWorld()->SpawnActor<ASInteractableObject>(LootPool[rand], GetActorLocation(), GetActorRotation(), SpawnParams);
 	}
 	
+	Destroy();
 }
+
+void ASMimic::Escape()
+{
+	// Maybe do other things here idk
+
+	Destroy();
+}
+		
