@@ -25,6 +25,7 @@ private:
 	UFUNCTION()
 	virtual void StartDeath(bool IsDead);
 
+protected:
 	UPROPERTY(VisibleDefaultsOnly, Category = "AI")
 	class UAIPerceptionStimuliSourceComponent* AIPerceptionSourceComp;
 
