@@ -47,7 +47,7 @@ public:
 	virtual void OnOverlapEnd(AActor* overlappedActor, AActor* otherActor);
 
 private:
-	ASAIController* AIC;
+	class ASAIController* AIC;
 
 	virtual void StartDeath(bool IsDead) override;
 

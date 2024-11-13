@@ -46,7 +46,7 @@ void ASMimic::BeginPlay()
 	AIPerceptionSourceComp->Deactivate();
 	
 	// This is how I think I would Disable it
-	ASAIController* AIC = Cast<ASAIController>(GetController());
+	AIC = Cast<ASAIController>(GetController());
 	if (IsValid(AIC))
 	{
 		if(IsValid(AIC->GetBlackboardComponent()))
@@ -72,7 +72,7 @@ void ASMimic::Interact()
 {
 	UE_LOG(LogTemp, Warning, TEXT("I AM INTERACTING!"));
 
-	ASAIController* AIC = Cast<ASAIController>(GetController());
+	AIC = Cast<ASAIController>(GetController());
 	if (IsValid(AIC))
 	{
 		if (IsValid(AIC->GetBlackboardComponent()))
