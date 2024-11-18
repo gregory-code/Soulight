@@ -19,7 +19,10 @@ void USAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 
 	if (IsValid(ActorToSpawn)) 
 	{
-		GetWorld()->SpawnActor<AActor>(ActorToSpawn, SpawnLocation, Owner->GetActorRotation());
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = Owner;
+
+		GetWorld()->SpawnActor<AActor>(ActorToSpawn, SpawnLocation, Owner->GetActorRotation(), SpawnParams);
 	}
 
 	DrawDebugSphere(GetWorld(), SpawnLocation, 1.0f, 32, FColor::Red, false, 0.2f);
