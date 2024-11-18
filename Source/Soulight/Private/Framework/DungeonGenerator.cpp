@@ -16,6 +16,7 @@ void ADungeonGenerator::BeginPlay()
 {
 	Super::BeginPlay();
 
+    /*
     InitializeGrid();
 
     PlaceStartRoom();
@@ -28,9 +29,10 @@ void ADungeonGenerator::BeginPlay()
 
     TArray<ASDungeonRoom*> MainPath;
     MainPath.Append(GenerateMainPath(StartingRooms[0], StartRoomPosition, BossRoomPosition, Steps, 3));
-
+    */
 }
 
+/*
 TArray<ASDungeonRoom*> ADungeonGenerator::GenerateMainPath(ASDungeonRoom* RootRoom, const FVector2D& StartPosition, const FVector2D& EndPosition, const int32& Steps, const int32& NumRoomsToKeep)
 {
     return TArray<ASDungeonRoom*>();
@@ -84,4 +86,4 @@ void ADungeonGenerator::PlaceBossRoom()
 }
 
 #pragma endregion
-
+*/
