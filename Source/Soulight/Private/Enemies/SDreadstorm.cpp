@@ -3,6 +3,7 @@
 
 #include "Enemies/SDreadstorm.h"
 
+#include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/Widget.h"
 
@@ -10,6 +11,9 @@
 
 ASDreadstorm::ASDreadstorm()
 {
+	HeadHurtbox = CreateDefaultSubobject<UBoxComponent>(TEXT("Head Hurtbox"));
+	HeadHurtbox->SetupAttachment(GetRootComponent());
+
 	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("Widget Component"));
 	WidgetComponent->SetupAttachment(GetRootComponent());
 }
@@ -32,4 +36,18 @@ void ASDreadstorm::TakeDamage(float Damage)
 	if (!IsValid(HealthBar)) return;
 
 	HealthBar->UpdateHealthbar(Health, MaxHealth);
+}
+
+void ASDreadstorm::RaiseHead()
+{
+	HeadHurtbox->SetActive(false);
+
+	bHeadRaised = true;
+}
+
+void ASDreadstorm::LowerHead()
+{
+	HeadHurtbox->SetActive(true);
+
+	bHeadRaised = false;
 }

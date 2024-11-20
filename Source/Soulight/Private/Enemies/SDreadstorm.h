@@ -23,7 +23,29 @@ protected:
 public:
 	virtual void TakeDamage(float Damage) override;
 
+	UFUNCTION(BlueprintCallable)
+	bool GetHeadRaised() const { return bHeadRaised; }
+
+	UFUNCTION(BlueprintCallable)
+	bool GetTransitioning() const { return bTransitioning; }
+
+	UFUNCTION(BlueprintCallable)
+	void RaiseHead();
+
+	UFUNCTION(BlueprintCallable)
+	void LowerHead();
+
+
 private:
+	UPROPERTY()
+	bool bTransitioning = false;
+
+	UPROPERTY()
+	bool bHeadRaised = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Hurtbox")
+	class UBoxComponent* HeadHurtbox;
+
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	class UWidgetComponent* WidgetComponent;
 
