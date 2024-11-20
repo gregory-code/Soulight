@@ -26,7 +26,16 @@ void ASDreadstorm::BeginPlay()
 
 	if (!IsValid(WidgetComponent->GetWidget())) return;
 
-	HealthBar = Cast<USHealthbar>(WidgetComponent->GetWidget());
+	if (!IsValid(WidgetComponent->GetWidgetClass())) return;
+
+	//HealthBar = Cast<USHealthbar>(WidgetComponent->GetWidget());
+
+	HealthBar = CreateWidget<USHealthbar>(GetWorld(), WidgetComponent->GetWidgetClass());
+
+	if (!IsValid(HealthBar)) return;
+	WidgetComponent->SetWidget(HealthBar);
+
+	HealthBar->UpdateHealthbar(Health, MaxHealth);
 }
 
 void ASDreadstorm::TakeDamage(float Damage)
