@@ -39,6 +39,7 @@ protected:
 	void StartDeath();
 	
 public:
+	UFUNCTION(BlueprintCallable)
 	virtual void TakeDamage(float Damage);
 
 public:
