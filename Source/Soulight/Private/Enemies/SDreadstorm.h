@@ -35,19 +35,19 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void LowerHead();
 
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Hurtbox")
+	class UBoxComponent* HeadHurtbox;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+	class UWidgetComponent* WidgetComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	bool bTransitioning = false;
 
 private:
 	UPROPERTY()
-	bool bTransitioning = false;
-
-	UPROPERTY()
 	bool bHeadRaised = false;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Hurtbox")
-	class UBoxComponent* HeadHurtbox;
-
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	class UWidgetComponent* WidgetComponent;
 
 	UPROPERTY()
 	class USHealthbar* HealthBar;
