@@ -44,7 +44,7 @@ EBTNodeResult::Type USBTTask_SimpleAttack::ExecuteTask(UBehaviorTreeComponent& O
                 UE_LOG(LogTemp, Warning, TEXT("Hit Enemy: %s"), *HitCharacter->GetName());
 
                 // Replace Damage for player/enemy attack damage
-                HitCharacter->TakeDamage(AttackDamage);
+                HitCharacter->TakeDamage(AttackDamage, OwningPawn, Knockback);
             }
         }
     }

@@ -1,15 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Animation/SAnimNotify_Attack.h"
+#include "Animation/SAnimNotifyState_Attack.h"
 
 #include "Framework/SCharacterBase.h"
 
-void USAnimNotify_Attack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+void USAnimNotifyState_Attack::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
 {
-    if (!IsValid(MeshComp)) return;
+	if (!IsValid(MeshComp)) return;
 
-	Super::Notify(MeshComp, Animation);
+	Super::NotifyTick(MeshComp, Animation, FrameDeltaTime, EventReference);
 
     AActor* Owner = MeshComp->GetOwner();
     if (!IsValid(Owner)) return;
@@ -40,6 +40,8 @@ void USAnimNotify_Attack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequence
         {
             if (AActor* HitActor = Result.GetActor())
             {
+                if (HitActors.Contains(HitActor)) return;
+
                 ASCharacterBase* HitCharacter = Cast<ASCharacterBase>(HitActor);
                 if (!IsValid(HitCharacter)) continue;
 
@@ -47,10 +49,25 @@ void USAnimNotify_Attack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequence
 
                 // Replace Damage for player/enemy attack damage
                 HitCharacter->TakeDamage(OwningCharacter->GetStrengthStat(), OwningCharacter, Knockback);
+
+                HitActors.Add(HitActor);
             }
         }
     }
 
     // This is wrong for some reason in the editor idk why, editor has meshes facing right not forward
     DrawDebugSphere(GetWorld(), AttackLocation, AttackSize, 32, FColor::Red, false, 0.2f);
+}
+
+void USAnimNotifyState_Attack::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
+{
+    if (!IsValid(MeshComp))
+    {
+        HitActors.Empty();
+        return;
+    }
+
+    Super::NotifyEnd(MeshComp, Animation, EventReference);
+
+    HitActors.Empty();
 }

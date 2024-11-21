@@ -5,15 +5,20 @@
 
 void ASAbility_SpinSlash::ExecuteAbility()
 {
-
+	Super::ExecuteAbility();
 }
 
 void ASAbility_SpinSlash::CancelAbility()
 {
-
+	return;
 }
 
 void ASAbility_SpinSlash::EndAbility()
+{
+	return;
+}
+
+void ASAbility_SpinSlash::StartSpinSlash()
 {
 
 }

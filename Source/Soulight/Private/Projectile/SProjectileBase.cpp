@@ -49,7 +49,7 @@ void ASProjectileBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, 
 	{
 		ASCharacterBase* HitCharacter = Cast<ASCharacterBase>(OtherActor);
 		if (IsValid(HitCharacter))
-			HitCharacter->TakeDamage(Damage);
+			HitCharacter->TakeDamage(Damage, this, Knockback);
 
 		Destroy();
 	}

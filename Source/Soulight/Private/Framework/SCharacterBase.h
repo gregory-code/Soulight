@@ -40,7 +40,16 @@ protected:
 	
 public:
 	UFUNCTION(BlueprintCallable)
-	virtual void TakeDamage(float Damage);
+	virtual void TakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback);
+
+	UFUNCTION()
+	void ApplyKnockback(const FVector& FromPosition, const float& Knockback);
+
+	UFUNCTION()
+	void ApplyStun();
+	void StartStun();
+
+	FTimerHandle StunTimerHandle;
 
 public:
 	void AddStats(USStatData* Stats);

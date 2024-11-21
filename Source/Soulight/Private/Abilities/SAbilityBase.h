@@ -49,6 +49,7 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = "Ability")
     USAbilityDataBase* AbilityData;
 
+protected:
     void PlayMontage(UAnimMontage* MontageToPlay, const float& PlayRate);
     void StopMontage(UAnimMontage* MontageToStop);
 

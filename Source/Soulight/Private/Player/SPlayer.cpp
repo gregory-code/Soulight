@@ -253,13 +253,13 @@ void ASPlayer::UpdateEquippedIfAny()
 	else UE_LOG(LogTemp, Warning, TEXT("Boots Is null"));
 }
 
-void ASPlayer::TakeDamage(float Damage)
+void ASPlayer::TakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback)
 {
 	if (bIsDead) return;
 	
 	CameraShake_BlueprintEvent();
 
-	Super::TakeDamage(Damage);
+	Super::TakeDamage(Damage, DamageInstigator, Knockback);
 
 	EndCombo();
 

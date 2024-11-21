@@ -38,9 +38,9 @@ void ASDreadstorm::BeginPlay()
 	HealthBar->UpdateHealthbar(Health, MaxHealth);
 }
 
-void ASDreadstorm::TakeDamage(float Damage)
+void ASDreadstorm::TakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback)
 {
-	Super::TakeDamage(Damage);
+	Super::TakeDamage(Damage, DamageInstigator, Knockback);
 
 	if (!IsValid(HealthBar)) return;
 

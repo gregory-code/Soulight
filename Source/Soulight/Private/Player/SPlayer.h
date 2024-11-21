@@ -35,7 +35,7 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void TakeDamage(float Damage) override;
+	virtual void TakeDamage(float Damage, AActor* Instigator, const float& Knockback) override;
 
 	UFUNCTION()
 	void GetGrabbed();

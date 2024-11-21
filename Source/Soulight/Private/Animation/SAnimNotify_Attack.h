@@ -24,6 +24,9 @@ public:
 	float AttackSize = 50.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Damage")
+	float Knockback = 50.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Damage")
 	float AttackOffset;
 
 };

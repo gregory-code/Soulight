@@ -25,6 +25,9 @@ private:
 	float Damage = 100.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	float Knockback = 20.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
 	class USphereComponent* SphereCollider;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Projectile")

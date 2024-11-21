@@ -4,6 +4,7 @@
 #include "Framework/SCharacterBase.h"
 
 #include "Framework/SStatData.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 ASCharacterBase::ASCharacterBase()
@@ -40,7 +41,7 @@ void ASCharacterBase::StartDeath()
 	OnDead.Broadcast(true);
 }
 
-void ASCharacterBase::TakeDamage(float Damage)
+void ASCharacterBase::TakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback)
 {
 	float TotalDamage = Damage - Defense;
 
@@ -59,12 +60,35 @@ void ASCharacterBase::TakeDamage(float Damage)
 		}
 	}
 
+	if(IsValid(DamageInstigator))
+		ApplyKnockback(DamageInstigator->GetActorLocation(), Knockback);
 
 	if (Health <= 0)
 	{
 		StartDeath();
 		UE_LOG(LogTemp, Warning, TEXT("Character Dead"));
 	}
+}
+
+void ASCharacterBase::ApplyKnockback(const FVector& FromPosition, const float& Knockback)
+{
+	if (!IsValid(GetCharacterMovement())) return;
+
+	FVector Direction = FromPosition - GetActorLocation();
+	Direction = -Direction;
+
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->Launch(Direction * Knockback);
+}
+
+void ASCharacterBase::ApplyStun()
+{
+
+}
+
+void ASCharacterBase::StartStun()
+{
+
 }
 
 void ASCharacterBase::AddStats(USStatData* Stats)

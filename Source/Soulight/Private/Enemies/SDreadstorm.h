@@ -21,7 +21,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void TakeDamage(float Damage) override;
+	virtual void TakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback) override;
 
 	UFUNCTION(BlueprintCallable)
 	bool GetHeadRaised() const { return bHeadRaised; }
