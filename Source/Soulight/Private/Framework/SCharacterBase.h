@@ -46,8 +46,9 @@ public:
 	void ApplyKnockback(const FVector& FromPosition, const float& Knockback);
 
 	UFUNCTION()
-	void ApplyStun();
-	void StartStun();
+	void ApplyStun(const float& Duration, const bool& OverrideCurrentStunDuration);
+	UFUNCTION()
+	void EndStun();
 
 	FTimerHandle StunTimerHandle;
 

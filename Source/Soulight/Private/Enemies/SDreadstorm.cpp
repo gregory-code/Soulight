@@ -40,7 +40,7 @@ void ASDreadstorm::BeginPlay()
 
 void ASDreadstorm::TakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback)
 {
-	Super::TakeDamage(Damage, DamageInstigator, Knockback);
+	Super::TakeDamage(Damage, DamageInstigator, 0);
 
 	if (!IsValid(HealthBar)) return;
 

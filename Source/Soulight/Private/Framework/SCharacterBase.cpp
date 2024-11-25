@@ -81,14 +81,23 @@ void ASCharacterBase::ApplyKnockback(const FVector& FromPosition, const float& K
 	GetCharacterMovement()->Launch(Direction * Knockback);
 }
 
-void ASCharacterBase::ApplyStun()
+void ASCharacterBase::ApplyStun(const float& Duration, const bool& OverrideCurrentStunDuration)
 {
+	if (OverrideCurrentStunDuration == true)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(StunTimerHandle);
+	}
 
+	if (GetWorld()->GetTimerManager().IsTimerActive(StunTimerHandle) == true) return;
+
+	GetCharacterMovement()->MovementMode = EMovementMode::MOVE_None;
+
+	GetWorld()->GetTimerManager().SetTimer(StunTimerHandle, this, &ASCharacterBase::EndStun, 1.0f, false, Duration);
 }
 
-void ASCharacterBase::StartStun()
+void ASCharacterBase::EndStun()
 {
-
+	GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Walking;
 }
 
 void ASCharacterBase::AddStats(USStatData* Stats)
