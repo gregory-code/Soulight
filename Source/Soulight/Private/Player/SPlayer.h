@@ -35,8 +35,6 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void TakeDamage(float Damage, AActor* Instigator, const float& Knockback) override;
-
 	UFUNCTION()
 	void GetGrabbed();
 
@@ -57,14 +55,8 @@ public:
 	UFUNCTION()
 	bool GetIsDead() const { return bIsDead; }
 
-	UFUNCTION()
-	ASAbilityBase* GetCurrentSkill() const { return CurrentSkill; }
 
-	UFUNCTION()
-	ASAbilityBase* GetCurrentSpell() const { return CurrentSpell; }
-
-	UFUNCTION()
-	ASAbilityBase* GetCurrentPassive() const { return CurrentPassive; }
+#pragma region Dialogue Variables/Functions
 
 private:
 	///////////////////////////////
@@ -77,6 +69,10 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dialogue")
 	class UWidgetComponent* WidgetComponent;
+
+#pragma endregion
+
+#pragma region Equipment Variables/Functions
 
 private:
 	void UpdateEquippedIfAny();
@@ -106,33 +102,56 @@ private:
 	void WearItem(EEquipmentType EquipmentType, UStaticMesh* StaticMesh);
 
 public:
-	/*
-	*	Using Blueprint Events here as running the Camera Manager code in 
-	*	c++ is wierd
-	*/
-	UFUNCTION(BlueprintImplementableEvent, Category = "VFX")
-	void CameraShake_BlueprintEvent();
-	
-	UFUNCTION(BlueprintImplementableEvent, Category = "VFX")
-	void CameraFade_BlueprintEvent(const float& Duration);
+	///////////////////////////////
+	/*        Equipment         */
+	/////////////////////////////
 
+	void EquipItem(USEquipmentData* EquipmentData);
+
+private:
+	UPROPERTY()
+	USEquipmentData* WeaponEquipmentData;
+
+	UPROPERTY()
+	USEquipmentData* ChestEquipmentData;
+	UPROPERTY()
+	USEquipmentData* HeadEquipmentData;
+	UPROPERTY()
+	USEquipmentData* BootEquipmentData;
+
+
+#pragma endregion
+
+#pragma region Health/Damage Variables/Functions
+
+public:
+	virtual void TakeDamage(float Damage, AActor* Instigator, const float& Knockback) override;
 
 private:
 	UFUNCTION()
 	void StartDeath(bool IsDead);
+	UFUNCTION()
+	void HealthUpdated(const float newHealth);
 
+
+#pragma endregion
+
+private:
 	UFUNCTION()
 	void LoadSpiritsKeep();
 
 	bool bIsDead = false;
 
-	void DEBUG_ModifyHealth(const FInputActionValue& InputValue);
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	class UInputAction* ModifyHealthInputAction;
+#pragma region Lamp Light Variables/Functions
 
+public:
+	UFUNCTION()
+	void SetLampLightColor(const FLinearColor& NewLampColor);
 
 private:
-	bool bZoomOut = false;
+	///////////////////////////////
+	/*          Lamp            */
+	/////////////////////////////
 
 	UPROPERTY(EditAnywhere, Category = "Light")
 	class UPointLightComponent* LampLight;
@@ -147,50 +166,20 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Light")
 	FName LampSocket;
 
+	UPROPERTY(EditAnywhere, Category = "Light")
+	FLinearColor BaseLampColor;
 
-	UPROPERTY(VisibleAnywhere, Category = "Input")
-	class ASPlayerController* PlayerController;
+#pragma endregion
 
-	///////////////////////////////
-	/*         Camera           */
-	/////////////////////////////
+#pragma region Input Variables/Functions
 
-	UPROPERTY(visibleAnywhere, Category = "Camera")
-	class USceneComponent* MainCameraPivot;
-
-	UPROPERTY(visibleAnywhere, Category = "Camera")
-	class USceneComponent* FullHealthView;
-
-	UPROPERTY(visibleAnywhere, Category = "Camera")
-	class USceneComponent* EmptyHealthView;
-
-	UPROPERTY(visibleAnywhere, Category = "Camera")
-	class USceneCaptureComponent2D* MiniMapCamera;
-
-	UPROPERTY(visibleAnywhere, Category = "Camera")
-	class USceneComponent* MiniMapView;
-
-	UPROPERTY(VisibleAnywhere, Category = "Camera")
-	class UStaticMeshComponent* MinimapPlayerIcon;
-
-	FTimerHandle CameraTimerHandle;
-	float CameraMoveSpeed = 5.0f;
-	void MoveCameraToLocalOffset(const FVector& LocalOffset);
-	void ProcessCameraMove(FVector Goal);
-
-	virtual void PawnClientRestart() override;
-
+private:
 	///////////////////////////////
 	/*         Inputs           */
 	/////////////////////////////
-
-	bool bInteractOnly;
-	bool bGrabbedInactionable;
-
+	
 	void SetInputMapping(bool bPlayerMapping);
-
-	UPROPERTY(EditDefaultsOnly, Category = "Testing Stuff")
-	AActor* Testing;
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputMappingContext* InputPlayerMapping;
@@ -224,8 +213,6 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* SettingsInputAction;
-
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION()
 	void Move(const FInputActionValue& InputValue);
@@ -264,21 +251,62 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	class UAnimMontage* AttackComboMontage;
+
+
+#pragma endregion
+
+#pragma region Camera Variables/Functions
+
+public:
+	/*
+	*	Using Blueprint Events here as running the Camera Manager code in
+	*	c++ is wierd
+	*/
+	UFUNCTION(BlueprintImplementableEvent, Category = "VFX")
+	void CameraShake_BlueprintEvent();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "VFX")
+	void CameraFade_BlueprintEvent(const float& Duration);
+
+private:
+	///////////////////////////////
+	/*         Camera           */
+	/////////////////////////////
+
+	UPROPERTY(visibleAnywhere, Category = "Camera")
+	class USceneComponent* MainCameraPivot;
+
+	UPROPERTY(visibleAnywhere, Category = "Camera")
+	class USceneComponent* FullHealthView;
+
+	UPROPERTY(visibleAnywhere, Category = "Camera")
+	class USceneComponent* EmptyHealthView;
+
+	UPROPERTY(visibleAnywhere, Category = "Camera")
+	class USceneCaptureComponent2D* MiniMapCamera;
+
+	UPROPERTY(visibleAnywhere, Category = "Camera")
+	class USceneComponent* MiniMapView;
+
+	UPROPERTY(VisibleAnywhere, Category = "Camera")
+	class UStaticMeshComponent* MinimapPlayerIcon;
+
+	FTimerHandle CameraTimerHandle;
+	float CameraMoveSpeed = 5.0f;
+	void MoveCameraToLocalOffset(const FVector& LocalOffset);
+	void ProcessCameraMove(FVector Goal);
+
+#pragma endregion
+
+private:
+	bool bZoomOut = false;
+	bool bInteractOnly;
+	bool bGrabbedInactionable;
 	
-	///////////////////////////////
-	/*       Movement           */
-	/////////////////////////////
+	UPROPERTY(VisibleAnywhere, Category = "Input")
+	class ASPlayerController* PlayerController;
 
-	FVector GetMoveFwdDir() const;
-	FVector GetMoveRightDir() const;
-	FVector previousDir;
-
-	///////////////////////////////
-	/*       Health             */
-	/////////////////////////////
-
-	UFUNCTION()
-	void HealthUpdated(const float newHealth);
+	virtual void PawnClientRestart() override;
 
 	///////////////////////////////
 	/*       Fog Comp           */
@@ -290,36 +318,21 @@ private:
 	UPROPERTY(visibleAnywhere, Category = "Fog Cleaner")
 	class ASFogCleaner* FogCleaner;
 
-	///////////////////////////////
-	/*         Skills           */
-	/////////////////////////////
-
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	ASAbilityBase* CurrentSkill;
-
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	ASAbilityBase* CurrentSpell;
-
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	ASAbilityBase* CurrentPassive;
-
-public:
-	///////////////////////////////
-	/*        Equipment         */
-	/////////////////////////////
-
-	void EquipItem(USEquipmentData* EquipmentData);
+#pragma region Helper Variables/Functions
 
 private:
-	UPROPERTY()
-	USEquipmentData* WeaponEquipmentData;
 
-	UPROPERTY()
-	USEquipmentData* ChestEquipmentData;
-	UPROPERTY()
-	USEquipmentData* HeadEquipmentData;
-	UPROPERTY()
-	USEquipmentData* BootEquipmentData;
+	///////////////////////////////
+	/*       Movement           */
+	/////////////////////////////
+
+	FVector GetMoveFwdDir() const;
+	FVector GetMoveRightDir() const;
+	FVector previousDir;
+
+#pragma endregion
+
+#pragma region Ability Variables/Functions
 
 public:
 	///////////////////////////////
@@ -337,4 +350,37 @@ public:
 
 	UFUNCTION()
 	ASAbilityBase* GetItemTypeFromNew(ASAbilityBase* newItem);
+
+	UFUNCTION()
+	ASAbilityBase* GetCurrentSkill() const { return CurrentSkill; }
+
+	UFUNCTION()
+	ASAbilityBase* GetCurrentSpell() const { return CurrentSpell; }
+
+	UFUNCTION()
+	ASAbilityBase* GetCurrentPassive() const { return CurrentPassive; }
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Ability")
+	ASAbilityBase* CurrentSkill;
+
+	UPROPERTY(EditAnywhere, Category = "Ability")
+	ASAbilityBase* CurrentSpell;
+
+	UPROPERTY(EditAnywhere, Category = "Ability")
+	ASAbilityBase* CurrentPassive;
+
+
+#pragma endregion
+
+#pragma region Debug Variables/Functions
+
+private:
+	void DEBUG_ModifyHealth(const FInputActionValue& InputValue);
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* ModifyHealthInputAction;
+
+
+#pragma endregion
+
 };

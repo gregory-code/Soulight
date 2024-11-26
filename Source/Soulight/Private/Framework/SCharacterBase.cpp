@@ -100,6 +100,10 @@ void ASCharacterBase::EndStun()
 	GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Walking;
 }
 
+void ASCharacterBase::ApplySoulStats()
+{
+}
+
 void ASCharacterBase::AddStats(USStatData* Stats)
 {
 	MaxHealth += Stats->GetMaxHealthStat();

@@ -11,6 +11,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDead, bool, bIsDead);
 
 class USStatData;
 
+// Make a struct to hold the multipliers for the stat buffs
+
 UCLASS()
 class ASCharacterBase : public ACharacter
 {
@@ -53,6 +55,8 @@ public:
 	FTimerHandle StunTimerHandle;
 
 public:
+	void ApplySoulStats();
+
 	void AddStats(USStatData* Stats);
 	void RemoveStats(USStatData* Stats);
 

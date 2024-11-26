@@ -137,6 +137,7 @@ void ASPlayer::BeginPlay()
 		if (GetMesh()->DoesSocketExist(LampSocket))
 		{
 			LampLight->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, LampSocket);
+			SetLampLightColor(BaseLampColor);
 		}
 		else
 		{
@@ -155,6 +156,16 @@ void ASPlayer::BeginPlay()
 
 	GetCharacterMovement()->MaxWalkSpeed = MoveSpeedCurve->GetFloatValue(Agility);
 }
+
+void ASPlayer::PawnClientRestart()
+{
+	Super::PawnClientRestart();
+
+	PlayerController = GetController<ASPlayerController>();
+	SetInputMapping(true);
+}
+
+#pragma region Dialogue Functions
 
 void ASPlayer::Speak(const FString& Dialogue)
 {
@@ -183,6 +194,10 @@ void ASPlayer::ClearSpeakText()
 	TextPrompt->SetText(Text);
 }
 
+#pragma endregion
+
+#pragma region Equipment Functions
+
 /*
 *	This looks pretty ugly but it just reads the struct from the Game Instance
 *	then equips the any ability/equipment that was previously owned from another scene.
@@ -195,29 +210,6 @@ void ASPlayer::UpdateEquippedIfAny()
 	ObtainItem(GameInstance->EquippedItems.EquippedSkill);
 	ObtainItem(GameInstance->EquippedItems.EquippedSpell);
 	ObtainItem(GameInstance->EquippedItems.EquippedPassive);
-
-	/*
-	CurrentSkill = GameInstance->EquippedItems.EquippedSkill;
-	if (IsValid(CurrentSkill)) 
-	{
-		ObtainItem(CurrentSkill);
-	}
-	else UE_LOG(LogTemp, Warning, TEXT("Skill Is null"));
-
-	CurrentSpell = GameInstance->EquippedItems.EquippedSpell;
-	if (IsValid(CurrentSpell)) 
-	{
-		ObtainItem(CurrentSpell);
-	}
-	else UE_LOG(LogTemp, Warning, TEXT("Spell Is null"));
-
-	CurrentPassive = GameInstance->EquippedItems.EquippedPassive;
-	if (IsValid(CurrentPassive)) 
-	{
-		ObtainItem(CurrentPassive); 
-	}
-	else UE_LOG(LogTemp, Warning, TEXT("Passive Is null"));
-	*/
 
 	WeaponEquipmentData = GameInstance->EquippedItems.EquippedWeapon;
 	if (IsValid(WeaponEquipmentData))
@@ -253,35 +245,34 @@ void ASPlayer::UpdateEquippedIfAny()
 	else UE_LOG(LogTemp, Warning, TEXT("Boots Is null"));
 }
 
-void ASPlayer::TakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback)
+/*
+*	This sets the mesh that is attached to the socket on the player
+*/
+void ASPlayer::WearItem(EEquipmentType EquipmentType, UStaticMesh* StaticMesh)
 {
-	if (bIsDead) return;
-	
-	CameraShake_BlueprintEvent();
+	if (!IsValid(StaticMesh)) return;
 
-	Super::TakeDamage(Damage, DamageInstigator, Knockback);
+	switch (EquipmentType)
+	{
+	case EEquipmentType::WEAPON:
+		WeaponMesh->SetStaticMesh(StaticMesh);
+		break;
+	case EEquipmentType::CHEST:
+		ChestMesh->SetStaticMesh(StaticMesh);
+		break;
+	case EEquipmentType::HEAD:
+		HeadMesh->SetStaticMesh(StaticMesh);
+		break;
+	case EEquipmentType::BOOTS:
+		BootsMesh->SetStaticMesh(StaticMesh);
+		break;
 
-	EndCombo();
-
-	if (IsValid(CurrentSkill))
-		CurrentSkill->EndAbility();
-
-	if (IsValid(CurrentSpell))
-		CurrentSpell->EndAbility();
-
-	float NewHealth = (Health / MaxHealth);
-	NewHealth = NewHealth < 0 ? 0 : NewHealth;
-
-	HealthUpdated(NewHealth);
+	}
 }
 
-void ASPlayer::PawnClientRestart()
-{
-	Super::PawnClientRestart();
+#pragma endregion
 
-	PlayerController = GetController<ASPlayerController>();
-	SetInputMapping(true);
-}
+#pragma region Input Functions
 
 void ASPlayer::SetInputMapping(bool bPlayerMapping)
 {
@@ -292,8 +283,6 @@ void ASPlayer::SetInputMapping(bool bPlayerMapping)
 		inputSystem->AddMappingContext((bPlayerMapping) ? InputPlayerMapping : InputInteractionMapping, 0); // terinary if/else condition
 	}
 }
-
-#pragma region Input Functions
 
 void ASPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -464,26 +453,28 @@ void ASPlayer::EndCombo()
 
 #pragma endregion
 
-void ASPlayer::WearItem(EEquipmentType EquipmentType, UStaticMesh* StaticMesh)
+#pragma region Health/Damage Functions
+
+void ASPlayer::TakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback)
 {
-	if (!IsValid(StaticMesh)) return;
+	if (bIsDead) return;
 
-	switch(EquipmentType) 
-	{
-		case EEquipmentType::WEAPON:
-			WeaponMesh->SetStaticMesh(StaticMesh);
-			break;
-		case EEquipmentType::CHEST:
-			ChestMesh->SetStaticMesh(StaticMesh);
-			break;
-		case EEquipmentType::HEAD:
-			HeadMesh->SetStaticMesh(StaticMesh);
-			break;
-		case EEquipmentType::BOOTS:
-			BootsMesh->SetStaticMesh(StaticMesh);
-			break;
+	CameraShake_BlueprintEvent();
 
-	}
+	Super::TakeDamage(Damage, DamageInstigator, Knockback);
+
+	EndCombo();
+
+	if (IsValid(CurrentSkill))
+		CurrentSkill->EndAbility();
+
+	if (IsValid(CurrentSpell))
+		CurrentSpell->EndAbility();
+
+	float NewHealth = (Health / MaxHealth);
+	NewHealth = NewHealth < 0 ? 0 : NewHealth;
+
+	HealthUpdated(NewHealth);
 }
 
 void ASPlayer::StartDeath(bool IsDead)
@@ -506,36 +497,21 @@ void ASPlayer::StartDeath(bool IsDead)
 	GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, this, &ASPlayer::LoadSpiritsKeep, 1.0f, false, 2.5f);
 }
 
-void ASPlayer::LoadSpiritsKeep()
+void ASPlayer::HealthUpdated(const float newHealth)
 {
-	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
-	if (IsValid(GameInstance))
-	{
-		GameInstance->UpdateProgress();
-	}
+	//This value of newHeath is nomalized from 0 - 1
+	FogCleaner->SetColliderRadius((newHealth + 0.2f) * 600.0f);
 
-	UGameplayStatics::OpenLevel(GetWorld(), FName("Spirits_Keep"));
+	if(IsValid(VisualLight))
+		LampLight->SetIntensity(LightIntensity * newHealth);
+
+	FVector interpolatedPos = FMath::Lerp(EmptyHealthView->GetRelativeLocation(), FullHealthView->GetRelativeLocation(), newHealth);
+	MoveCameraToLocalOffset(interpolatedPos);
 }
 
-void ASPlayer::DEBUG_ModifyHealth(const FInputActionValue& InputValue)
-{
-	const float Delta = InputValue.Get<float>();
+#pragma endregion
 
-	Health += (Delta * 5.0f);
-
-	Health = FMath::Clamp(Health, 0, MaxHealth);
-
-	float NewHealth = (Health / MaxHealth);
-
-	NewHealth = FMath::Clamp(NewHealth, 0, 1);
-
-	HealthUpdated(NewHealth);
-}
-
-void ASPlayer::GetGrabbed()
-{
-	SetInputMapping(false);
-}
+#pragma region Camera Functions
 
 void ASPlayer::MoveCameraToLocalOffset(const FVector& LocalOffset)
 {
@@ -557,29 +533,13 @@ void ASPlayer::ProcessCameraMove(FVector Goal)
 	CameraTimerHandle = GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateUObject(this, &ASPlayer::ProcessCameraMove, Goal));
 }
 
-FVector ASPlayer::GetMoveFwdDir() const
-{
-	FVector CamerFwd = MainCamera->GetForwardVector();
-	CamerFwd.Z = 0;
-	return CamerFwd.GetSafeNormal();
-}
+#pragma endregion
 
-FVector ASPlayer::GetMoveRightDir() const
-{
-	return MainCamera->GetRightVector();
-}
-
-void ASPlayer::HealthUpdated(const float newHealth)
-{
-	//This value of newHeath is nomalized from 0 - 1
-	FogCleaner->SetColliderRadius((newHealth + 0.2f) * 600.0f);
-
-	if(IsValid(VisualLight))
-		LampLight->SetIntensity(LightIntensity * newHealth);
-
-	FVector interpolatedPos = FMath::Lerp(EmptyHealthView->GetRelativeLocation(), FullHealthView->GetRelativeLocation(), newHealth);
-	MoveCameraToLocalOffset(interpolatedPos);
-}
+/*
+*	We can probably move this functionality to it's own ability component to
+*	clean things up
+*/
+#pragma region Item/Ability Functions
 
 void ASPlayer::EquipItem(USEquipmentData* EquipmentData)
 {
@@ -743,7 +703,6 @@ void ASPlayer::SetNewAbility(ASAbilityBase* newItem, USAbilityDataBase* NewAbili
 	}
 }
 
-
 EUpgrade ASPlayer::GetItemStatus(ASAbilityBase* newItem, ASAbilityBase* currentItem)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Part 2"));
@@ -808,3 +767,58 @@ ASAbilityBase* ASPlayer::GetItemTypeFromNew(ASAbilityBase* newItem)
 
 	return CurrentPassive;
 }
+
+#pragma endregion
+
+#pragma region Helper Functions
+
+FVector ASPlayer::GetMoveFwdDir() const
+{
+	FVector CamerFwd = MainCamera->GetForwardVector();
+	CamerFwd.Z = 0;
+	return CamerFwd.GetSafeNormal();
+}
+
+FVector ASPlayer::GetMoveRightDir() const
+{
+	return MainCamera->GetRightVector();
+}
+
+void ASPlayer::LoadSpiritsKeep()
+{
+	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
+	if (IsValid(GameInstance))
+	{
+		GameInstance->UpdateProgress();
+	}
+
+	UGameplayStatics::OpenLevel(GetWorld(), FName("Spirits_Keep"));
+}
+
+void ASPlayer::SetLampLightColor(const FLinearColor& NewLampColor)
+{
+	LampLight->SetLightColor(NewLampColor);
+}
+
+#pragma endregion
+
+void ASPlayer::GetGrabbed()
+{
+	SetInputMapping(false);
+}
+
+void ASPlayer::DEBUG_ModifyHealth(const FInputActionValue& InputValue)
+{
+	const float Delta = InputValue.Get<float>();
+
+	Health += (Delta * 5.0f);
+
+	Health = FMath::Clamp(Health, 0, MaxHealth);
+
+	float NewHealth = (Health / MaxHealth);
+
+	NewHealth = FMath::Clamp(NewHealth, 0, 1);
+
+	HealthUpdated(NewHealth);
+}
+
