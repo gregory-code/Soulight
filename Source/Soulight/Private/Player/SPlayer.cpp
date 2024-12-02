@@ -157,6 +157,11 @@ void ASPlayer::BeginPlay()
 	GetCharacterMovement()->MaxWalkSpeed = MoveSpeedCurve->GetFloatValue(Agility);
 
 	SetSoulBuff(StartingSoulBuff);
+
+	if (IsValid(PlayerController))
+	{
+		PlayerController->SetStatsUI(Strength, Defense, Agility, Soul);
+	}
 }
 
 void ASPlayer::PawnClientRestart()
@@ -507,6 +512,11 @@ void ASPlayer::HealthUpdated(const float newHealth)
 	if(IsValid(VisualLight))
 		LampLight->SetIntensity(LightIntensity * newHealth);
 
+	if (IsValid(PlayerController))
+	{
+		PlayerController->SetHealthUI(Health, MaxHealth);
+	}
+
 	FVector interpolatedPos = FMath::Lerp(EmptyHealthView->GetRelativeLocation(), FullHealthView->GetRelativeLocation(), newHealth);
 	MoveCameraToLocalOffset(interpolatedPos);
 }
@@ -611,6 +621,10 @@ void ASPlayer::EquipItem(USEquipmentData* EquipmentData)
 
 	GetCharacterMovement()->MaxWalkSpeed = MoveSpeedCurve->GetFloatValue(Agility);
 
+	if (IsValid(PlayerController))
+	{
+		PlayerController->SetStatsUI(Strength, Defense, Agility, Soul);
+	}
 }
 
 bool ASPlayer::ObtainItem(ASAbilityBase* newItem)

@@ -51,6 +51,20 @@ void ASPlayerController::AddAbility(USAbilityDataBase* newAbility, EUpgrade upgr
 	PlayerHUDUI->StatsUI->AddAbility(newAbility, upgrade);
 }
 
+void ASPlayerController::SetStatsUI(float Str, float Def, float Agi, float Soul)
+{
+	if (!IsValid(PlayerHUDUI)) return;
+
+	PlayerHUDUI->SetStats(Str, Def, Agi, Soul);
+}
+
+void ASPlayerController::SetHealthUI(float Current, float Max)
+{
+	if (!IsValid(PlayerHUDUI)) return;
+
+	PlayerHUDUI->SetHealth(Current, Max);
+}
+
 void ASPlayerController::PostPossessionSetup(APawn* NewPawn)
 {
 	PlayerCharacter = Cast<ASPlayer>(NewPawn);

@@ -27,6 +27,12 @@ public:
 	UFUNCTION()
 	void AddAbility(USAbilityDataBase* newAbility, EUpgrade upgrade);
 
+	UFUNCTION()
+	void SetStatsUI(float Str, float Def, float Agi, float Soul);
+
+	UFUNCTION()
+	void SetHealthUI(float Current, float Max);
+
 private:
 	void PostPossessionSetup(APawn* NewPawn);
 

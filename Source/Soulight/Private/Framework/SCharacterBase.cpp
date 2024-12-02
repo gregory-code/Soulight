@@ -19,7 +19,7 @@ void ASCharacterBase::BeginPlay()
 	Health = MaxHealth;
 }
 
-void ASCharacterBase::Tick(float DeltaTime)
+void ASCharacterBase::Tick(float DeltaTime) 
 {
 	Super::Tick(DeltaTime);
 

@@ -18,7 +18,12 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class USStatsUI* StatsUI;
 
+	UFUNCTION()
+	void SetStats(float Str, float Def, float Agi, float Soul);
 	
+	UFUNCTION()
+	void SetHealth(float Current, float Max);
+
 private:
 
 	UPROPERTY(meta = (BindWidget))
@@ -41,4 +46,8 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* CharacterSoul;
+
+	UPROPERTY(meta = (BindWidget))
+	class UImage* LampHealthImage;
+
 };
