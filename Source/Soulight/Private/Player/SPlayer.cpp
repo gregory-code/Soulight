@@ -155,6 +155,8 @@ void ASPlayer::BeginPlay()
 	OnDead.AddDynamic(this, &ASPlayer::StartDeath);
 
 	GetCharacterMovement()->MaxWalkSpeed = MoveSpeedCurve->GetFloatValue(Agility);
+
+	SetSoulBuff(StartingSoulBuff);
 }
 
 void ASPlayer::PawnClientRestart()
@@ -798,6 +800,28 @@ void ASPlayer::LoadSpiritsKeep()
 void ASPlayer::SetLampLightColor(const FLinearColor& NewLampColor)
 {
 	LampLight->SetLightColor(NewLampColor);
+}
+
+void ASPlayer::SetSoulBuff(const ESoulStatType& StatType)
+{
+	switch (StatType) 
+	{
+		case ESoulStatType::Strength:
+			SetLampLightColor(FLinearColor::Red);
+		break;
+		case ESoulStatType::Defense:
+			SetLampLightColor(FLinearColor::Blue);
+		break;
+		case ESoulStatType::Agility:
+			SetLampLightColor(FLinearColor::Yellow);
+		break;
+		case ESoulStatType::Soul:
+			SetLampLightColor(FLinearColor::Green);
+		break;
+	}
+
+	if (SoulBuff.Contains(StatType))
+		ApplySoulStats(SoulBuff[StatType]);
 }
 
 #pragma endregion

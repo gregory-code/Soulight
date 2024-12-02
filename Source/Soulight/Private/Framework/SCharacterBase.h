@@ -11,7 +11,38 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDead, bool, bIsDead);
 
 class USStatData;
 
-// Make a struct to hold the multipliers for the stat buffs
+USTRUCT(BlueprintType)
+struct FSoulMultiplier 
+{
+	GENERATED_BODY()
+
+public:
+	float GetStrengthMultiplier() const { return Strength; }
+	float GetDefenseMultiplier() const { return Defense; }
+	float GetAgilityMultiplier() const { return Agility; }
+	float GetSoulMultiplier() const { return Soul; }
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Stat Multiplier")
+	float Strength = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "Stat Multiplier")
+	float Defense = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "Stat Multiplier")
+	float Agility = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "Stat Multiplier")
+	float Soul = 1.0f;
+};
+
+// Probably not the best use case rn but am currently using this for the lamp light stat bonus stuff
+UENUM(BlueprintType)
+enum class ESoulStatType : uint8 
+{
+	Strength  UMETA(DisplayName = "Strength"),
+	Defense    UMETA(DisplayName = "Defense"),
+	Agility    UMETA(DisplayName = "Agility"),
+	Soul    UMETA(DisplayName = "Soul")
+
+};
 
 UCLASS()
 class ASCharacterBase : public ACharacter
@@ -55,7 +86,7 @@ public:
 	FTimerHandle StunTimerHandle;
 
 public:
-	void ApplySoulStats();
+	void ApplySoulStats(const FSoulMultiplier& Multiplier);
 
 	void AddStats(USStatData* Stats);
 	void RemoveStats(USStatData* Stats);
@@ -72,7 +103,6 @@ public:
 	float GetAgilityStat() const { return Agility; }
 	UFUNCTION()
 	float GetSoulStat() const { return Soul; }
-
 
 	// v rework this v
 protected:
@@ -98,6 +128,4 @@ protected:
 	float Agility = 10.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Stats")
 	float Soul = 10.0f;
-
-
 };

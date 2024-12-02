@@ -6,15 +6,12 @@
 #include "Framework/SStatData.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-// Sets default values
 ASCharacterBase::ASCharacterBase()
 {
-	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 }
 
-// Called when the game starts or when spawned
 void ASCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -22,14 +19,12 @@ void ASCharacterBase::BeginPlay()
 	Health = MaxHealth;
 }
 
-// Called every frame
 void ASCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
-// Called to bind functionality to input
 void ASCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -100,8 +95,12 @@ void ASCharacterBase::EndStun()
 	GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Walking;
 }
 
-void ASCharacterBase::ApplySoulStats()
+void ASCharacterBase::ApplySoulStats(const FSoulMultiplier& Multiplier)
 {
+	Strength *= Multiplier.GetStrengthMultiplier();
+	Defense *= Multiplier.GetDefenseMultiplier();
+	Agility *= Multiplier.GetAgilityMultiplier();
+	Soul *= Multiplier.GetSoulMultiplier();
 }
 
 void ASCharacterBase::AddStats(USStatData* Stats)

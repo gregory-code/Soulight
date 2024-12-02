@@ -148,10 +148,17 @@ public:
 	UFUNCTION()
 	void SetLampLightColor(const FLinearColor& NewLampColor);
 
+	UFUNCTION()
+	void SetSoulBuff(const ESoulStatType& StatType);
+
 private:
 	///////////////////////////////
 	/*          Lamp            */
 	/////////////////////////////
+
+	// Idk what to name this
+	UPROPERTY(EditDefaultsOnly, Category = "Light")
+	TMap<ESoulStatType, FSoulMultiplier> SoulBuff;
 
 	UPROPERTY(EditAnywhere, Category = "Light")
 	class UPointLightComponent* LampLight;
@@ -307,6 +314,9 @@ private:
 	class ASPlayerController* PlayerController;
 
 	virtual void PawnClientRestart() override;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Testing")
+	ESoulStatType StartingSoulBuff;
 
 	///////////////////////////////
 	/*       Fog Comp           */
