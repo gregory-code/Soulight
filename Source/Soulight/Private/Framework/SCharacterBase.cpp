@@ -97,10 +97,22 @@ void ASCharacterBase::EndStun()
 
 void ASCharacterBase::ApplySoulStats(const FSoulMultiplier& Multiplier)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Applying Soul Lamp Stat Multipliers!"))
+
 	Strength *= Multiplier.GetStrengthMultiplier();
 	Defense *= Multiplier.GetDefenseMultiplier();
 	Agility *= Multiplier.GetAgilityMultiplier();
 	Soul *= Multiplier.GetSoulMultiplier();
+}
+
+void ASCharacterBase::RemoveSoulStats(const FSoulMultiplier& Multiplier)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Removing Soul Lamp Stat Multipliers!"))
+
+	Strength /= Multiplier.GetStrengthMultiplier();
+	Defense /= Multiplier.GetDefenseMultiplier();
+	Agility /= Multiplier.GetAgilityMultiplier();
+	Soul /= Multiplier.GetSoulMultiplier();
 }
 
 void ASCharacterBase::AddStats(USStatData* Stats)

@@ -5,6 +5,11 @@
 
 #include "Blueprint/UserWidget.h"
 
+#include "GameFramework/Controller.h"
+#include "GameFramework/PlayerController.h"
+
+#include "Player/SPlayer.h"
+
 void ASNPCInteraction::BeginPlay()
 {
 	Super::BeginPlay();
@@ -15,26 +20,44 @@ void ASNPCInteraction::BeginPlay()
 
 void ASNPCInteraction::Interact()
 {
+	if (Player->GetController() == nullptr) return;
 
-}
-
-void ASNPCInteraction::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
-{
-	Super::OnOverlapBegin(overlappedActor, otherActor);
+	Player->OnInteract.RemoveDynamic(this, &ASInteractableObject::Interact);
 
 	if (IsValid(NPCGUIPopup))
 	{
 		NPCGUIPopup->AddToViewport();
 	}
+	
+	APlayerController* Controller = Cast<APlayerController>(Player->GetController());
+	if (Controller)
+	{
+		Controller->bShowMouseCursor = true;
+	}
+}
+
+void ASNPCInteraction::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
+{
+	Super::OnOverlapBegin(overlappedActor, otherActor);
+	
 }
 
 void ASNPCInteraction::OnOverlapEnd(AActor* overlappedActor, AActor* otherActor)
 {
 	Super::OnOverlapEnd(overlappedActor, otherActor);
 
-
 	if (IsValid(NPCGUIPopup))
 	{
 		NPCGUIPopup->RemoveFromParent();
+	}
+
+	if (Player == nullptr) return;
+
+	if (!IsValid(Player->GetController())) return;
+
+	APlayerController* Controller = Cast<APlayerController>(Player->GetController());
+	if (IsValid(Controller))
+	{
+		Controller->bShowMouseCursor = false;
 	}
 }

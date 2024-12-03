@@ -310,13 +310,15 @@ private:
 	bool bInteractOnly;
 	bool bGrabbedInactionable;
 	
+	class USGameInstance* GameInstance;
+
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	class ASPlayerController* PlayerController;
 
 	virtual void PawnClientRestart() override;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Testing")
-	ESoulStatType StartingSoulBuff;
+	ESoulStatType CurrentSoulBuff;
 
 	///////////////////////////////
 	/*       Fog Comp           */

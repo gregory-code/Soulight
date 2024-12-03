@@ -37,11 +37,11 @@ private:
 UENUM(BlueprintType)
 enum class ESoulStatType : uint8 
 {
-	Strength  UMETA(DisplayName = "Strength"),
-	Defense    UMETA(DisplayName = "Defense"),
-	Agility    UMETA(DisplayName = "Agility"),
-	Soul    UMETA(DisplayName = "Soul")
-
+	Strength	UMETA(DisplayName = "Strength"),
+	Defense		UMETA(DisplayName = "Defense"),
+	Agility		UMETA(DisplayName = "Agility"),
+	Soul		UMETA(DisplayName = "Soul"),
+	None		UMETA(DisplayName = "None")
 };
 
 UCLASS()
@@ -87,6 +87,7 @@ public:
 
 public:
 	void ApplySoulStats(const FSoulMultiplier& Multiplier);
+	void RemoveSoulStats(const FSoulMultiplier& Multiplier);
 
 	void AddStats(USStatData* Stats);
 	void RemoveStats(USStatData* Stats);

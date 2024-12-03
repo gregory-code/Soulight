@@ -118,6 +118,8 @@ void ASPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	GameInstance = Cast<USGameInstance>(GetGameInstance());
+
 	UpdateEquippedIfAny();
 
 	if(IsValid(HeadMesh))
@@ -156,7 +158,8 @@ void ASPlayer::BeginPlay()
 
 	GetCharacterMovement()->MaxWalkSpeed = MoveSpeedCurve->GetFloatValue(Agility);
 
-	SetSoulBuff(StartingSoulBuff);
+	if(GameInstance)
+		SetSoulBuff(GameInstance->CurrentSoulStatType);
 
 	if (IsValid(PlayerController))
 	{
@@ -211,7 +214,6 @@ void ASPlayer::ClearSpeakText()
 */
 void ASPlayer::UpdateEquippedIfAny()
 {
-	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
 	if (!IsValid(GameInstance)) return;
 
 	ObtainItem(GameInstance->EquippedItems.EquippedSkill);
@@ -491,7 +493,6 @@ void ASPlayer::StartDeath(bool IsDead)
 	if (IsValid(GetMesh()->GetAnimInstance()))
 		GetMesh()->GetAnimInstance()->StopAllMontages(1.0f);
 
-	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
 	if (IsValid(GameInstance))
 	{
 		GameInstance->ClearEquippedItems();
@@ -555,8 +556,6 @@ void ASPlayer::ProcessCameraMove(FVector Goal)
 
 void ASPlayer::EquipItem(USEquipmentData* EquipmentData)
 {
-	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
-
 	// TODO: Make this also set the mesh for these
 	switch (EquipmentData->EquipmentType) 
 	{
@@ -689,8 +688,6 @@ void ASPlayer::SetNewAbility(ASAbilityBase* newItem, USAbilityDataBase* NewAbili
 {
 	if (!IsValid(newItem) || !IsValid(NewAbilityData)) return;
 
-	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
-
 	switch (NewAbilityData->GetType())
 	{
 	case EType::Passive:
@@ -802,7 +799,6 @@ FVector ASPlayer::GetMoveRightDir() const
 
 void ASPlayer::LoadSpiritsKeep()
 {
-	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
 	if (IsValid(GameInstance))
 	{
 		GameInstance->UpdateProgress();
@@ -818,6 +814,8 @@ void ASPlayer::SetLampLightColor(const FLinearColor& NewLampColor)
 
 void ASPlayer::SetSoulBuff(const ESoulStatType& StatType)
 {
+	if (StatType == CurrentSoulBuff) return;
+
 	switch (StatType) 
 	{
 		case ESoulStatType::Strength:
@@ -832,10 +830,27 @@ void ASPlayer::SetSoulBuff(const ESoulStatType& StatType)
 		case ESoulStatType::Soul:
 			SetLampLightColor(FLinearColor::Green);
 		break;
+		default:
+			break;
 	}
 
-	if (SoulBuff.Contains(StatType))
+	if (SoulBuff.Contains(StatType)) 
+	{
+		if(CurrentSoulBuff != ESoulStatType::None)
+			RemoveSoulStats(SoulBuff[CurrentSoulBuff]);
+
 		ApplySoulStats(SoulBuff[StatType]);
+	}
+
+	if (IsValid(PlayerController))
+	{
+		PlayerController->SetStatsUI(Strength, Defense, Agility, Soul);
+	}
+
+	if(GameInstance)
+		GameInstance->CurrentSoulStatType = StatType;
+
+	CurrentSoulBuff = StatType;
 }
 
 #pragma endregion

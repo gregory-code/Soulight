@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+
+#include "Framework/SCharacterBase.h"
+
 #include "SGameInstance.generated.h"
 
 class ASAbilityBase;
@@ -120,6 +123,9 @@ public:
 	///////////////////////////////
 	/*         Player           */
 	/////////////////////////////
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	ESoulStatType CurrentSoulStatType;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	FEquippedItems EquippedItems;
