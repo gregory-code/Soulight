@@ -102,6 +102,46 @@ struct FDialogueData : public FTableRowBase
 	FString WinsGame_Default;
 };
 
+USTRUCT(BlueprintType)
+struct FLineageEntry
+{
+	GENERATED_BODY()
+
+public:
+	FLineageEntry()
+		: Personality(NAME_None), InheritedAbility(nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Default Lineage Entry Created"));
+	}
+
+	FLineageEntry(TArray<FName> Personalities, TArray<TSubclassOf<ASAbilityBase>> Abilities)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Creating Lineage Entry"));
+
+		if (Personalities.Num() > 0)
+		{
+			int rand = FMath::RandRange(0, Personalities.Num() - 1);
+			Personality = Personalities[rand];
+		}
+
+		if (Abilities.Num() > 0)
+		{
+			int rand = FMath::RandRange(0, Abilities.Num() - 1);
+			InheritedAbility = Abilities[rand];
+		}
+	}
+
+	FName GetPersonality() const { return Personality; }
+
+	TSubclassOf<ASAbilityBase> GetAbility() const { return InheritedAbility; }
+
+private:
+	FName Personality;
+
+	TSubclassOf<ASAbilityBase> InheritedAbility;
+
+};
+
 /**
  * 
  */
@@ -111,6 +151,8 @@ class USGameInstance : public UGameInstance
 	GENERATED_BODY()
 	
 public:
+#pragma region Player Variables/Functions
+
 	///////////////////////////////
 	/*        Dialogue          */
 	/////////////////////////////
@@ -119,6 +161,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dialogue")
 	class UDataTable* MyDataTable;
+
+#pragma endregion
+
+#pragma region Player Variables/Functions
 
 	///////////////////////////////
 	/*         Player           */
@@ -132,14 +178,9 @@ public:
 
 	void ClearEquippedItems();
 
-	///////////////////////////////
-	/*         Lineage          */
-	/////////////////////////////
+#pragma endregion
 
-	void InheritAbility(ASAbilityBase* Ability);
-
-	UPROPERTY()
-	ASAbilityBase* InheritedAbility;
+#pragma region Dungeon Variables/Functions
 
 	///////////////////////////////
 	/*         Dungeon          */
@@ -154,6 +195,10 @@ public:
 	int32 PrevProgess = 0;
 
 	void UpdateProgress();
+
+#pragma endregion
+
+#pragma region Fog Variables/Functions
 
 	///////////////////////////////
 	/*            Fog           */
@@ -186,4 +231,38 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Fog")
 	int FogSpacing;
+
+#pragma endregion 
+
+#pragma region Lineage Variables/Functions
+
+public:
+	UFUNCTION()
+	void StartLineage();
+
+	UFUNCTION()
+	void CreateNewLineage();
+
+	UFUNCTION()
+	FName GetCurrentPersonality();
+
+	void InheritAbility(ASAbilityBase* Ability);
+
+	UPROPERTY()
+	ASAbilityBase* InheritedAbility;
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Lineage")
+	TArray<FName> Personalities;
+	UPROPERTY(EditDefaultsOnly, Category = "Lineage")
+	TArray<TSubclassOf<ASAbilityBase>> Abilities;
+
+	FLineageEntry CurrentLineageEntry;
+	FLineageEntry NextLineageEntry;
+
+	TArray<FLineageEntry> PreviousLineageEntries;
+
+#pragma endregion
+
+
 };

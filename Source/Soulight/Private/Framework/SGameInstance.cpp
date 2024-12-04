@@ -55,6 +55,27 @@ void USGameInstance::ClearEquippedItems()
 	EquippedItems.EquippedBoot = nullptr;
 }
 
+void USGameInstance::StartLineage()
+{
+	CurrentLineageEntry = FLineageEntry(Personalities, Abilities);
+
+	NextLineageEntry = FLineageEntry(Personalities, Abilities);
+}
+
+void USGameInstance::CreateNewLineage()
+{
+	PreviousLineageEntries.Add(CurrentLineageEntry);
+
+	CurrentLineageEntry = NextLineageEntry;
+
+	NextLineageEntry = FLineageEntry(Personalities, Abilities);
+}
+
+FName USGameInstance::GetCurrentPersonality()
+{
+	return CurrentLineageEntry.GetPersonality();
+}
+
 void USGameInstance::InheritAbility(ASAbilityBase* Ability)
 {
 	InheritedAbility = Ability;

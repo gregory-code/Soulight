@@ -53,7 +53,7 @@ void ASNPCInteraction::OnOverlapEnd(AActor* overlappedActor, AActor* otherActor)
 		NPCGUIPopup->RemoveFromParent();
 	}
 
-	if (!IsValid(Player)) return;
+	if (!IsValid(Player)) return; // Idk why this causing a crash
 
 	if (!IsValid(Player->GetController())) return;
 

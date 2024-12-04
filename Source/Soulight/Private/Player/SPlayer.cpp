@@ -120,6 +120,13 @@ void ASPlayer::BeginPlay()
 
 	GameInstance = Cast<USGameInstance>(GetGameInstance());
 
+	if (GameInstance) 
+	{
+		GameInstance->StartLineage();
+
+		Speak(GameInstance->GetResponse(GameInstance->GetCurrentPersonality(), FString("Arrival_Default")));
+	}
+
 	UpdateEquippedIfAny();
 
 	if(IsValid(HeadMesh))
