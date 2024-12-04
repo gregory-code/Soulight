@@ -20,7 +20,7 @@ void ASNPCInteraction::BeginPlay()
 
 void ASNPCInteraction::Interact()
 {
-	if (Player->GetController() == nullptr) return;
+	if (!IsValid(Player)) return;
 
 	Player->OnInteract.RemoveDynamic(this, &ASInteractableObject::Interact);
 
@@ -29,8 +29,10 @@ void ASNPCInteraction::Interact()
 		NPCGUIPopup->AddToViewport();
 	}
 	
+	if (!IsValid(Player->GetController())) return;
+
 	APlayerController* Controller = Cast<APlayerController>(Player->GetController());
-	if (Controller)
+	if (IsValid(Controller))
 	{
 		Controller->bShowMouseCursor = true;
 	}
@@ -51,7 +53,7 @@ void ASNPCInteraction::OnOverlapEnd(AActor* overlappedActor, AActor* otherActor)
 		NPCGUIPopup->RemoveFromParent();
 	}
 
-	if (Player == nullptr) return;
+	if (!IsValid(Player)) return;
 
 	if (!IsValid(Player->GetController())) return;
 

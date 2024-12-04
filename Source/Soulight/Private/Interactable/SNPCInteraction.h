@@ -19,7 +19,7 @@ protected:
 
 public:
 	virtual void Interact() override;
-
+	
 	virtual void OnOverlapBegin(AActor* overlappedActor, AActor* otherActor) override;
 
 	virtual void OnOverlapEnd(AActor* overlappedActor, AActor* otherActor) override;
