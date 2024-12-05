@@ -149,19 +149,8 @@ class USGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 	
+
 public:
-#pragma region Player Variables/Functions
-
-	///////////////////////////////
-	/*        Dialogue          */
-	/////////////////////////////
-	UFUNCTION(BlueprintCallable)
-	FString GetResponse(const FName& Personality, const FString& InteractionName) const;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Dialogue")
-	class UDataTable* MyDataTable;
-
-#pragma endregion
 
 #pragma region Player Variables/Functions
 
@@ -232,6 +221,28 @@ public:
 	int FogSpacing;
 
 #pragma endregion 
+
+#pragma region Player Variables/Functions
+
+public:
+	///////////////////////////////
+	/*        Dialogue          */
+	/////////////////////////////
+	UFUNCTION(BlueprintCallable)
+	FString GetResponse(const FName& Personality, const FString& InteractionName) const;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dialogue")
+	class UDataTable* MyDataTable;
+
+	bool HasBeenToSpiritsKeep() const { return bPlayerBeenToSpiritsKeep; }
+
+	void SetSpiritsKeepFlag(bool flag) { bPlayerBeenToSpiritsKeep = flag; }
+
+private:
+	bool bPlayerBeenToSpiritsKeep = false;
+
+#pragma endregion
+
 
 #pragma region Lineage Variables/Functions
 

@@ -122,9 +122,14 @@ void ASPlayer::BeginPlay()
 
 	if (GameInstance) 
 	{
-		GameInstance->StartLineage();
+		if (!GameInstance->HasBeenToSpiritsKeep())
+		{
+			GameInstance->StartLineage();
 
-		Speak(GameInstance->GetResponse(GameInstance->GetCurrentPersonality(), FString("Arrival_Default")));
+			GameInstance->SetSpiritsKeepFlag(true);
+
+			Speak(GameInstance->GetResponse(GameInstance->GetCurrentPersonality(), FString("Arrival_Default")));
+		}
 	}
 
 	UpdateEquippedIfAny();
@@ -489,6 +494,8 @@ void ASPlayer::TakeDamage(float Damage, AActor* DamageInstigator, const float& K
 
 	float NewHealth = (Health / MaxHealth);
 	NewHealth = NewHealth < 0 ? 0 : NewHealth;
+
+	GameInstance->SetSpiritsKeepFlag(false);
 
 	HealthUpdated(NewHealth);
 }
