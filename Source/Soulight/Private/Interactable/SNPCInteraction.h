@@ -28,6 +28,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<class UUserWidget> NPCGUIPopupClass;
 
+	UPROPERTY()
 	class UUserWidget* NPCGUIPopup;
 
 };

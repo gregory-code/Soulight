@@ -55,6 +55,7 @@ void ASNPCInteraction::OnOverlapEnd(AActor* overlappedActor, AActor* otherActor)
 
 	if (!IsValid(Player)) return; // Idk why this causing a crash
 
+	
 	if (!IsValid(Player->GetController())) return;
 
 	APlayerController* Controller = Cast<APlayerController>(Player->GetController());

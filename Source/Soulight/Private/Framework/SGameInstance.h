@@ -45,7 +45,6 @@ struct FEquippedItems
 
 };
 
-
 /*
 *	This is a lot of variables only because Unreal demands you use a custom
 *	Struct in c++ in order to read the row data. Otherwise we could've just
