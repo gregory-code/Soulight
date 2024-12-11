@@ -33,11 +33,13 @@ void ASAbilityBase::ExecuteAbility()
 	if (!IsValid(OwnerCharacter) || !IsValid(AbilityData->GetAnimationMontage())) return;
 
 	PlayMontage(AbilityData->GetAnimationMontage(), AbilityData->GetAnimSpeedMultiplier());
+
+	bIsAbilityActive = true;
 }
 
 void ASAbilityBase::CancelAbility()
 {
-
+	bIsAbilityActive = false;
 }
 
 void ASAbilityBase::EndAbility()
@@ -45,6 +47,8 @@ void ASAbilityBase::EndAbility()
 	if (!IsValid(OwnerCharacter) || !IsValid(AbilityData->GetAnimationMontage())) return;
 
 	StopMontage(AbilityData->GetAnimationMontage());
+
+	bIsAbilityActive = false;
 }
 
 void ASAbilityBase::PlayMontage(UAnimMontage* MontageToPlay, const float& PlayRate)
