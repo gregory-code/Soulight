@@ -39,6 +39,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Hurtbox")
 	class UBoxComponent* HeadHurtbox;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Hitbox")
+	class UBoxComponent* LeftHandHitbox;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Hitbox")
+	class UBoxComponent* RightHandHitbox;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	class UWidgetComponent* WidgetComponent;
 
@@ -46,6 +52,12 @@ protected:
 	bool bTransitioning = false;
 
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "Hitbox")
+	FName LeftHandSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Hitbox")
+	FName RightHandSocketName;
+
 	UPROPERTY()
 	bool bHeadRaised = false;
 

@@ -14,6 +14,12 @@ ASDreadstorm::ASDreadstorm()
 	HeadHurtbox = CreateDefaultSubobject<UBoxComponent>(TEXT("Head Hurtbox"));
 	HeadHurtbox->SetupAttachment(GetRootComponent());
 
+	LeftHandHitbox = CreateDefaultSubobject<UBoxComponent>(TEXT("Left Hand Hitbox"));
+	LeftHandHitbox->SetupAttachment(GetRootComponent());
+
+	RightHandHitbox = CreateDefaultSubobject<UBoxComponent>(TEXT("Right Hand Hitbox"));
+	RightHandHitbox->SetupAttachment(GetRootComponent());
+
 	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("Widget Component"));
 	WidgetComponent->SetupAttachment(GetRootComponent());
 }
@@ -31,6 +37,19 @@ void ASDreadstorm::BeginPlay()
 	//HealthBar = Cast<USHealthbar>(WidgetComponent->GetWidget());
 
 	HealthBar = CreateWidget<USHealthbar>(GetWorld(), WidgetComponent->GetWidgetClass());
+
+	if (IsValid(GetMesh()))
+	{
+		if (GetMesh()->DoesSocketExist(LeftHandSocketName))
+		{
+			LeftHandHitbox->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, LeftHandSocketName);
+		}
+
+		if (GetMesh()->DoesSocketExist(LeftHandSocketName))
+		{
+			RightHandHitbox->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, RightHandSocketName);
+		}
+	}
 
 	if (!IsValid(HealthBar)) return;
 	WidgetComponent->SetWidget(HealthBar);
