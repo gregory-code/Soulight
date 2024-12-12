@@ -371,19 +371,33 @@ void ASPlayer::Attack()
 {
 	if (bIsDead) return;
 
-	if (bCanAttack == false) return;
+	if (bCanAttack == false) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("I Cannot Attack"))
+		return;
+	}
+	else 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("I Can Attack"))
+	}
 
 	//if (GetMesh()->GetAnimInstance()->IsAnyMontagePlaying()) return;
 
 	if (IsValid(CurrentSkill) && CurrentSkill->GetAbilityActive())
 	{
 		CurrentSkill->CancelAbility();
+
+		EndCombo();
+
 		return;
 	}
 
 	if (IsValid(CurrentSpell) && CurrentSpell->GetAbilityActive())
 	{
 		CurrentSkill->CancelAbility();
+
+		EndCombo();
+
 		return;
 	}
 
