@@ -394,14 +394,14 @@ void ASPlayer::Attack()
 
 	if (IsValid(CurrentSpell) && CurrentSpell->GetAbilityActive())
 	{
-		CurrentSkill->CancelAbility();
+		CurrentSpell->CancelAbility();
 
 		EndCombo();
 
 		return;
 	}
 
-	AttackCombo();
+	AttackCombo(); // Error here, Delegate, null exception
 }
 
 void ASPlayer::Dodge()
