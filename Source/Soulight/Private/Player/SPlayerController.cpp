@@ -49,6 +49,19 @@ void ASPlayerController::GameplayUIState(bool state)
 void ASPlayerController::AddAbility(USAbilityDataBase* newAbility, EUpgrade upgrade)
 {
 	PlayerHUDUI->StatsUI->AddAbility(newAbility, upgrade);
+
+	switch (newAbility->GetType())
+	{
+		case EType::Skill:
+			GameplayUI->SetSkillImage(newAbility->GetAbilityIcon());
+			break;
+		case EType::Spell:
+			GameplayUI->SetSpellImage(newAbility->GetAbilityIcon());
+			break;
+		default:
+
+			break;
+	}
 }
 
 void ASPlayerController::SetStatsUI(float Str, float Def, float Agi, float Soul)

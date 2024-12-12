@@ -6,7 +6,6 @@
 
 class USAbilityDataBase;
 
-
 /*
 *   TODO: Add Ability Cooldowns;
 */
