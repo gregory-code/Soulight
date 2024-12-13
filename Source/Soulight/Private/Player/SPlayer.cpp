@@ -120,15 +120,15 @@ void ASPlayer::BeginPlay()
 
 	GameInstance = Cast<USGameInstance>(GetGameInstance());
 
+	FTimerHandle EquipItemTimer;
+	GetWorld()->GetTimerManager().SetTimer(EquipItemTimer, this, &ASPlayer::UpdateEquippedIfAny, 1.0f, false, 0.2f);
+
 	if (GameInstance) 
 	{
 		if (!GameInstance->HasBeenToSpiritsKeep())
 		{
-			GameInstance->StartLineage();
-
-			GameInstance->SetSpiritsKeepFlag(true);
-
-			Speak(GameInstance->GetResponse(GameInstance->GetCurrentPersonality(), FString("Arrival_Default")));
+			FTimerHandle SpeechDelayTimer;
+			GetWorld()->GetTimerManager().SetTimer(SpeechDelayTimer, this, &ASPlayer::IntroSpeak, 1.0f, false, 0.2f);
 		}
 	}
 
@@ -216,6 +216,15 @@ void ASPlayer::ClearSpeakText()
 	TextPrompt->SetText(Text);
 }
 
+void ASPlayer::IntroSpeak()
+{
+	GameInstance->StartLineage();
+
+	GameInstance->SetSpiritsKeepFlag(true);
+
+	Speak(GameInstance->GetResponse(GameInstance->GetCurrentPersonality(), FString("Arrival_Default")));
+}
+
 #pragma endregion
 
 #pragma region Equipment Functions
@@ -228,9 +237,35 @@ void ASPlayer::UpdateEquippedIfAny()
 {
 	if (!IsValid(GameInstance)) return;
 
-	ObtainItem(GameInstance->EquippedItems.EquippedSkill);
-	ObtainItem(GameInstance->EquippedItems.EquippedSpell);
-	ObtainItem(GameInstance->EquippedItems.EquippedPassive);
+	//ObtainItem(GameInstance->EquippedItems.EquippedSkill);
+	//ObtainItem(GameInstance->EquippedItems.EquippedSpell);
+	//ObtainItem(GameInstance->EquippedItems.EquippedPassive);
+
+	if (IsValid(GameInstance->EquippedItems.EquippedSkill))
+	{
+		//CurrentSkill = GameInstance->EquippedItems.EquippedSkill;
+		SetNewAbility(GameInstance->EquippedItems.EquippedSkill, GameInstance->EquippedItems.EquippedSkill->GetAbilityData());
+
+		PlayerController->AddAbility(GameInstance->EquippedItems.EquippedSkill->GetAbilityData(), EUpgrade::New);
+	}
+
+	if (IsValid(GameInstance->EquippedItems.EquippedSpell))
+	{
+		//CurrentSpell = GameInstance->EquippedItems.EquippedSpell;
+
+		SetNewAbility(GameInstance->EquippedItems.EquippedSpell, GameInstance->EquippedItems.EquippedSpell->GetAbilityData());
+
+		PlayerController->AddAbility(GameInstance->EquippedItems.EquippedSpell->GetAbilityData(), EUpgrade::New);
+	}
+
+	if (IsValid(GameInstance->EquippedItems.EquippedPassive))
+	{
+		//CurrentPassive = GameInstance->EquippedItems.EquippedPassive;
+
+		SetNewAbility(GameInstance->EquippedItems.EquippedPassive, GameInstance->EquippedItems.EquippedPassive->GetAbilityData());
+
+		PlayerController->AddAbility(GameInstance->EquippedItems.EquippedPassive->GetAbilityData(), EUpgrade::New);
+	}
 
 	WeaponEquipmentData = GameInstance->EquippedItems.EquippedWeapon;
 	if (IsValid(WeaponEquipmentData))
@@ -408,13 +443,6 @@ void ASPlayer::Dodge()
 {
 	if (bIsDead) return;
 
-	bZoomOut = !bZoomOut;
-
-	if(bZoomOut == true)
-		MoveCameraToLocalOffset(FVector(-3500.0f, 0.0f, 10000.0f));
-	else
-		MoveCameraToLocalOffset(FVector(-600.0f, 0.0f, 1000.0f));
-
 	//HealthUpdated(0.5f);
 }
 
@@ -512,6 +540,10 @@ void ASPlayer::TakeDamage(float Damage, AActor* DamageInstigator, const float& K
 	GameInstance->SetSpiritsKeepFlag(false);
 
 	HealthUpdated(NewHealth);
+
+	// Add Health Regen
+	GetWorld()->GetTimerManager().ClearTimer(HealthRegenTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(RegenDelayTimerHandle, this, &ASPlayer::StartHealthRegen, 1.5f, false);
 }
 
 void ASPlayer::StartDeath(bool IsDead)
@@ -548,6 +580,37 @@ void ASPlayer::HealthUpdated(const float newHealth)
 
 	FVector interpolatedPos = FMath::Lerp(EmptyHealthView->GetRelativeLocation(), FullHealthView->GetRelativeLocation(), newHealth);
 	MoveCameraToLocalOffset(interpolatedPos);
+}
+
+void ASPlayer::RegenerateHealth()
+{
+	if (Health < MaxHealth && !bIsDead)
+	{
+		Health = FMath::Clamp(Health + RegenAmount, 0.0f, MaxHealth);
+
+		float NewHealth = (Health / MaxHealth);
+		HealthUpdated(NewHealth);
+
+		if (Health >= MaxHealth)
+		{
+			// Stop regeneration when health is full
+			GetWorld()->GetTimerManager().ClearTimer(HealthRegenTimerHandle);
+		}
+	}
+	else
+	{
+		// Stop regeneration if something unexpected happens
+		GetWorld()->GetTimerManager().ClearTimer(HealthRegenTimerHandle);
+	}
+}
+
+void ASPlayer::StartHealthRegen()
+{
+	// Start the health regeneration timer
+	if (Health < MaxHealth && !bIsDead)
+	{
+		GetWorld()->GetTimerManager().SetTimer(HealthRegenTimerHandle, this, &ASPlayer::RegenerateHealth, 1.0f/60.0f, true);
+	}
 }
 
 #pragma endregion
@@ -722,7 +785,9 @@ void ASPlayer::SetNewAbility(ASAbilityBase* newItem, USAbilityDataBase* NewAbili
 		CurrentPassive = newItem;
 		if (IsValid(GameInstance))
 		{
-			GameInstance->EquippedItems.EquippedPassive = CurrentPassive;
+			GameInstance->EquippedItems.EquippedPassive = newItem;
+			UE_LOG(LogTemp, Warning, TEXT("Adding To Equipped Abilities"));
+
 		}
 		break;
 
@@ -730,7 +795,8 @@ void ASPlayer::SetNewAbility(ASAbilityBase* newItem, USAbilityDataBase* NewAbili
 		CurrentSkill = newItem;
 		if (IsValid(GameInstance))
 		{
-			GameInstance->EquippedItems.EquippedPassive = CurrentSkill;
+			GameInstance->EquippedItems.EquippedPassive = newItem;
+			UE_LOG(LogTemp, Warning, TEXT("Adding To Equipped Abilities"));
 		}
 		break;
 
@@ -738,7 +804,9 @@ void ASPlayer::SetNewAbility(ASAbilityBase* newItem, USAbilityDataBase* NewAbili
 		CurrentSpell = newItem;
 		if (IsValid(GameInstance))
 		{
-			GameInstance->EquippedItems.EquippedPassive = CurrentSpell;
+			GameInstance->EquippedItems.EquippedPassive = newItem;
+			UE_LOG(LogTemp, Warning, TEXT("Adding To Equipped Abilities"));
+
 		}
 		break;
 	}

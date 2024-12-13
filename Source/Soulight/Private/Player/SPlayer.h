@@ -67,6 +67,9 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void ClearSpeakText();
 
+	UFUNCTION()
+	void IntroSpeak();
+
 	UPROPERTY(EditDefaultsOnly, Category = "Dialogue")
 	class UWidgetComponent* WidgetComponent;
 
@@ -75,6 +78,7 @@ private:
 #pragma region Equipment Variables/Functions
 
 private:
+	UFUNCTION()
 	void UpdateEquippedIfAny();
 
 private:
@@ -133,6 +137,16 @@ private:
 	UFUNCTION()
 	void HealthUpdated(const float newHealth);
 
+	UFUNCTION()
+	void RegenerateHealth();
+	UFUNCTION()
+	void StartHealthRegen();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Health")
+	float RegenAmount = 1.0f;
+
+	FTimerHandle HealthRegenTimerHandle;
+	FTimerHandle RegenDelayTimerHandle;
 
 #pragma endregion
 

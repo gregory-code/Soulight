@@ -234,8 +234,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Dialogue")
 	class UDataTable* MyDataTable;
 
+	UFUNCTION(BlueprintCallable)
 	bool HasBeenToSpiritsKeep() const { return bPlayerBeenToSpiritsKeep; }
 
+	UFUNCTION(BlueprintCallable)
 	void SetSpiritsKeepFlag(bool flag) { bPlayerBeenToSpiritsKeep = flag; }
 
 private:
@@ -247,13 +249,13 @@ private:
 #pragma region Lineage Variables/Functions
 
 public:
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void StartLineage();
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void CreateNewLineage();
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	FName GetCurrentPersonality();
 
 	void InheritAbility(ASAbilityBase* Ability);
