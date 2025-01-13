@@ -177,6 +177,8 @@ void ASPlayer::BeginPlay()
 	{
 		PlayerController->SetStatsUI(Strength, Defense, Agility, Soul);
 	}
+
+	LampLight->SetIntensity(LightIntensity);
 }
 
 void ASPlayer::PawnClientRestart()
@@ -437,6 +439,8 @@ void ASPlayer::Attack()
 	}
 
 	AttackCombo(); // Error here, Delegate, null exception
+
+	UGameplayStatics::PlaySound2D(this, AttackSound);
 }
 
 void ASPlayer::Dodge()
@@ -527,6 +531,8 @@ void ASPlayer::TakeDamage(float Damage, AActor* DamageInstigator, const float& K
 	Super::TakeDamage(Damage, DamageInstigator, Knockback);
 
 	EndCombo();
+
+	UGameplayStatics::PlaySound2D(this, HitSound);
 
 	if (IsValid(CurrentSkill))
 		CurrentSkill->EndAbility();

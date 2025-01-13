@@ -11,10 +11,11 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteract);
  *
  */
 
+class ASAbilityBase;
 class USEquipmentData;
 class USAbilityDataBase;
-class ASAbilityBase;
 class USStatData;
+class USoundBase;
 
 UCLASS()
 class ASPlayer : public ASCharacterBase
@@ -55,6 +56,17 @@ public:
 	UFUNCTION()
 	bool GetIsDead() const { return bIsDead; }
 
+
+#pragma region SFX Variables/Functions
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	USoundBase* AttackSound;
+
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	USoundBase* HitSound;
+
+#pragma endregion
 
 #pragma region Dialogue Variables/Functions
 
