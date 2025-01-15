@@ -72,6 +72,8 @@ void ASCharacterBase::ApplyKnockback(const FVector& FromPosition, const float& K
 	FVector Direction = FromPosition - GetActorLocation();
 	Direction = -Direction;
 
+	Direction.Z = 1.0f;
+
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->Launch(Direction * Knockback);
 }
