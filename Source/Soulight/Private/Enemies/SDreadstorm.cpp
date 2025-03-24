@@ -9,6 +9,10 @@
 
 #include "Components/SkeletalMeshComponent.h"
 
+#include "GameFramework/Character.h"
+
+#include "Kismet/GameplayStatics.h"
+
 #include "Widgets/SHealthbar.h"
 
 ASDreadstorm::ASDreadstorm()
@@ -21,6 +25,13 @@ ASDreadstorm::ASDreadstorm()
 
 	RightHandHitbox = CreateDefaultSubobject<UBoxComponent>(TEXT("Right Hand Hitbox"));
 	RightHandHitbox->SetupAttachment(GetRootComponent());
+}
+
+void ASDreadstorm::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+
 }
 
 void ASDreadstorm::BeginPlay()
@@ -42,14 +53,35 @@ void ASDreadstorm::BeginPlay()
 			RightHandHitbox->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, RightHandSocketName);
 		}
 	}
+	
+	if (!IsValid(HealthBar)) 
+	{
+		// Force a layout prepass to ensure the widget's components are ready
+		HealthBar->SynchronizeProperties();
+		HealthBar->ForceLayoutPrepass();
 
-	if (!IsValid(HealthBar)) return;
+		HealthBar->UpdateHealthbar(Health, MaxHealth);
+	}
 
-	// Force a layout prepass to ensure the widget's components are ready
-	HealthBar->SynchronizeProperties();
-	HealthBar->ForceLayoutPrepass();
+	FTimerHandle LateSetupTimer;
+	GetWorld()->GetTimerManager().SetTimer(LateSetupTimer, this, &ASDreadstorm::LateSetup, 1.f/24.f, false, 2.f);
+}
 
-	HealthBar->UpdateHealthbar(Health, MaxHealth);
+void ASDreadstorm::LateSetup()
+{
+	/*
+	if (PlayerRefer = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
+	{
+		NewPlayerLocation = PlayerRefer->GetActorLocation();
+	}
+	*/
+}
+
+bool ASDreadstorm::InRange(const FVector& CurrentLocation, const FVector& PlayerLocation) const
+{
+	float Distance = FVector::Distance(CurrentLocation, PlayerLocation);
+
+	return false;
 }
 
 void ASDreadstorm::CharacterTakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback)
@@ -66,6 +98,11 @@ void ASDreadstorm::CharacterTakeDamage(float Damage, AActor* DamageInstigator, c
 	}
 
 	HealthBar->UpdateHealthbar(Health, MaxHealth);
+}
+
+void ASDreadstorm::SelectAttack()
+{
+
 }
 
 void ASDreadstorm::CheckPhaseState()
@@ -136,5 +173,7 @@ void ASDreadstorm::LowerHead()
 
 	bHeadRaised = false;
 }
+
+
 
 
