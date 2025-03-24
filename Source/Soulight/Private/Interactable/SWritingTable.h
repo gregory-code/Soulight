@@ -15,6 +15,7 @@ class ASWritingTable : public ASInteractableObject
 	GENERATED_BODY()
 
 public:
-	virtual void Interact() override;
+	UFUNCTION(BlueprintCallable)
+	void BeginWrite(class ASPlayer* Player);
 
 };

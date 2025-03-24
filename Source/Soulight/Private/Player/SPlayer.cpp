@@ -9,14 +9,20 @@
 #include "InputCoreTypes.h"
 #include "GameFramework/PlayerInput.h"
 
+#include "AI/SSilentwingNoiseManager.h"
+
 #include "Components/StaticMeshComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/SceneComponent.h"
+#include "Components/SDialogueHandlerComponent.h"
+#include "Components/STutorialComponent.h"
 
 #include "Engine/SkeletalMeshSocket.h"
 #include "Engine/StaticMesh.h"
+
+#include "Enemies/SEnemy.h"
 
 #include "Curves/CurveFloat.h"
 
@@ -28,22 +34,31 @@
 #include "Framework/SFogCleaner.h"
 #include "Framework/SEquipmentData.h"
 #include "Framework/SGameInstance.h"
+#include "Framework/SInteractableObject.h"
+#include "Framework/SItemBase.h"
 
 #include "Player/Abilities/SAbilityDataBase.h"
 
 #include "Components/StaticMeshComponent.h"
-
+#include "Components/SphereComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
+#include "Interactable/IInteractable.h"
+#include "Interactable/SEquipment.h"
+
 #include "UObject/ConstructorHelpers.h"
 
 #include "Widgets/STextPrompt.h"
+#include "Widgets/SPlayerHUDUI.h"
+#include "Widgets/SLineageCollection.h"
 
 ASPlayer::ASPlayer()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
 	MainCameraPivot = CreateDefaultSubobject<USceneComponent>("Pivot of Main Camera");
 	FullHealthView = CreateDefaultSubobject<USceneComponent>("Full Health Pos");
 	EmptyHealthView = CreateDefaultSubobject<USceneComponent>("Empty Health Pos");
@@ -70,6 +85,9 @@ ASPlayer::ASPlayer()
 	MiniMapCamera = CreateDefaultSubobject<USceneCaptureComponent2D>("Mini Map Camera");
 	MiniMapCamera->SetWorldRotation(FRotator(0, -90.0f, 0));
 
+	DialogueHandlerComponent = CreateDefaultSubobject<USDialogueHandlerComponent>("Dialogue Handler Component");
+	TutorialComponent = CreateDefaultSubobject<USTutorialComponent>("Tutorial Component");
+
 	MinimapPlayerIcon = CreateDefaultSubobject<UStaticMeshComponent>("Minimap Player Icon");
 	MinimapPlayerIcon->CastShadow = false;
 	MinimapPlayerIcon->SetupAttachment(GetRootComponent());
@@ -91,6 +109,12 @@ ASPlayer::ASPlayer()
 		WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>("Weapon Mesh");
 	}
 
+	InteractSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Interact Sphere"));
+	InteractSphere->SetupAttachment(GetRootComponent());
+
+	TutorialOverlapSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Tutorial Overlap Sphere"));
+	TutorialOverlapSphere->SetupAttachment(GetRootComponent());
+
 	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("Widget Component"));
 	WidgetComponent->SetupAttachment(GetRootComponent());
 
@@ -107,6 +131,26 @@ void ASPlayer::Tick(float DeltaTime)
 
 	MiniMapCamera->SetRelativeLocation(MiniMapView->GetComponentLocation());
 	MainCameraPivot->SetRelativeLocation(GetActorLocation());
+
+	if (!bIsUsingGamepad) // If using Mouse
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		if (PC)
+		{
+			FVector WorldLocation, WorldDirection;
+			PC->DeprojectMousePositionToWorld(WorldLocation, WorldDirection);
+
+			// Plane Intersection (Find where the ray hits the ground)
+			FVector PlayerLocation = GetActorLocation();
+			FVector PlaneNormal = FVector(0.0f, 0.0f, 1.0f); // Z-Up normal for ground plane
+			float Distance = (PlayerLocation.Z - WorldLocation.Z) / WorldDirection.Z;
+			FVector TargetLocation = WorldLocation + WorldDirection * Distance;
+
+			// Make player face the mouse
+			FRotator LookAtRotation = (TargetLocation - PlayerLocation).Rotation();
+			SetActorRotation(FRotator(0.0f, LookAtRotation.Yaw, 0.0f));
+		}
+	}
 
 	if (FogCleaner)
 	{
@@ -125,12 +169,24 @@ void ASPlayer::BeginPlay()
 
 	if (GameInstance) 
 	{
-		if (!GameInstance->HasBeenToSpiritsKeep())
+		GameInstance->InitPreviewCharacter();
+
+		if (!GameInstance->HasBeenToSpiritsKeep()) // Game First Load
 		{
+			GameInstance->StartLineage();
+
+			GameInstance->SetSpiritsKeepFlag(true);
+
 			FTimerHandle SpeechDelayTimer;
 			GetWorld()->GetTimerManager().SetTimer(SpeechDelayTimer, this, &ASPlayer::IntroSpeak, 1.0f, false, 0.2f);
 		}
+
+		GameInstance->LoadRenderPreviewTextures();
 	}
+
+	// TODO : FIX THIS
+	// Material and render target are becoming null since pointer gets deleted on scene change
+	PlayerController->GetPlayerHUD()->CreateLineage();
 
 	UpdateEquippedIfAny();
 
@@ -176,10 +232,18 @@ void ASPlayer::BeginPlay()
 	if (IsValid(PlayerController))
 	{
 		PlayerController->SetStatsUI(Strength, Defense, Agility, Soul);
+
 	}
+
+	InteractSphere->OnComponentBeginOverlap.AddDynamic(this, &ASPlayer::OnBeginOverlap);
+	InteractSphere->OnComponentEndOverlap.AddDynamic(this, &ASPlayer::OnEndOverlap);
+
+	TutorialOverlapSphere->OnComponentBeginOverlap.AddDynamic(this, &ASPlayer::OnTutorialSphereBeginOverlap);
+	TutorialOverlapSphere->OnComponentBeginOverlap.AddDynamic(this, &ASPlayer::OnTutorialSphereEndOverlap);
 
 	LampLight->SetIntensity(LightIntensity);
 }
+
 
 void ASPlayer::PawnClientRestart()
 {
@@ -202,8 +266,12 @@ void ASPlayer::Speak(const FString& Dialogue)
 	const FText Text = FText::FromString(Dialogue);
 	TextPrompt->SetText(Text);
 
-	FTimerHandle ClearSpeakHandle;
-	GetWorld()->GetTimerManager().SetTimer(ClearSpeakHandle, this, &ASPlayer::ClearSpeakText, 1.0f, false, 5.0f);
+	if (GetWorld()->GetTimerManager().IsTimerPending(ClearSpeakHandle))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(ClearSpeakHandle);
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(ClearSpeakHandle, this, &ASPlayer::ClearSpeakText, 1.0f, false, 2.5f);
 }
 
 void ASPlayer::ClearSpeakText()
@@ -220,11 +288,8 @@ void ASPlayer::ClearSpeakText()
 
 void ASPlayer::IntroSpeak()
 {
-	GameInstance->StartLineage();
-
-	GameInstance->SetSpiritsKeepFlag(true);
-
-	Speak(GameInstance->GetResponse(GameInstance->GetCurrentPersonality(), FString("Arrival_Default")));
+	FDialogueData* Responses = GameInstance->GetResponsesForPersonality();
+	Speak(Responses->Arrival_Default);
 }
 
 #pragma endregion
@@ -239,34 +304,41 @@ void ASPlayer::UpdateEquippedIfAny()
 {
 	if (!IsValid(GameInstance)) return;
 
-	//ObtainItem(GameInstance->EquippedItems.EquippedSkill);
-	//ObtainItem(GameInstance->EquippedItems.EquippedSpell);
-	//ObtainItem(GameInstance->EquippedItems.EquippedPassive);
+	TSubclassOf<ASAbilityBase> SkillClass = GameInstance->GetSkill();
+	TSubclassOf<ASAbilityBase> SpellClass = GameInstance->GetSpell();
+	TSubclassOf<ASAbilityBase> PassiveClass = GameInstance->GetPassive();
 
-	if (IsValid(GameInstance->EquippedItems.EquippedSkill))
+	if (IsValid(SkillClass))
 	{
-		//CurrentSkill = GameInstance->EquippedItems.EquippedSkill;
-		SetNewAbility(GameInstance->EquippedItems.EquippedSkill, GameInstance->EquippedItems.EquippedSkill->GetAbilityData());
-
-		PlayerController->AddAbility(GameInstance->EquippedItems.EquippedSkill->GetAbilityData(), EUpgrade::New);
+		ASAbilityBase* NewAbility = GetWorld()->SpawnActor<ASAbilityBase>(SkillClass);
+		if (IsValid(NewAbility))
+		{
+			ObtainItem(NewAbility);
+			UE_LOG(LogTemp, Warning, TEXT("I am assigning the GameInstance Skill"));
+			NewAbility->RegisterAbility(this);
+		}
 	}
 
-	if (IsValid(GameInstance->EquippedItems.EquippedSpell))
+	if (IsValid(SpellClass))
 	{
-		//CurrentSpell = GameInstance->EquippedItems.EquippedSpell;
-
-		SetNewAbility(GameInstance->EquippedItems.EquippedSpell, GameInstance->EquippedItems.EquippedSpell->GetAbilityData());
-
-		PlayerController->AddAbility(GameInstance->EquippedItems.EquippedSpell->GetAbilityData(), EUpgrade::New);
+		ASAbilityBase* NewAbility = GetWorld()->SpawnActor<ASAbilityBase>(SpellClass);
+		if (IsValid(NewAbility))
+		{
+			ObtainItem(NewAbility);
+			UE_LOG(LogTemp, Warning, TEXT("I am assigning the GameInstance Spell"));
+			NewAbility->RegisterAbility(this);
+		}
 	}
 
-	if (IsValid(GameInstance->EquippedItems.EquippedPassive))
+	if (IsValid(PassiveClass))
 	{
-		//CurrentPassive = GameInstance->EquippedItems.EquippedPassive;
-
-		SetNewAbility(GameInstance->EquippedItems.EquippedPassive, GameInstance->EquippedItems.EquippedPassive->GetAbilityData());
-
-		PlayerController->AddAbility(GameInstance->EquippedItems.EquippedPassive->GetAbilityData(), EUpgrade::New);
+		ASAbilityBase* NewAbility = GetWorld()->SpawnActor<ASAbilityBase>(PassiveClass);
+		if (IsValid(NewAbility))
+		{
+			ObtainItem(NewAbility);
+			UE_LOG(LogTemp, Warning, TEXT("I am assigning the GameInstance Passive"));
+			NewAbility->RegisterAbility(this);
+		}
 	}
 
 	WeaponEquipmentData = GameInstance->EquippedItems.EquippedWeapon;
@@ -274,6 +346,8 @@ void ASPlayer::UpdateEquippedIfAny()
 	{
 		AddStats(WeaponEquipmentData->EquipmentStats);
 		WearItem(WeaponEquipmentData->EquipmentType, WeaponEquipmentData->EquipmentMesh);
+
+		PlayerController->GetPlayerHUD()->UpdateEquipmentIcon(WeaponEquipmentData->EquipmentIcon, EEquipmentType::WEAPON);
 		//WearItem(EEquipmentType::WEAPON, WeaponEquipmentData->EquipmentMesh);
 	}
 	else UE_LOG(LogTemp, Warning, TEXT("Weapon Is null"));
@@ -283,6 +357,8 @@ void ASPlayer::UpdateEquippedIfAny()
 	{
 		AddStats(ChestEquipmentData->EquipmentStats);
 		WearItem(ChestEquipmentData->EquipmentType, ChestEquipmentData->EquipmentMesh);
+
+		PlayerController->GetPlayerHUD()->UpdateEquipmentIcon(ChestEquipmentData->EquipmentIcon, EEquipmentType::CHEST);
 	}
 	else UE_LOG(LogTemp, Warning, TEXT("Chest Is null"));
 
@@ -291,6 +367,8 @@ void ASPlayer::UpdateEquippedIfAny()
 	{
 		AddStats(HeadEquipmentData->EquipmentStats);
 		WearItem(HeadEquipmentData->EquipmentType, HeadEquipmentData->EquipmentMesh);
+
+		PlayerController->GetPlayerHUD()->UpdateEquipmentIcon(HeadEquipmentData->EquipmentIcon, EEquipmentType::HEAD);
 	}
 	else UE_LOG(LogTemp, Warning, TEXT("Head Is null"));
 
@@ -299,6 +377,8 @@ void ASPlayer::UpdateEquippedIfAny()
 	{
 		AddStats(BootEquipmentData->EquipmentStats);
 		WearItem(BootEquipmentData->EquipmentType, BootEquipmentData->EquipmentMesh);
+
+		PlayerController->GetPlayerHUD()->UpdateEquipmentIcon(BootEquipmentData->EquipmentIcon, EEquipmentType::BOOTS);
 	}
 	else UE_LOG(LogTemp, Warning, TEXT("Boots Is null"));
 }
@@ -312,20 +392,21 @@ void ASPlayer::WearItem(EEquipmentType EquipmentType, UStaticMesh* StaticMesh)
 
 	switch (EquipmentType)
 	{
-	case EEquipmentType::WEAPON:
-		WeaponMesh->SetStaticMesh(StaticMesh);
-		break;
-	case EEquipmentType::CHEST:
-		ChestMesh->SetStaticMesh(StaticMesh);
-		break;
-	case EEquipmentType::HEAD:
-		HeadMesh->SetStaticMesh(StaticMesh);
-		break;
-	case EEquipmentType::BOOTS:
-		BootsMesh->SetStaticMesh(StaticMesh);
-		break;
-
+		case EEquipmentType::WEAPON:
+			WeaponMesh->SetStaticMesh(StaticMesh);
+			break;
+		case EEquipmentType::CHEST:
+			ChestMesh->SetStaticMesh(StaticMesh);
+			break;
+		case EEquipmentType::HEAD:
+			HeadMesh->SetStaticMesh(StaticMesh);
+			break;
+		case EEquipmentType::BOOTS:
+			BootsMesh->SetStaticMesh(StaticMesh);
+			break;
 	}
+
+	GameInstance->UpdateRenderPreviewEquipment(GameInstance->GetCurrentLineage().Last(), EquipmentType, StaticMesh);
 }
 
 #pragma endregion
@@ -385,6 +466,8 @@ void ASPlayer::Aim(const FInputActionValue& InputValue)
 {
 	if (bIsDead) return;
 
+	if (!bIsUsingGamepad) return;
+
 	FVector2D input = InputValue.Get<FVector2D>();
 	input.Normalize();
 
@@ -399,9 +482,40 @@ void ASPlayer::Interact()
 {
 	if (bIsDead) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("Interacted"));
+	if (GetClosestInteractable())
+	{
+		if (GetClosestInteractable()->GetClass()->ImplementsInterface(UIInteractable::StaticClass()))
+		{
+			ASInteractableObject* InteractedObject = Cast<ASInteractableObject>(GetClosestInteractable());
+			if (IsValid(InteractedObject))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Interact Object Cast Success"));
 
-	OnInteract.Broadcast();
+				ASItemBase* InteractedAbility = Cast<ASItemBase>(InteractedObject);
+				if (IsValid(InteractedAbility))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Successfully Broadcast Ability Interact"));
+
+					OnPickup.Broadcast(InteractedAbility->GetAbilityIcon(), InteractedAbility->GetAbilityName());
+				}
+
+				ASEquipment* InteractedEquipment = Cast<ASEquipment>(GetClosestInteractable());
+				if (IsValid(InteractedEquipment))
+				{
+					if (IsValid(InteractedEquipment->GetEquipmentData()))
+					{
+						OnPickupEquipment.Broadcast(InteractedEquipment->GetEquipmentData()->EquipmentIcon, InteractedEquipment->GetEquipmentData()->EquipmentName);
+					}
+				}
+
+				//OnPickup.Broadcast(InteractedObject);
+			}
+
+			OnInteract.Broadcast(GetClosestInteractable());
+
+			IIInteractable::Execute_Interact(GetClosestInteractable(), this);
+		}
+	}
 }
 
 void ASPlayer::Attack()
@@ -482,17 +596,48 @@ void ASPlayer::Spell()
 
 void ASPlayer::HUD()
 {
-	if (PlayerController)
-	{
-		bHUDEnabled = !bHUDEnabled;
+	if (!PlayerController) return;
 
-		PlayerController->GameplayUIState(bHUDEnabled);
+	UEnhancedInputLocalPlayerSubsystem* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+
+	if (bHUDEnabled)
+	{
+		// Resume Game
+		bHUDEnabled = false;
+		PlayerController->SetShowMouseCursor(false);
+
+		UE_LOG(LogTemp, Warning, TEXT("Unpausing"));
+
+		// Remove UI Input, Add Gameplay Input
+		InputSubsystem->RemoveMappingContext(InputInteractionMapping);
+		InputSubsystem->AddMappingContext(InputPlayerMapping, 0);
 	}
+	else
+	{
+		// Pause Game
+		bHUDEnabled = true;
+		PlayerController->SetShowMouseCursor(true);
+
+		UE_LOG(LogTemp, Warning, TEXT("Pausing"));
+
+		// Remove Gameplay Input, Add UI Input
+		InputSubsystem->RemoveMappingContext(InputPlayerMapping);
+		InputSubsystem->AddMappingContext(InputInteractionMapping, 0);
+	}
+
+	//UE_LOG(LogTemp, Warning, TEXT("Current Active Mapping Context: %s"), *InputSubsystem->Map()->GetName());
+
+	PlayerController->GameplayUIState(bHUDEnabled);
 }
 
 void ASPlayer::Settings()
 {
 
+}
+
+void ASPlayer::SetUsingGamepad(bool IsUsingGamepad)
+{
+	bIsUsingGamepad = IsUsingGamepad;
 }
 
 void ASPlayer::AttackCombo()
@@ -509,6 +654,8 @@ void ASPlayer::AttackCombo()
 	//GetMesh()->GetAnimInstance()->StopAllMontages(1.0f);
 
 	GetMesh()->GetAnimInstance()->Montage_Play(ComboSectionMontages[CurrentCombo], AttackSpeedCurve->GetFloatValue(Agility));
+
+	USSilentwingNoiseManager::Get(this).GenerateNoise(10.f, GetActorLocation());
 }
 
 void ASPlayer::EndCombo()
@@ -522,17 +669,17 @@ void ASPlayer::EndCombo()
 
 #pragma region Health/Damage Functions
 
-void ASPlayer::TakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback)
+void ASPlayer::CharacterTakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback)
 {
 	if (bIsDead) return;
 
 	CameraShake_BlueprintEvent();
 
-	Super::TakeDamage(Damage, DamageInstigator, Knockback);
+	Super::CharacterTakeDamage(Damage, DamageInstigator, Knockback);
+
+	if (GetIsDamageable() == false) return;
 
 	EndCombo();
-
-	UGameplayStatics::PlaySound2D(this, HitSound);
 
 	if (IsValid(CurrentSkill))
 		CurrentSkill->EndAbility();
@@ -543,18 +690,20 @@ void ASPlayer::TakeDamage(float Damage, AActor* DamageInstigator, const float& K
 	float NewHealth = (Health / MaxHealth);
 	NewHealth = NewHealth < 0 ? 0 : NewHealth;
 
-	GameInstance->SetSpiritsKeepFlag(false);
-
 	HealthUpdated(NewHealth);
 
 	// Add Health Regen
 	GetWorld()->GetTimerManager().ClearTimer(HealthRegenTimerHandle);
-	GetWorld()->GetTimerManager().SetTimer(RegenDelayTimerHandle, this, &ASPlayer::StartHealthRegen, 1.5f, false);
+	GetWorld()->GetTimerManager().ClearTimer(RegenDelayTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(RegenDelayTimerHandle, this, &ASPlayer::StartHealthRegen, 1.5f, false, 5.f);
 }
 
-void ASPlayer::StartDeath(bool IsDead)
+void ASPlayer::StartDeath(bool IsDead, AActor* DeadActor)
 {
 	bIsDead = IsDead;
+
+	GameInstance->SetSpiritsKeepFlag(false);
+	GameInstance->SaveEquipment();
 
 	if (IsValid(GetMesh()->GetAnimInstance()))
 		GetMesh()->GetAnimInstance()->StopAllMontages(1.0f);
@@ -564,11 +713,34 @@ void ASPlayer::StartDeath(bool IsDead)
 		GameInstance->ClearEquippedItems();
 	}
 
+	PlayerController->GetPlayerHUD()->GetLineageCollection()->UpdateLatestLineageEntry();
 
 	CameraFade_BlueprintEvent(2.5f);
 
 	FTimerHandle DeathTimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, this, &ASPlayer::LoadSpiritsKeep, 1.0f, false, 2.5f);
+
+	// Assign random ability to inherit, rng based
+
+	const float InheritChance = 0.3f;
+	if (FMath::FRand() <= InheritChance)
+	{
+		TArray<ASAbilityBase*> skillList;
+		if (IsValid(GetCurrentSkill()))
+			skillList.Add(GetCurrentSkill());
+		if (IsValid(GetCurrentSpell()))
+			skillList.Add(GetCurrentSpell());
+		if (IsValid(GetCurrentPassive()))
+			skillList.Add(GetCurrentPassive());
+
+		if (skillList.IsEmpty()) return;
+
+		int32 random = FMath::RandRange(0, skillList.Num() - 1);
+
+		GameInstance->InheritAbility(skillList[random]);
+
+		UE_LOG(LogTemp, Warning, TEXT("Player Death Inheriting Ability"));
+	}
 }
 
 void ASPlayer::HealthUpdated(const float newHealth)
@@ -713,13 +885,12 @@ void ASPlayer::EquipItem(USEquipmentData* EquipmentData)
 
 	WearItem(EquipmentData->EquipmentType, EquipmentData->EquipmentMesh);
 
-	UE_LOG(LogTemp, Warning, TEXT("Agility: %f"), Agility);
-
 	GetCharacterMovement()->MaxWalkSpeed = MoveSpeedCurve->GetFloatValue(Agility);
 
 	if (IsValid(PlayerController))
 	{
 		PlayerController->SetStatsUI(Strength, Defense, Agility, Soul);
+		PlayerController->GetPlayerHUD()->UpdateEquipmentIcon(EquipmentData->EquipmentIcon, EquipmentData->EquipmentType);
 	}
 }
 
@@ -727,7 +898,6 @@ bool ASPlayer::ObtainItem(ASAbilityBase* newItem)
 {
 	if (IsValid(newItem) == false) 
 	{
-		UE_LOG(LogTemp, Warning, TEXT("New Item Is Null"));
 		return false;
 	}
 
@@ -738,8 +908,6 @@ bool ASPlayer::ObtainItem(ASAbilityBase* newItem)
 	USAbilityDataBase* CurrentAbilityData = NewObject<USAbilityDataBase>(this);
 	if (IsValid(currentItem))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Creating Current Ability Data"));
-
 		CurrentAbilityData = currentItem->GetAbilityData();
 	}
 
@@ -767,7 +935,7 @@ bool ASPlayer::ObtainItem(ASAbilityBase* newItem)
 		case EUpgrade::Replace:
 			if (IsValid(currentItem)) 
 			{
-				currentItem->Destroy();
+				currentItem->UnRegisterAbility();
 			}
 
 			UE_LOG(LogTemp, Warning, TEXT("Replace"));
@@ -791,7 +959,9 @@ void ASPlayer::SetNewAbility(ASAbilityBase* newItem, USAbilityDataBase* NewAbili
 		CurrentPassive = newItem;
 		if (IsValid(GameInstance))
 		{
-			GameInstance->EquippedItems.EquippedPassive = newItem;
+			GameInstance->SetPassive(newItem);
+
+			PlayerController->GetPlayerHUD()->GetLineageCollection()->UpdateLatestLineageEntry();
 			UE_LOG(LogTemp, Warning, TEXT("Adding To Equipped Abilities"));
 
 		}
@@ -801,7 +971,9 @@ void ASPlayer::SetNewAbility(ASAbilityBase* newItem, USAbilityDataBase* NewAbili
 		CurrentSkill = newItem;
 		if (IsValid(GameInstance))
 		{
-			GameInstance->EquippedItems.EquippedPassive = newItem;
+			GameInstance->SetSkill(newItem);
+
+			PlayerController->GetPlayerHUD()->GetLineageCollection()->UpdateLatestLineageEntry();
 			UE_LOG(LogTemp, Warning, TEXT("Adding To Equipped Abilities"));
 		}
 		break;
@@ -810,9 +982,10 @@ void ASPlayer::SetNewAbility(ASAbilityBase* newItem, USAbilityDataBase* NewAbili
 		CurrentSpell = newItem;
 		if (IsValid(GameInstance))
 		{
-			GameInstance->EquippedItems.EquippedPassive = newItem;
-			UE_LOG(LogTemp, Warning, TEXT("Adding To Equipped Abilities"));
+			GameInstance->SetSpell(newItem);
 
+			PlayerController->GetPlayerHUD()->GetLineageCollection()->UpdateLatestLineageEntry();
+			UE_LOG(LogTemp, Warning, TEXT("Adding To Equipped Abilities"));
 		}
 		break;
 	}
@@ -820,8 +993,6 @@ void ASPlayer::SetNewAbility(ASAbilityBase* newItem, USAbilityDataBase* NewAbili
 
 EUpgrade ASPlayer::GetItemStatus(ASAbilityBase* newItem, ASAbilityBase* currentItem)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Part 2"));
-
 	if (currentItem == nullptr) 
 	{
 		return EUpgrade::New;
@@ -840,45 +1011,30 @@ EUpgrade ASPlayer::GetItemStatus(ASAbilityBase* newItem, ASAbilityBase* currentI
 
 ASAbilityBase* ASPlayer::GetItemTypeFromNew(ASAbilityBase* newItem)
 {
-	UE_LOG(LogTemp, Warning, TEXT("I am going into this function"));
-
 	if (!IsValid(newItem)) 
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Item Is Null"));
-
 		return nullptr;
 	}
 	USAbilityDataBase* NewAbilityData = newItem->GetAbilityData();
 	if (IsValid(NewAbilityData) == false)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("New Ability Data is null"));
-
 		return nullptr;
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Part 202"));
 
 	switch (NewAbilityData->GetType())
 	{
 		case EType::Passive:
-			UE_LOG(LogTemp, Warning, TEXT("Passive"));
-
 			return CurrentPassive;
 			break;
 
 		case EType::Skill:
-			UE_LOG(LogTemp, Warning, TEXT("Skill"));
-
 			return CurrentSkill;
 			break;
 
 		case EType::Spell:
-			UE_LOG(LogTemp, Warning, TEXT("Spell"));
-
 			return CurrentSpell;
 			break;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Part 303"));
 
 	return CurrentPassive;
 }
@@ -906,7 +1062,7 @@ void ASPlayer::LoadSpiritsKeep()
 		GameInstance->UpdateProgress();
 	}
 
-	UGameplayStatics::OpenLevel(GetWorld(), FName("Spirits_Keep"));
+	UGameplayStatics::OpenLevel(GetWorld(), FName("Spirits_Keep_Intro_Testing"));
 }
 
 void ASPlayer::SetLampLightColor(const FLinearColor& NewLampColor)
@@ -957,9 +1113,134 @@ void ASPlayer::SetSoulBuff(const ESoulStatType& StatType)
 
 #pragma endregion
 
+void ASPlayer::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor == nullptr)
+	{
+		return;
+	}
+
+	if (OtherActor->IsA(ASPlayer::StaticClass()))
+	{
+		return;
+	}
+
+
+	if (OtherActor->Implements<UIInteractable>() == false)
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("%s Does Not Implement Interactable Interface"), *OtherActor->GetName());
+
+		return;
+	}
+
+	InteractableObjects.Add(OtherActor);
+	SortInteractableObjects();
+}
+
+void ASPlayer::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor && OtherActor->Implements<UIInteractable>())
+	{
+		IIInteractable::Execute_DisableInteractionWidget(OtherActor);
+		InteractableObjects.Remove(OtherActor); // Make sure to remove it from the array
+		SortInteractableObjects(); // Re-sort and update widgets
+	}
+}
+
+void ASPlayer::SortInteractableObjects()
+{
+	InteractableObjects.Sort([this](const AActor& A, const AActor& B)
+		{
+			return FVector::DistSquared(this->GetActorLocation(), A.GetActorLocation())
+				< FVector::DistSquared(this->GetActorLocation(), B.GetActorLocation());
+		});
+
+	if (InteractableObjects.Num() == 0) return;
+
+	ASInteractableObject* ClosestObject = Cast<ASInteractableObject>(InteractableObjects[0]);
+	if (IsValid(ClosestObject))
+	{
+		IIInteractable::Execute_EnableInteractionWidget(ClosestObject);
+	}
+
+	for (int i = 1; i < InteractableObjects.Num(); i++)
+	{
+		ASInteractableObject* InteractableObject = Cast<ASInteractableObject>(InteractableObjects[i]);
+		if (IsValid(InteractableObject))
+		{
+			IIInteractable::Execute_DisableInteractionWidget(InteractableObject);
+		}
+	}
+}
+
+AActor* ASPlayer::GetClosestInteractable() const
+{
+	return InteractableObjects.Num() > 0 ? InteractableObjects[0] : nullptr;
+}
+
 void ASPlayer::GetGrabbed()
 {
 	SetInputMapping(false);
+}
+
+void ASPlayer::SetPlayerInputEnabled(bool state)
+{
+	if (!PlayerController) return;
+
+	UEnhancedInputLocalPlayerSubsystem* inputSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+	if (!state)
+	{
+		inputSystem->ClearAllMappings();
+	}
+	else
+	{
+		inputSystem->AddMappingContext(InputPlayerMapping, 0);
+	}
+}
+
+void ASPlayer::CombatEnded() 
+{
+	bInCombat = false;
+	OnCombatEnded.Broadcast();
+}
+
+void ASPlayer::OnTutorialSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor)
+	{
+		if (ASEnemy* Enemy = Cast<ASEnemy>(OtherActor))
+		{
+			EnemiesInRange.Add(OtherActor);
+
+			if (EnemiesInRange.Num() == 1 && !bInCombat)
+			{
+				OnCombatStarted.Broadcast();
+				bInCombat = true;
+			}
+		}
+
+		TutorialComponent->EvaluateObject(OtherActor);
+	}
+}
+
+void ASPlayer::OnTutorialSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor)
+	{
+		if (EnemiesInRange.Contains(OtherActor))
+			if (ASEnemy* Enemy = Cast<ASEnemy>(OtherActor))
+				EnemiesInRange.Remove(OtherActor);
+
+		if (EnemiesInRange.Num() == 0 && bInCombat)
+		{
+			if (GetWorld()->GetTimerManager().IsTimerPending(CombatEndedTimer))
+			{
+				return;
+			}
+
+			GetWorld()->GetTimerManager().SetTimer(CombatEndedTimer, this, &ASPlayer::CombatEnded, 1.f / 24.f, false, CombatEndedTimeout);
+		}
+	}
 }
 
 void ASPlayer::DEBUG_ModifyHealth(const FInputActionValue& InputValue)
@@ -976,4 +1257,5 @@ void ASPlayer::DEBUG_ModifyHealth(const FInputActionValue& InputValue)
 
 	HealthUpdated(NewHealth);
 }
+
 

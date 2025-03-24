@@ -3,10 +3,13 @@
 
 #include "AI/SAIController.h"
 
+#include "AI/Navigation/NavigationTypes.h"
+
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BrainComponent.h"
 
 #include "GameFramework/Character.h"
+#include "GameFramework/Controller.h"
 
 #include "Kismet/GameplayStatics.h"
 
@@ -51,8 +54,11 @@ void ASAIController::BeginPlay()
 	if(GetBrainComponent())
 		GetBrainComponent()->StartLogic();
 
-	AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &ASAIController::OnTargetPerceptionUpdated);
-	AIPerceptionComponent->OnTargetPerceptionForgotten.AddDynamic(this, &ASAIController::OnTargetForgotten);
+	if (bUseSightSenseByDefault)
+	{
+		AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &ASAIController::OnTargetPerceptionUpdated);
+		AIPerceptionComponent->OnTargetPerceptionForgotten.AddDynamic(this, &ASAIController::OnTargetForgotten);
+	}
 
 	AIPerceptionComponent->SetSenseEnabled(UAISense_Sight::StaticClass(), true);
 	AIPerceptionComponent->Activate(true);
@@ -60,6 +66,8 @@ void ASAIController::BeginPlay()
 
 void ASAIController::Tick(float DeltaTime)
 {
+	Super::Tick(DeltaTime);
+
 	/*
 	if (IsValid(Player))
 	{

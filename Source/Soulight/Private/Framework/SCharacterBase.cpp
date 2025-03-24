@@ -6,6 +6,8 @@
 #include "Framework/SStatData.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
+#include "Kismet/GameplayStatics.h"
+
 ASCharacterBase::ASCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -33,20 +35,35 @@ void ASCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 void ASCharacterBase::StartDeath()
 {
-	OnDead.Broadcast(true);
+	StartDeath_BlueprintEvent();
+
+	OnDead.Broadcast(true, this);
 }
 
-void ASCharacterBase::TakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback)
+void ASCharacterBase::CharacterTakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback)
 {
+	OnDamageTaken.Broadcast(Damage, DamageInstigator);
+
+	if (GetIsDamageable() == false) return;
+
+	if (bDodge)
+	{
+		OnDamageTakenEnd.Broadcast();
+		return;
+	}
+
+	if (IsValid(HitSound))
+		UGameplayStatics::PlaySound2D(this, HitSound);
+
 	float TotalDamage = Damage - Defense;
 
 	TotalDamage = TotalDamage < 0 ? 0 : TotalDamage;
 
 	Health = FMath::Clamp(Health - TotalDamage, 0, MaxHealth);
 
-	if (IsValid(HitReactionMontage)) 
+	if (IsValid(HitReactionMontage))
 	{
-		if (IsValid(GetMesh()->GetAnimInstance())) 
+		if (IsValid(GetMesh()->GetAnimInstance()))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("I am playing hit montage: %s"), *GetOwner()->GetName());
 
@@ -55,19 +72,30 @@ void ASCharacterBase::TakeDamage(float Damage, AActor* DamageInstigator, const f
 		}
 	}
 
-	if(IsValid(DamageInstigator))
+	if (IsValid(DamageInstigator))
 		ApplyKnockback(DamageInstigator->GetActorLocation(), Knockback);
 
 	if (Health <= 0)
 	{
+		if (IsValid(DamageInstigator))
+		{
+			ASCharacterBase* Killer = Cast<ASCharacterBase>(DamageInstigator);
+			if (IsValid(Killer))
+				Killer->OnKill.Broadcast();
+		}
+
 		StartDeath();
 		UE_LOG(LogTemp, Warning, TEXT("Character Dead"));
 	}
+
+	OnDamageTakenEnd.Broadcast();
 }
 
 void ASCharacterBase::ApplyKnockback(const FVector& FromPosition, const float& Knockback)
 {
 	if (!IsValid(GetCharacterMovement())) return;
+
+	if (bCanKnockback == false) return;
 
 	FVector Direction = FromPosition - GetActorLocation();
 	Direction = -Direction;
@@ -85,6 +113,8 @@ void ASCharacterBase::ApplyStun(const float& Duration, const bool& OverrideCurre
 		GetWorld()->GetTimerManager().ClearTimer(StunTimerHandle);
 	}
 
+	bStunned = true;
+
 	if (GetWorld()->GetTimerManager().IsTimerActive(StunTimerHandle) == true) return;
 
 	GetCharacterMovement()->MovementMode = EMovementMode::MOVE_None;
@@ -94,6 +124,8 @@ void ASCharacterBase::ApplyStun(const float& Duration, const bool& OverrideCurre
 
 void ASCharacterBase::EndStun()
 {
+	bStunned = false;
+
 	GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Walking;
 }
 
@@ -133,4 +165,9 @@ void ASCharacterBase::RemoveStats(USStatData* Stats)
 	Defense -= Stats->GetDefenseStat();
 	Agility -= Stats->GetAgilityStat();
 	Soul -= Stats->GetSoulStat();
+}
+
+void ASCharacterBase::SetDodge(bool state)
+{
+	bDodge = state;
 }

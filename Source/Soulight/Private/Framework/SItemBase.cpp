@@ -19,7 +19,6 @@
 #include "Player/SPlayer.h"
 
 #include "Widgets/SItemUI.h"
-#include "Widgets/SItemUI.h"
 #include "Widgets/SItemWidgetComponent.h"
 
 ASItemBase::ASItemBase()
@@ -37,6 +36,8 @@ void ASItemBase::BeginPlay()
 
 		AbilityItem = GetWorld()->SpawnActor<ASAbilityBase>(AbilityItemClass);
 	}
+
+	PlayerCharacter = Cast<ASPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 }
 
 void ASItemBase::SetAbilityItem(ASAbilityBase* ability, FString upgrade, FColor abilityColor)
@@ -44,36 +45,57 @@ void ASItemBase::SetAbilityItem(ASAbilityBase* ability, FString upgrade, FColor 
 	if (ability == nullptr)
 		return;
 
+	UE_LOG(LogTemp, Warning, TEXT("Setting"));
+
 	USAbilityDataBase* AbilityData = ability->GetAbilityData();
 	if (IsValid(AbilityData) == false) return;
 
-	USItemUI* itemUI = Cast<USItemUI>(ItemWidgetComponent->GetWidget());
-	if (itemUI)
+	if (IsValid(ItemUI))
 	{
-		itemUI->SetItem(AbilityData->GetAbilityName(), upgrade, AbilityData->GetAbilityIcon(), abilityColor);
+		UE_LOG(LogTemp, Warning, TEXT("Setting For Realsies"));
+
+		ItemUI->SetItem(AbilityData->GetAbilityName(), upgrade, AbilityData->GetAbilityIcon(), abilityColor);
 	}
 }
 
-void ASItemBase::Interact()
+void ASItemBase::EnableInteractionWidget_Implementation()
 {
-	Super::Interact();
+	Super::EnableInteractionWidget_Implementation(); // Call parent to handle widget visibility
 
+	if (IsValid(ItemUI) && IsValid(PlayerCharacter))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ASItemBase: Interaction Widget Enabled for %s"), *GetName());
+		ShowItemStatus(PlayerCharacter);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ASItemBase: ItemUI or PlayerCharacter not valid for %s"), *GetName());
+	}
+}
+
+void ASItemBase::DisableInteractionWidget_Implementation()
+{
+	Super::DisableInteractionWidget_Implementation(); // Call parent to handle widget visibility
+
+	UE_LOG(LogTemp, Warning, TEXT("ASItemBase: Interaction Widget Disabled for %s"), *GetName());
+}
+
+void ASItemBase::ObtainItem(class ASPlayer* Player)
+{
 	if (Player == nullptr || IsValid(AbilityItem) == false)
 		return;
 
 	Player->ObtainItem(AbilityItem);
 
-	AbilityItem->SetAbilityOwner(Player);
+	AbilityItem->RegisterAbility(Player);
 
 	// hmm find a way to show this on the players HUD, and tell the player that they got an item. You'll be returning AbilityItem on this script
 
 	this->Destroy();
 }
 
-void ASItemBase::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
+void ASItemBase::ShowItemStatus(class ASPlayer* Player)
 {
-	Super::OnOverlapBegin(overlappedActor, otherActor);
-
 	if (!IsValid(AbilityItem) || !IsValid(Player)) return;
 
 	switch (Player->GetItemStatus(AbilityItem, Player->GetItemTypeFromNew(AbilityItem)))
@@ -90,5 +112,25 @@ void ASItemBase::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
 			SetAbilityItem(AbilityItem, FString("Replaces -> "), AbilityReplacesColor);
 			break;
 	}
+}
+
+UTexture* ASItemBase::GetAbilityIcon() const
+{
+	if (IsValid(AbilityItem))
+	{
+		return AbilityItem->GetAbilityData()->GetAbilityIcon();
+	}
+
+	return nullptr;
+}
+
+FString ASItemBase::GetAbilityName() const
+{
+	if (IsValid(AbilityItem))
+	{
+		return AbilityItem->GetAbilityName();
+	}
+
+	return "";
 }
 

@@ -3,15 +3,13 @@
 
 #include "Interactable/SChest.h"
 
-void ASChest::Interact()
+void ASChest::GiveItem()
 {
-	Super::Interact();
-
 	if (ItemPool.Num() == 0) return;
 
 	int32 RandomNumber = FMath::RandRange(0, ItemPool.Num() - 1);
 	if (!IsValid(ItemPool[RandomNumber])) return;
-
+	
 	FVector SpawnLocation = GetActorLocation();
 	SpawnLocation.Z += 10.0f;
 

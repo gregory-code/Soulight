@@ -4,17 +4,12 @@
 #include "Interactable/SEquipment.h"
 
 #include "Player/SPlayer.h"
-#include "Framework/SEquipmentData.h"
 
-void ASEquipment::Interact()
+void ASEquipment::EquipItem(class ASPlayer* Player)
 {
-	Super::Interact();
-
-	if (!IsValid(Player)) return;
-
-	if (!IsValid(Equipment)) return;
+	if (Player == nullptr || Equipment == nullptr) return;
 
 	Player->EquipItem(Equipment);
 
-	Destroy();
+	this->Destroy();
 }

@@ -6,11 +6,14 @@
 #include "Engine/GameInstance.h"
 
 #include "Framework/SCharacterBase.h"
+#include "Framework/SEquipmentData.h"
 
 #include "SGameInstance.generated.h"
 
 class ASAbilityBase;
 class USEquipmentData;
+class UTexture2D;
+class ASLineageCharacterRenderPreview;
 
 USTRUCT(BlueprintType)
 struct FEquippedItems 
@@ -18,31 +21,30 @@ struct FEquippedItems
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, Category = "Equipped Items")
-	ASAbilityBase* EquippedSkill;
+	USEquipmentData* EquippedWeapon = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Equipped Items")
-	ASAbilityBase* EquippedSpell;
+	USEquipmentData* EquippedChest = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Equipped Items")
-	ASAbilityBase* EquippedPassive;
+	USEquipmentData* EquippedHead = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Equipped Items")
-	USEquipmentData* EquippedWeapon;
-
-	UPROPERTY(EditAnywhere, Category = "Equipped Items")
-	USEquipmentData* EquippedChest;
-
-	UPROPERTY(EditAnywhere, Category = "Equipped Items")
-	USEquipmentData* EquippedHead;
-
-	UPROPERTY(EditAnywhere, Category = "Equipped Items")
-	USEquipmentData* EquippedBoot;
+	USEquipmentData* EquippedBoot = nullptr;
 
 	FEquippedItems()
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Creating FEquippedItems Struct!"));
-	}
+		: EquippedWeapon(nullptr), EquippedChest(nullptr), EquippedHead(nullptr), EquippedBoot(nullptr)
+	{}
 
+	~FEquippedItems() = default;
+
+	FEquippedItems(const FEquippedItems& Other) = default;
+
+	FEquippedItems& operator=(const FEquippedItems& Other) = default;
+
+	FEquippedItems(FEquippedItems&& Other) noexcept = default;
+
+	FEquippedItems& operator=(FEquippedItems&& Other) noexcept = default;
 };
 
 /*
@@ -102,18 +104,56 @@ struct FDialogueData : public FTableRowBase
 };
 
 USTRUCT(BlueprintType)
-struct FLineageEntry
+struct FPersonalities : public FTableRowBase
 {
 	GENERATED_BODY()
 
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString Adventurous;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString Ruthless;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString Paranoid;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString Stoic;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString Calm;
+	UPROPERTY(EditAnywhere, Category = "Table Entry")
+	FString Desperate;
+};
+
+USTRUCT(BlueprintType)
+struct FLineageCharacterData
+{
+	GENERATED_BODY()
+
+	// If you make a custom constructor in a struct, you MUST include the big 5!
+	/*
+	FGameplayAbilitySpec(const FGameplayAbilitySpec&) = default;
+	FGameplayAbilitySpec(FGameplayAbilitySpec&&) = default;
+	FGameplayAbilitySpec& operator=(const FGameplayAbilitySpec&) = default;
+	FGameplayAbilitySpec& operator=(FGameplayAbilitySpec&&) = default;
+	~FGameplayAbilitySpec() = default;
+	*/
+
 public:
-	FLineageEntry()
-		: Personality(NAME_None), InheritedAbility(nullptr)
+	// Default constructor (Initializes members to default/null values)
+	FLineageCharacterData()
+		: RenderTarget(nullptr), 
+		EquippedItems(),
+		Personality(NAME_None),
+		CharacterName(NAME_None),
+		SkillName(TEXT("")), 
+		SpellName(TEXT("")),
+		PassiveName(TEXT("")),
+		InheritedAbility(TEXT(""))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Default Lineage Entry Created"));
 	}
 
-	FLineageEntry(TArray<FName> Personalities, TArray<TSubclassOf<ASAbilityBase>> Abilities)
+	// Parameterized constructor
+	FLineageCharacterData(TArray<FName> Personalities, TArray<FName> CharacterNames, FString NewInheritedAbility)
+		: FLineageCharacterData()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Creating Lineage Entry"));
 
@@ -123,22 +163,52 @@ public:
 			Personality = Personalities[rand];
 		}
 
-		if (Abilities.Num() > 0)
+		if (CharacterNames.Num() > 0)
 		{
-			int rand = FMath::RandRange(0, Abilities.Num() - 1);
-			InheritedAbility = Abilities[rand];
+			int rand = FMath::RandRange(0, CharacterNames.Num() - 1);
+			CharacterName = CharacterNames[rand];
 		}
 	}
 
-	FName GetPersonality() const { return Personality; }
+	// Destructor
+	~FLineageCharacterData() = default;
 
-	TSubclassOf<ASAbilityBase> GetAbility() const { return InheritedAbility; }
+	// Copy constructor
+	FLineageCharacterData(const FLineageCharacterData& Other) = default;
+
+	// Copy assignment operator
+	FLineageCharacterData& operator=(const FLineageCharacterData& Other) = default;
+
+	// Move constructor
+	FLineageCharacterData(FLineageCharacterData&& Other) noexcept = default;
+
+	// Move assignment operator
+	FLineageCharacterData& operator=(FLineageCharacterData&& Other) noexcept = default;
+
+	FName GetCharacterName() const { return CharacterName; }
+	FName GetPersonality() const { return Personality; }
+	FString GetSkillName() const { return SkillName; }
+	FString GetSpellName() const { return SpellName; }
+	FString GetPassiveName() const { return PassiveName; }
+	FString GetInheritedAbility() const { return InheritedAbility; }
+
+	void SetSkillName(FString NewSkillName);
+	void SetSpellName(FString NewSpellName);
+	void SetPassiveName(FString NewPassiveName);
+	void SetInheritedAbility(FString NewInheritedAbility);
+
+	UPROPERTY()
+	UTextureRenderTarget2D* RenderTarget = nullptr;
+
+	FEquippedItems EquippedItems;
 
 private:
 	FName Personality;
-
-	TSubclassOf<ASAbilityBase> InheritedAbility;
-
+	FName CharacterName;
+	FString SkillName;
+	FString SpellName;
+	FString PassiveName;
+	FString InheritedAbility;
 };
 
 /**
@@ -164,12 +234,44 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	FEquippedItems EquippedItems;
 
+	void SetSkill(ASAbilityBase* Skill);
+	void SetSpell(ASAbilityBase* Spell);
+	void SetPassive(ASAbilityBase* Passive);
+	
+	TSubclassOf<ASAbilityBase> GetSkill();
+	TSubclassOf<ASAbilityBase> GetSpell();
+	TSubclassOf<ASAbilityBase> GetPassive();
+
 	void ClearEquippedItems();
+	class USSilentwingNoiseManager* GetNoiseManager();
+	
+private:
+	UPROPERTY(EditAnywhere, Category = "Equipped Items")
+	TMap<FString, TSubclassOf<ASAbilityBase>> AbilityList;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Equipped Items")
+	TSubclassOf<USSilentwingNoiseManager> SilentwingNoiseManagerClass;
+	
+	UPROPERTY()
+	class USSilentwingNoiseManager* SilentwingNoizeManager;
+
+	FString InheritedAbilityName;
+	int32 InheritedAbilityLevel;
+
+	FString SavedSkillName;
+	int32 SavedSkillLevel;
+
+	FString SavedSpellName;
+	int32 SavedSpellLevel;
+
+	FString SavedPassiveName;
+	int32 SavedPassiveLevel;
 
 #pragma endregion
 
 #pragma region Dungeon Variables/Functions
 
+public:
 	///////////////////////////////
 	/*         Dungeon          */
 	/////////////////////////////
@@ -231,8 +333,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FString GetResponse(const FName& Personality, const FString& InteractionName) const;
 
+	FDialogueData* GetResponsesForPersonality() const;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Dialogue")
 	class UDataTable* MyDataTable;
+
+	//
 
 	UFUNCTION(BlueprintCallable)
 	bool HasBeenToSpiritsKeep() const { return bPlayerBeenToSpiritsKeep; }
@@ -240,41 +346,115 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetSpiritsKeepFlag(bool flag) { bPlayerBeenToSpiritsKeep = flag; }
 
+	UFUNCTION(BlueprintCallable)
+	bool GetGameFirstLoad() const { return bHasPlayerFirstStart; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetGameFirstLoad() { bHasPlayerFirstStart = true; }
+
+	//
+
+	UFUNCTION(BlueprintCallable)
+	void SetMinimap(USMinimap* Minimap);
+
+	UFUNCTION(BlueprintCallable)
+	USMinimap* GetMinimap() const { return MinimapInstance; }
+
 private:
 	bool bPlayerBeenToSpiritsKeep = false;
+	bool bHasPlayerFirstStart = false;
+
+	class USMinimap* MinimapInstance;
 
 #pragma endregion
-
 
 #pragma region Lineage Variables/Functions
 
 public:
+	UFUNCTION()
+	void InitPreviewCharacter();
+
 	UFUNCTION(BlueprintCallable)
 	void StartLineage();
 
 	UFUNCTION(BlueprintCallable)
-	void CreateNewLineage();
-
-	UFUNCTION(BlueprintCallable)
-	FName GetCurrentPersonality();
+	FName GetCurrentPersonality() const;
 
 	void InheritAbility(ASAbilityBase* Ability);
 
-	UPROPERTY()
-	ASAbilityBase* InheritedAbility;
+	UFUNCTION(BlueprintCallable)
+	const TArray<FLineageCharacterData>& GetCurrentLineage() const { return PreviousLineageEntries; }
+
+	UFUNCTION()
+	TSubclassOf<AActor> GetInheritedAbility();
+
+	UFUNCTION()
+	TSubclassOf<USLineageEntry> GetLineageEntryClass() const { return LineageEntryClass; }
+
+	UPROPERTY(EditDefaultsOnly, Category = "Lineage")
+	TMap<FString, class UTexture2D*> AbilityIcons;
+
+	void LoadRenderPreviewTextures();
+	void CaptureChararcterPreview();
+
+	void SaveEquipment();
+	void UpdateRenderPreviewEquipment(const FLineageCharacterData& Entry, const EEquipmentType& EquipmentType, UStaticMesh* StaticMesh);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Lineage")
+	class UMaterialInterface* MI_CharacterPreviewRender;
 
 private:
+	UTexture2D* ConvertRenderTargetToTexture(UTextureRenderTarget2D* RenderTarget);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Lineage")
+	TSubclassOf<ASLineageCharacterRenderPreview> LineageCharacterPreviewClass;
+
+	ASLineageCharacterRenderPreview* LineageCharacterRenderPreview;
+
+	TArray<FName> FoxNames = {
+		"Amberpaw", "Blaze", "Rustfur", "Zinnia", "Foxtail", "Cinder", "Flameheart", "Sienna",
+		"Duskswift", "Ashen", "Scarlet", "Solara", "Emberwhisk", "Copperfang", "Vixen", "Bramble",
+		"Tawny", "Aurora", "Skye", "Shadowflare", "Fenn", "Wildfire", "Ryn", "Fenrir", "Frostpaw",
+		"Maple", "Rowan", "Citrine", "Dawnrunner", "Sunflare", "Blazeclaw", "Poppy", "Kestrel"
+	};
+
+	UPROPERTY()
+	FString CurrentInheritedAbilityName;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Lineage")
 	TArray<FName> Personalities;
+
+	UPROPERTY(EditAnywhere, Category = "Lineage")
+	TMap<FString, TSubclassOf<AActor>> InteractableAbilityList;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Lineage")
-	TArray<TSubclassOf<ASAbilityBase>> Abilities;
+	TArray<FString> Abilities;
 
-	FLineageEntry CurrentLineageEntry;
-	FLineageEntry NextLineageEntry;
+	UPROPERTY()
+	TArray<FLineageCharacterData> PreviousLineageEntries;
 
-	TArray<FLineageEntry> PreviousLineageEntries;
+	UPROPERTY(EditDefaultsOnly, Category = "Lineage")
+	TSubclassOf<USLineageEntry> LineageEntryClass;
 
 #pragma endregion
 
+#pragma region Tutorial Variables/Functions
+
+public:
+	bool HasSeenTutorial(UClass* ObjectClass) const;
+	void MarkTutorialSeen(UClass* ObjectClass);
+
+	void SeenNPC(AActor* NPCActor);
+
+	UFUNCTION(BlueprintCallable)
+	bool HasSeenBothNPCs() const;
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Tutorial")
+	TMap<UClass*, bool> SeenTutorials;
+
+	TArray<AActor*> SeenNPCs;
+
+#pragma endregion
 
 };

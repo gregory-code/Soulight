@@ -4,9 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Framework/SCharacterBase.h"
+#include "Interactable/IInteractable.h"
 #include "SPlayer.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteract);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteract, AActor*, InteractedObject);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPickup, UTexture*, PickupIconTexture, FString, PickupItemName);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPickupEquipment, UPaperSprite*, PickupIconTexture, FString, PickupItemName);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCombatStarted);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCombatEnded);
 /**
  *
  */
@@ -30,6 +36,11 @@ public:
 	class UCameraComponent* MainCamera;
 
 	FOnInteract OnInteract;
+	FOnPickup OnPickup;
+	FOnPickupEquipment OnPickupEquipment;
+
+	FOnCombatStarted OnCombatStarted;
+	FOnCombatEnded OnCombatEnded;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -41,6 +52,9 @@ public:
 
 	UFUNCTION()
 	void EndCombo();
+
+	UPROPERTY(BlueprintReadWrite, Category = "Interact")
+	AActor* CurrentInteractTarget;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	TArray<UAnimMontage*> ComboSectionMontages;
@@ -56,6 +70,11 @@ public:
 	UFUNCTION()
 	bool GetIsDead() const { return bIsDead; }
 
+	UFUNCTION()
+	bool GetInCombat() const { return bInCombat; }
+
+private:
+	bool bInCombat = false;
 
 #pragma region SFX Variables/Functions
 
@@ -63,27 +82,40 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Sound")
 	USoundBase* AttackSound;
 
-	UPROPERTY(EditAnywhere, Category = "Sound")
-	USoundBase* HitSound;
-
+	
 #pragma endregion
 
 #pragma region Dialogue Variables/Functions
-
-private:
 	///////////////////////////////
 	/*         Dialogue         */
 	/////////////////////////////
+
+public:
 	UFUNCTION(BlueprintCallable)
 	void Speak(const FString& Dialogue);
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Dialogue")
+	class USDialogueHandlerComponent* DialogueHandlerComponent;
+
 	UFUNCTION(BlueprintCallable)
 	void ClearSpeakText();
 
 	UFUNCTION()
 	void IntroSpeak();
 
+	FTimerHandle ClearSpeakHandle;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Dialogue")
 	class UWidgetComponent* WidgetComponent;
+
+	TArray<AActor*> EnemiesInRange;
+
+	UFUNCTION()
+	void CombatEnded();
+
+	FTimerHandle CombatEndedTimer;
+	float CombatEndedTimeout = 5.f;
 
 #pragma endregion
 
@@ -141,11 +173,11 @@ private:
 #pragma region Health/Damage Variables/Functions
 
 public:
-	virtual void TakeDamage(float Damage, AActor* Instigator, const float& Knockback) override;
+	virtual void CharacterTakeDamage(float Damage, AActor* Instigator, const float& Knockback) override;
 
 private:
 	UFUNCTION()
-	void StartDeath(bool IsDead);
+	void StartDeath(bool IsDead, AActor* DeadActor);
 	UFUNCTION()
 	void HealthUpdated(const float newHealth);
 
@@ -268,12 +300,14 @@ private:
 	UFUNCTION()
 	void Spell();
 
-	UFUNCTION()
-	void HUD();
 	bool bHUDEnabled;
 
 	UFUNCTION()
 	void Settings();
+
+	UFUNCTION(BlueprintCallable)
+	void SetUsingGamepad(bool IsUsingGamepad);
+	bool bIsUsingGamepad = false;
 
 	///////////////////////////////
 	/*         Attack           */
@@ -285,6 +319,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	class UAnimMontage* AttackComboMontage;
 
+public:
+	UFUNCTION()
+	void HUD();
 
 #pragma endregion
 
@@ -331,7 +368,44 @@ private:
 
 #pragma endregion
 
+#pragma region Tutorial Variables/Functions
+
+protected:
+	UFUNCTION()
+	void OnTutorialSphereBeginOverlap(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult
+	);
+
+	UFUNCTION()
+	void OnTutorialSphereEndOverlap(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult
+	);
+
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "Tutorial")
+	class USphereComponent* TutorialOverlapSphere;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Tutorial")
+	class USTutorialComponent* TutorialComponent;
+
+#pragma endregion
+
+public:
+	UFUNCTION(BlueprintCallable)
+	void SetPlayerInputEnabled(bool state);
+
+private:
+	
 	bool bZoomOut = false;
 	bool bInteractOnly;
 	bool bGrabbedInactionable;
@@ -355,6 +429,35 @@ private:
 
 	UPROPERTY(visibleAnywhere, Category = "Fog Cleaner")
 	class ASFogCleaner* FogCleaner;
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Interact")
+	class USphereComponent* InteractSphere;
+
+	UFUNCTION()
+	void OnBeginOverlap(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex, 
+		bool bFromSweep, 
+		const FHitResult& SweepResult
+	);
+
+	UFUNCTION()
+	void OnEndOverlap(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor, 
+		UPrimitiveComponent* OtherComp, 
+		int32 OtherBodyIndex
+	);
+
+	UPROPERTY()
+	TArray<AActor*> InteractableObjects;
+
+	void SortInteractableObjects();
+	AActor* GetClosestInteractable() const;
+
 
 #pragma region Helper Variables/Functions
 

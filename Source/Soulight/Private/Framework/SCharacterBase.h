@@ -7,7 +7,11 @@
 #include "SCharacterBase.generated.h"
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDead, bool, bIsDead);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDead, bool, bIsDead, AActor*, DeadActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDamageDealt, ASCharacterBase*, Target);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDamageTaken, float, DamageTaken, AActor*, Instigator);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDamageTakenEnd);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnKill);
 
 class USStatData;
 
@@ -53,6 +57,15 @@ public:
 	ASCharacterBase();
 
 	FOnDead OnDead;
+	FOnDamageTaken OnDamageTaken;
+	FOnDamageTakenEnd OnDamageTakenEnd;
+	FOnKill OnKill;
+	FOnDamageDealt OnDamageDealt;
+
+	bool GetIsDamageable() const { return bIsDamageable; }
+	
+	UFUNCTION(BlueprintCallable)
+		bool IsStunned() const { return bStunned; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -70,10 +83,17 @@ public:
 
 protected:
 	void StartDeath();
-	
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartDeath_BlueprintEvent();
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	class USoundBase* HitSound;
+
 public:
 	UFUNCTION(BlueprintCallable)
-	virtual void TakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback);
+	virtual void CharacterTakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback);
 
 	UFUNCTION()
 	void ApplyKnockback(const FVector& FromPosition, const float& Knockback);
@@ -104,6 +124,22 @@ public:
 	float GetAgilityStat() const { return Agility; }
 	UFUNCTION()
 	float GetSoulStat() const { return Soul; }
+
+public:
+	void SetDodge(bool state);
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Knockback")
+	bool bCanKnockback = true;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Knockback")
+	bool bIsDamageable = true;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Knockback")
+	bool bStunned = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Knockback")
+	bool bDodge = false;
 
 	// v rework this v
 protected:

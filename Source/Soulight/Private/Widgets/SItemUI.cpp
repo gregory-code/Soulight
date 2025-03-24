@@ -68,11 +68,11 @@ void USItemUI::TickInRange(bool bInRange, float DeltaTime)
 	itemNameY = FMathf::Lerp(itemNameY, (bInRange) ? OriginalItemNameY : 0, 6.0f * DeltaTime);
 	itemUpgradeY = FMathf::Lerp(itemUpgradeY, (bInRange) ? OriginalItemUpgradeY : 0, 6.0f * DeltaTime);
 
-	FLinearColor itemNameColor = ItemName->ColorAndOpacity.GetSpecifiedColor();
+	FLinearColor itemNameColor = ItemName->GetColorAndOpacity().GetSpecifiedColor();
 	itemNameColor.A = opacity;
 	ItemName->SetColorAndOpacity(FSlateColor(itemNameColor));
 
-	FLinearColor itemUpgradeColor = ItemUpgrade->ColorAndOpacity.GetSpecifiedColor();
+	FLinearColor itemUpgradeColor = ItemUpgrade->GetColorAndOpacity().GetSpecifiedColor();
 	itemUpgradeColor.A = opacity;
 	ItemUpgrade->SetColorAndOpacity(FSlateColor(itemUpgradeColor));
 	ItemNameSlot->SetPosition(FVector2D(0, itemNameY));

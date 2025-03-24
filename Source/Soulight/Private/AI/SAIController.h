@@ -27,24 +27,28 @@ private:
 	void SenseSightStimulus(AActor* Target, FAIStimulus Stimulus);
 	void SenseHearingStimulus(AActor* Target, FAIStimulus Stimulus);
 
-private:
-	UPROPERTY(VisibleDefaultsOnly, Category = "AI")
-	FName AIVisionAttachSocketName = "Head";
-
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
 	UFUNCTION()
 	void OnTargetForgotten(AActor* Target);
 
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI")
+	class UBehaviorTree* BehaviorTree;
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	bool bUseSightSenseByDefault = true;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "AI")
+	FName AIVisionAttachSocketName = "Head";
+	
 	UPROPERTY(VisibleDefaultsOnly, Category = "AI")
 	class UAIPerceptionComponent* AIPerceptionComponent;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "AI")
 	class UAISenseConfig_Sight* SightConfig;
-
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	class UBehaviorTree* BehaviorTree;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	FName PlayerBBKeyName = "Target";

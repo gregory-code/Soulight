@@ -6,6 +6,7 @@
 #include "Framework/SInteractableObject.h"
 #include "SEquipment.generated.h"
 
+class USEquipmentData;
 /**
  * 
  */
@@ -15,10 +16,13 @@ class ASEquipment : public ASInteractableObject
 	GENERATED_BODY()
 	
 public:
-	virtual void Interact() override;
+	UFUNCTION(BlueprintCallable)
+	void EquipItem(class ASPlayer* Player);
+
+	USEquipmentData* GetEquipmentData() const { return Equipment; }
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
-	class USEquipmentData* Equipment;
+	USEquipmentData* Equipment;
 
 };

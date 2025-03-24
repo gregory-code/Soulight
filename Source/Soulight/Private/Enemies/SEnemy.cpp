@@ -10,6 +10,7 @@
 #include "Engine/World.h"
 
 #include "Framework/SInteractableObject.h"
+#include "Framework/SGameInstance.h"
 
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
@@ -25,11 +26,33 @@ ASEnemy::ASEnemy()
 	OnDead.AddDynamic(this, &ASEnemy::StartDeath);
 }
 
-void ASEnemy::StartDeath(bool IsDead)
+void ASEnemy::StartDeath(bool IsDead, AActor* DeadActor)
 {
 	float RNG = FMath::RandRange(0 , 100);
+	UE_LOG(LogTemp, Warning, TEXT("Enemy Is Dying"));
 
-	if (LootPool.IsEmpty() == false && RNG > 50)
+	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
+	if (IsValid(GameInstance))
+	{
+		// TODO: Check if is still same playthrough and right floor
+
+		TSubclassOf<AActor> InheritedAbility = GameInstance->GetInheritedAbility();
+
+		if (IsValid(InheritedAbility))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Inheriting Ability From Enemy"));
+
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+			GetWorld()->SpawnActor<AActor>(InheritedAbility, GetActorLocation(), GetActorRotation(), SpawnParams);
+
+			Destroy();
+			return;
+		}
+	}
+
+	if (!LootPool.IsEmpty() && RNG > 50)
 	{
 		const int32 rand = FMath::RandRange(0, LootPool.Num() - 1);
 

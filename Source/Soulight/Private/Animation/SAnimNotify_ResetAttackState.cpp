@@ -5,11 +5,11 @@
 
 #include "Player/SPlayer.h"
 
-void USAnimNotify_ResetAttackState::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+void USAnimNotify_ResetAttackState::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
     if (!IsValid(MeshComp)) return;
 
-    Super::Notify(MeshComp, Animation);
+    Super::Notify(MeshComp, Animation, EventReference);
 
     AActor* Owner = MeshComp->GetOwner();
     if (!IsValid(Owner)) return;

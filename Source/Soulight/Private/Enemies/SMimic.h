@@ -38,7 +38,7 @@ public:
 	class UBoxComponent* GrabBox;
 
 	UFUNCTION()
-	virtual void Interact();
+	virtual void Interact(AActor* InteractedObject);
 
 	UFUNCTION(BlueprintCallable, Category = "Propeties")
 	virtual void OnOverlapBegin(AActor* overlappedActor, AActor* otherActor);
@@ -49,7 +49,7 @@ public:
 private:
 	class ASAIController* AIC;
 
-	virtual void StartDeath(bool IsDead) override;
+	virtual void StartDeath(bool IsDead, AActor* DeadActor) override;
 
 	float SoundIncrement = 1.0F;
 

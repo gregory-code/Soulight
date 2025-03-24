@@ -9,7 +9,7 @@ void USHealthbar::UpdateHealthbar(float Health, float MaxHealth)
 {
 	if (IsValid(Healthbar))
 	{
-		Healthbar->Percent = Health / MaxHealth;
+		Healthbar->SetPercent(Health / MaxHealth);
 	}
 
 	if (IsValid(HealthText)) 

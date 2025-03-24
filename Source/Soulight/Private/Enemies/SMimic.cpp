@@ -32,9 +32,6 @@ void ASMimic::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FTimerHandle EscapeTimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(EscapeTimerHandle, this, &ASMimic::Escape, 1.0f, false, EscapeDelay);
-
 	if (IsValid(ItemWidgetComponent->GetWidget()))
 	{
 		ItemWidgetComponent->GetWidget()->SetVisibility(ESlateVisibility::Hidden);
@@ -49,6 +46,8 @@ void ASMimic::BeginPlay()
 	if (IsValid(AIC))
 	{
 		AIC->UnPossess();
+
+		UE_LOG(LogTemp, Warning, TEXT("Unpossess mimic"));
 	}
 
 	LastSound = 0.0f;
@@ -66,15 +65,17 @@ void ASMimic::Tick(float DeltaTime)
 	}
 }
 
-void ASMimic::Interact()
+void ASMimic::Interact(AActor* InteractedObject)
 {
-	UE_LOG(LogTemp, Warning, TEXT("I AM INTERACTING!"));
+	UE_LOG(LogTemp, Warning, TEXT("I AM INTERACTING WITH MIMIC!"));
 
 	if (IsValid(AIC))
 	{
-		if(IsValid(GetController()))
-			AIC->Possess(GetController()->GetPawn());
+		AIC->Possess(this);
 	}
+
+	FTimerHandle EscapeTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(EscapeTimerHandle, this, &ASMimic::Escape, 1.0f, false, EscapeDelay);
 
 	if (!IsValid(Player)) return;
 
@@ -122,7 +123,7 @@ void ASMimic::OnOverlapEnd(AActor* overlappedActor, AActor* otherActor)
 	Player->OnInteract.RemoveDynamic(this, &ASMimic::Interact);
 }
 
-void ASMimic::StartDeath(bool IsDead)
+void ASMimic::StartDeath(bool IsDead, AActor* DeadActor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("I Am Doing this"));
 

@@ -7,7 +7,7 @@
 #include "SDreadstorm.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class ASDreadstorm : public ASEnemy
@@ -21,46 +21,72 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void TakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback) override;
+	virtual void CharacterTakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback) override;
 
 	UFUNCTION(BlueprintCallable)
-	bool GetHeadRaised() const { return bHeadRaised; }
+		bool GetHeadRaised() const { return bHeadRaised; }
 
 	UFUNCTION(BlueprintCallable)
-	bool GetTransitioning() const { return bTransitioning; }
+		bool GetTransitioning() const { return bTransitioning; }
+
+	UFUNCTION()
+		bool GetIsDead();
 
 	UFUNCTION(BlueprintCallable)
-	void RaiseHead();
+		void RaiseHead();
 
 	UFUNCTION(BlueprintCallable)
-	void LowerHead();
+		void LowerHead();
+
+
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Hurtbox")
-	class UBoxComponent* HeadHurtbox;
+		class UBoxComponent* HeadHurtbox;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Hitbox")
-	class UBoxComponent* LeftHandHitbox;
+		class UBoxComponent* LeftHandHitbox;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Hitbox")
-	class UBoxComponent* RightHandHitbox;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
-	class UWidgetComponent* WidgetComponent;
+		class UBoxComponent* RightHandHitbox;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	bool bTransitioning = false;
+		bool bTransitioning = false;
 
 private:
-	UPROPERTY(EditDefaultsOnly, Category = "Hitbox")
-	FName LeftHandSocketName;
+	void CheckPhaseState();
+
+	UFUNCTION()
+		void DragonTransitioningState();
+	FTimerHandle TransitionTimerHandle;
+	const float TransitionDuration = 5.0f;
+
+	// probably not the best approach but this is easier for me
+	bool bPhaseTwo = false;
+	bool bPhaseThree = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Location")
+		FVector LeftStagePosition;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Location")
+		FVector RightStagePosition;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Location")
+		FVector CenterStagePosition;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Hitbox")
-	FName RightHandSocketName;
+		FName LeftHandSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Hitbox")
+		FName RightHandSocketName;
 
 	UPROPERTY()
-	bool bHeadRaised = false;
+		bool bHeadRaised = false;
 
 	UPROPERTY()
-	class USHealthbar* HealthBar;
+		class USHealthbar* HealthBar;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+		TSubclassOf<class UUserWidget> HealthBarWidget;
+
 };

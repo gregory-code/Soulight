@@ -15,6 +15,11 @@ EBTNodeResult::Type USBTTask_SimpleAttack::ExecuteTask(UBehaviorTreeComponent& O
 	APawn* OwningPawn = AIC->GetPawn();
 	if (!IsValid(OwningPawn)) return EBTNodeResult::Failed;
 
+    ASCharacterBase* EnemyOwner = Cast<ASCharacterBase>(OwningPawn);
+    if (!IsValid(EnemyOwner)) return EBTNodeResult::Failed;
+
+    if (EnemyOwner->IsStunned()) return EBTNodeResult::Failed;
+
     FVector ForwardVector = OwningPawn->GetActorForwardVector();
     FVector AttackLocation = OwningPawn->GetActorLocation() + (ForwardVector * AttackOffset);
 
@@ -44,13 +49,13 @@ EBTNodeResult::Type USBTTask_SimpleAttack::ExecuteTask(UBehaviorTreeComponent& O
                 UE_LOG(LogTemp, Warning, TEXT("Hit Enemy: %s"), *HitCharacter->GetName());
 
                 // Replace Damage for player/enemy attack damage
-                HitCharacter->TakeDamage(AttackDamage, OwningPawn, Knockback);
+                HitCharacter->CharacterTakeDamage(AttackDamage, OwningPawn, Knockback);
             }
         }
     }
 
     // This is wrong for some reason in the editor idk why, editor has meshes facing right not forward
-    DrawDebugSphere(GetWorld(), AttackLocation, AttackSize, 32, FColor::Red, false, 0.2f);
+    //DrawDebugSphere(GetWorld(), AttackLocation, AttackSize, 32, FColor::Red, false, 0.2f);
 
 	return EBTNodeResult::Succeeded;
 }

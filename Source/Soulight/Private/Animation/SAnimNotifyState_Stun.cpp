@@ -56,7 +56,7 @@ void USAnimNotifyState_Stun::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimS
     }
 
     // This is wrong for some reason in the editor idk why, editor has meshes facing right not forward
-    DrawDebugSphere(GetWorld(), AttackLocation, AttackSize, 32, FColor::Red, false, 0.2f);
+    //DrawDebugSphere(GetWorld(), AttackLocation, AttackSize, 32, FColor::Red, false, 0.2f);
 }
 
 void USAnimNotifyState_Stun::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)

@@ -14,13 +14,11 @@ class ASLevelLoadInteract : public ASInteractableObject
 {
 	GENERATED_BODY()
 	
-public:
-	virtual void Interact() override;
-
-private:
-	UFUNCTION()
+protected:
+	UFUNCTION(BlueprintCallable)
 	void LoadLevel();
 
+private:
 	UPROPERTY(EditDefaultsOnly, Category = "Level Load")
 	FName LevelName;
 

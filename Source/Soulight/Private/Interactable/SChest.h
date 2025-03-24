@@ -15,7 +15,8 @@ class ASChest : public ASInteractableObject
 	GENERATED_BODY()
 	
 public:
-	virtual void Interact() override;
+	UFUNCTION(BlueprintCallable)
+	void GiveItem();
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Chest")

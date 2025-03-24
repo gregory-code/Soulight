@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "Player/Abilities/SAbilityDataBase.h"
 
+// Change type from AActor to UObject
 ASAbilityBase::ASAbilityBase()
 {
 
@@ -21,7 +22,12 @@ FString ASAbilityBase::GetAbilityName() const
 
 }
 
-void ASAbilityBase::SetAbilityOwner(ACharacter* OwningCharacter)
+void ASAbilityBase::UnRegisterAbility()
+{
+	Destroy();
+}
+
+void ASAbilityBase::RegisterAbility(ACharacter* OwningCharacter)
 {
 	if (!IsValid(OwningCharacter)) return;
 

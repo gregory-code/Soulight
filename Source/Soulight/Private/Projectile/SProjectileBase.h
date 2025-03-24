@@ -14,8 +14,38 @@ class ASProjectileBase : public AActor
 public:	
 	ASProjectileBase();
 
+public:
+	void EnableOrbit(AActor* OrbitTarget);
+	void DisableOrbit();
+
+	void LaunchAtTarget(AActor* Target);
+
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	bool bShouldOrbit = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	float OrbitSpeed = 1000.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	float OrbitRadius = 3.0f;
+
+	UPROPERTY()
+	float OrbitAngle = 0.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	AActor* OrbitCenter;
+
+private:
+	UPROPERTY()
+	AActor* TargetActor = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Projectile")
+	float LerpSpeed = 1000.0f;
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Projectile")

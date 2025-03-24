@@ -14,6 +14,9 @@ void USAnimNotify_Attack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequence
     AActor* Owner = MeshComp->GetOwner();
     if (!IsValid(Owner)) return;
 
+    ASCharacterBase* Character = Cast<ASCharacterBase>(Owner);
+    if (!IsValid(Character)) return;
+
     FVector ForwardVector = Owner->GetActorForwardVector();
     FVector AttackLocation = Owner->GetActorLocation() + (ForwardVector * AttackOffset);
 
@@ -43,14 +46,16 @@ void USAnimNotify_Attack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequence
                 ASCharacterBase* HitCharacter = Cast<ASCharacterBase>(HitActor);
                 if (!IsValid(HitCharacter)) continue;
 
+                Character->OnDamageDealt.Broadcast(HitCharacter);
+
                 UE_LOG(LogTemp, Warning, TEXT("Hit Enemy: %s"), *HitCharacter->GetName());
 
                 // Replace Damage for player/enemy attack damage
-                HitCharacter->TakeDamage(OwningCharacter->GetStrengthStat(), OwningCharacter, Knockback);
+                HitCharacter->CharacterTakeDamage(OwningCharacter->GetStrengthStat(), OwningCharacter, Knockback);
             }
         }
     }
 
     // This is wrong for some reason in the editor idk why, editor has meshes facing right not forward
-    DrawDebugSphere(GetWorld(), AttackLocation, AttackSize, 32, FColor::Red, false, 0.2f);
+    //DrawDebugSphere(GetWorld(), AttackLocation, AttackSize, 32, FColor::Red, false, 0.2f);
 }

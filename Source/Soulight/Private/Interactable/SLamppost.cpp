@@ -4,6 +4,7 @@
 #include "Interactable/SLamppost.h"
 
 #include "Components/PointLightComponent.h"
+#include "Components/BoxComponent.h"
 
 #include "Framework/SFogCleaner.h"
 #include "Framework/SoulightGameMode.h"
@@ -33,9 +34,11 @@ void ASLamppost::BeginPlay()
 	}
 }
 
-void ASLamppost::Interact()
+void ASLamppost::LightLamp()
 {
-	Super::Interact();
+	if (bHasInteracted == true) return;
+
+	bHasInteracted = true;
 
 	if (!IsValid(FogCleanerClass)) return;
 
@@ -58,4 +61,6 @@ void ASLamppost::Interact()
 	{
 		PointLight->SetVisibility(true);
 	}
+
+	RootCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }

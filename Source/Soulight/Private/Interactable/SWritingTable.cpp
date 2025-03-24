@@ -9,9 +9,8 @@
 
 #include "Player/SPlayer.h"
 
-void ASWritingTable::Interact()
+void ASWritingTable::BeginWrite(class ASPlayer* Player)
 {
-	Super::Interact();
 
 	if (!IsValid(Player)) return;
 
@@ -20,7 +19,17 @@ void ASWritingTable::Interact()
 
 	// TODO: Get UI for Inherited Ability Selection
 
-	// Change this, just directly passing in the skill
+	TArray<ASAbilityBase*> skillList;
 	if(IsValid(Player->GetCurrentSkill()))
-		GameInstance->InheritAbility(Player->GetCurrentSkill());
+		skillList.Add(Player->GetCurrentSkill());
+	if (IsValid(Player->GetCurrentSpell()))
+		skillList.Add(Player->GetCurrentSpell());
+	if (IsValid(Player->GetCurrentPassive()))
+		skillList.Add(Player->GetCurrentPassive());
+
+	if (skillList.IsEmpty()) return;
+
+	int32 random = FMath::RandRange(0, skillList.Num() - 1);
+
+	GameInstance->InheritAbility(skillList[random]);
 }

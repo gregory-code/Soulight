@@ -2,12 +2,20 @@
 
 
 #include "Player/SPlayerController.h"
+
 #include "Player/SPlayer.h"
-#include "Kismet/GameplayStatics.h"
-#include "Widgets/SGameplayUI.h"
 #include "Player/Abilities/SAbilityDataBase.h"
+
+#include "Kismet/GameplayStatics.h"
+
+#include "Widgets/SGameplayUI.h"
 #include "Widgets/SPlayerHUDUI.h"
 #include "Widgets/SStatsUI.h"
+
+void ASPlayerController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
 
 void ASPlayerController::OnPossess(APawn* NewPawn)
 {
@@ -73,9 +81,14 @@ void ASPlayerController::SetStatsUI(float Str, float Def, float Agi, float Soul)
 
 void ASPlayerController::SetHealthUI(float Current, float Max)
 {
-	if (!IsValid(PlayerHUDUI)) return;
+	if (!IsValid(GameplayUI)) return;
 
-	PlayerHUDUI->SetHealth(Current, Max);
+	GameplayUI->SetHealth(Current, Max);
+}
+
+void ASPlayerController::SetGameplayUIVisibility(bool bShowGameplayUI)
+{
+	GameplayUI->SetVisibility(bShowGameplayUI ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 }
 
 void ASPlayerController::PostPossessionSetup(APawn* NewPawn)
@@ -110,6 +123,8 @@ void ASPlayerController::SpawnGameplayUI()
 	{
 		return;
 	}
+
+	GameplayUI->InitGameplayUI(PlayerCharacter);
 
 	GameplayUI->AddToViewport();
 	PlayerHUDUI->AddToViewport();

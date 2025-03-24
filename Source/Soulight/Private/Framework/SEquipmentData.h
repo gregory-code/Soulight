@@ -43,4 +43,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
 	class USStatData* EquipmentStats;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
+	FString EquipmentName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
+	class UPaperSprite* EquipmentIcon;
 };

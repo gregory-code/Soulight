@@ -17,7 +17,7 @@ class ASoulightGameMode : public AGameModeBase
 	
 public:
 	UFUNCTION(BlueprintCallable)
-	ASForestObjectiveActor* GetForestObjectiveTracker() { return ForestObjectiveTracker; }
+	class ASForestObjectiveActor* GetForestObjectiveTracker() { return ForestObjectiveTracker; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -27,6 +27,6 @@ private:
 	TSubclassOf<ASForestObjectiveActor> ForestObjectiveTrackerClass;
 	
 	UPROPERTY()
-	ASForestObjectiveActor* ForestObjectiveTracker;
+	class ASForestObjectiveActor* ForestObjectiveTracker;
 
 };

@@ -23,7 +23,7 @@ protected:
 
 private:
 	UFUNCTION()
-	virtual void StartDeath(bool IsDead);
+	virtual void StartDeath(bool IsDead, AActor* DeadActor);
 
 protected:
 	UPROPERTY(VisibleDefaultsOnly, Category = "AI")

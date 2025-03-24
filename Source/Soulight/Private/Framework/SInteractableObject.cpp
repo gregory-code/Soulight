@@ -12,13 +12,12 @@
 #include "Engine/World.h"
 #include "Engine/Texture.h"
 #include "Engine/Texture2D.h"
+#include "Engine/EngineTypes.h"
 
 #include "Kismet/GameplayStatics.h"
 
 #include "Player/Abilities/SAbilityDataBase.h"
 #include "Player/SPlayer.h"
-
-#include "Widgets/SItemUI.h"
 #include "Widgets/SItemUI.h"
 #include "Widgets/SItemWidgetComponent.h"
 
@@ -26,21 +25,31 @@ ASInteractableObject::ASInteractableObject()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	GrabBox = CreateDefaultSubobject<UBoxComponent>(TEXT("GrabBox"));
-	RootComponent = GrabBox;
-	FVector grabBoxRange = FVector(200, 200, 200);
-	GrabBox->SetBoxExtent(grabBoxRange);
+	RootCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("Root Box Collider"));
+	SetRootComponent(RootCollider);
+
+	// Set Collision Object Type to Minimap
+	RootCollider->SetCollisionObjectType(ECC_GameTraceChannel3);
+
+	// Block everything by default
+	RootCollider->SetCollisionResponseToAllChannels(ECR_Block);
+
+	// Ignore Custom Channel 1 & 2
+	RootCollider->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+	RootCollider->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
 
 	PickupMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pickup Mesh"));
-	PickupMesh->SetupAttachment(GetRootComponent());
+	PickupMesh->SetupAttachment(RootCollider);
 
 	ItemWidgetComponent = CreateDefaultSubobject<USItemWidgetComponent>(TEXT("ItemComponent"));
-	ItemWidgetComponent->SetupAttachment(GetRootComponent());
+	ItemWidgetComponent->SetupAttachment(RootCollider);
 }
 
 void ASInteractableObject::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (!IsValid(ItemWidgetComponent->GetWidget())) return;
 
 	ItemUI = Cast<USItemUI>(ItemWidgetComponent->GetWidget());
 	if (ItemUI)
@@ -51,73 +60,54 @@ void ASInteractableObject::BeginPlay()
 	{
 		ItemWidgetComponent->GetWidget()->SetVisibility(ESlateVisibility::Hidden);
 	}
-
-
-	OnActorBeginOverlap.AddDynamic(this, &ASInteractableObject::OnOverlapBegin);
-	OnActorEndOverlap.AddDynamic(this, &ASInteractableObject::OnOverlapEnd);
 }
 
 void ASInteractableObject::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (ItemUI)
+	if (!IsValid(ItemUI))
 	{
-		ItemUI->TickInRange(bInRange, DeltaTime);
+		return;
 	}
+
+	ItemUI->TickInRange(bInRange, DeltaTime);
 }
 
-void ASInteractableObject::Interact()
+void ASInteractableObject::Interact_Implementation(class ASPlayer* Player)
 {
 	UE_LOG(LogTemp, Warning, TEXT("I AM INTERACTING!"));
-
-	if (!IsValid(Player)) return;
-
-	Player->OnInteract.RemoveDynamic(this, &ASInteractableObject::Interact);
-	OnActorBeginOverlap.RemoveDynamic(this, &ASInteractableObject::OnOverlapBegin);
-
-	if (!IsValid(Player->GetMesh()) || !IsValid(InteractMontage)) return;
-
-	if (!IsValid(Player->GetMesh()->GetAnimInstance())) return;
 
 	UAnimInstance* AnimInstance = Player->GetMesh()->GetAnimInstance();
 	if (IsValid(AnimInstance))
 	{
 		AnimInstance->Montage_Play(InteractMontage, 1.0f);
 	}
+
+	IIInteractable::Execute_OnInteract(this, Player);
 }
 
-void ASInteractableObject::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
+void ASInteractableObject::EnableInteractionWidget_Implementation()
 {
-	if (!IsValid(Player))
-		Player = Cast<ASPlayer>(otherActor);
-
-	if (!IsValid(Player) || Player != otherActor) return;
-
-	if (!IsValid(ItemUI) && IsValid(ItemWidgetComponent->GetWidget()))
+	if (IsValid(ItemWidgetComponent->GetWidget()))
 	{
 		ItemWidgetComponent->GetWidget()->SetVisibility(ESlateVisibility::Visible);
 	}
 
-	Player->OnInteract.RemoveDynamic(this, &ASInteractableObject::Interact);
-	Player->OnInteract.AddDynamic(this, &ASInteractableObject::Interact);
-
 	bInRange = true;
+
+	IIInteractable::Execute_OnWidgetEnable(this);
+
 }
 
-void ASInteractableObject::OnOverlapEnd(AActor* overlappedActor, AActor* otherActor)
+void ASInteractableObject::DisableInteractionWidget_Implementation()
 {
-	if (!IsValid(Player)) return;
-
-	if (Player != otherActor) return;
-
-	if (!IsValid(ItemUI) && IsValid(ItemWidgetComponent->GetWidget()))
+	if (IsValid(ItemWidgetComponent->GetWidget()))
 	{
 		ItemWidgetComponent->GetWidget()->SetVisibility(ESlateVisibility::Hidden);
 	}
 
-	Player->OnInteract.RemoveDynamic(this, &ASInteractableObject::Interact);
-
 	bInRange = false;
-}
 
+	IIInteractable::Execute_OnWidgetDisable(this);
+}

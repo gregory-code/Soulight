@@ -33,7 +33,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Light")
 	class UPointLightComponent* PointLight;
 
-public:
-	virtual void Interact() override;
+	bool bHasInteracted = false;
 
+public:
+	UFUNCTION(BlueprintCallable)
+	void LightLamp();
 };

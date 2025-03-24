@@ -24,7 +24,10 @@ public:
     FString GetAbilityName() const;
 
     UFUNCTION(BlueprintCallable, Category = "Ability")
-    void SetAbilityOwner(ACharacter* OwningCharacter);
+    virtual void UnRegisterAbility();
+
+    UFUNCTION(BlueprintCallable, Category = "Ability")
+    virtual void RegisterAbility(ACharacter* OwningCharacter);
 
     UFUNCTION(BlueprintCallable, Category = "Ability")
     virtual void ExecuteAbility();

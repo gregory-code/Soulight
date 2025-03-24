@@ -37,8 +37,19 @@ private:
 	UFUNCTION()
 	void SetAbilityItem(class ASAbilityBase* ability, FString upgrade, FColor abilityColor);
 
-public:	
-	void Interact() override;
+	ASPlayer* PlayerCharacter;
 
-	void OnOverlapBegin(AActor* overlappedActor, AActor* otherActor) override;
+public:	
+	virtual void EnableInteractionWidget_Implementation() override;
+	virtual void DisableInteractionWidget_Implementation() override;
+
+	UFUNCTION(BlueprintCallable)
+	void ObtainItem(class ASPlayer* Player);
+
+	UFUNCTION(BlueprintCallable)
+	void ShowItemStatus(class ASPlayer* Player);
+
+	UTexture* GetAbilityIcon() const;
+	FString GetAbilityName() const;
+
 };
