@@ -6,6 +6,7 @@
 #include "Enemies/SEnemy.h"
 #include "SDreadstorm.generated.h"
 
+class UAnimMontage;
 /**
  *
  */
@@ -16,6 +17,8 @@ class ASDreadstorm : public ASEnemy
 
 public:
 	ASDreadstorm();
+
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -38,9 +41,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void LowerHead();
 
-
-
 protected:
+	UFUNCTION()
+	void LateSetup();
+
+	bool InRange(const FVector& CurrentLocation, const FVector& PlayerLocation) const;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Hurtbox")
 		class UBoxComponent* HeadHurtbox;
 
@@ -54,10 +60,18 @@ protected:
 		bool bTransitioning = false;
 
 private:
+	class ACharacter* PlayerRefer;
+
+	FVector NewPlayerLocation;
+
+	void SelectAttack();
+	UPROPERTY(EditDefaultsOnly, Category = "Attack Animations")
+	TArray<UAnimMontage*> AttackAnimations;
+
 	void CheckPhaseState();
 
 	UFUNCTION()
-		void DragonTransitioningState();
+	void DragonTransitioningState();
 	FTimerHandle TransitionTimerHandle;
 	const float TransitionDuration = 5.0f;
 
