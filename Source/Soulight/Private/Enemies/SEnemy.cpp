@@ -7,6 +7,8 @@
 
 #include "BehaviorTree/BehaviorTreeComponent.h"
 
+#include "Components/CapsuleComponent.h"
+
 #include "Engine/World.h"
 
 #include "Framework/SInteractableObject.h"
@@ -28,8 +30,52 @@ ASEnemy::ASEnemy()
 
 void ASEnemy::StartDeath(bool IsDead, AActor* DeadActor)
 {
-	float RNG = FMath::RandRange(0 , 100);
 	UE_LOG(LogTemp, Warning, TEXT("Enemy Is Dying"));
+
+	if (AController* AIController = GetController())
+	{
+		AIController->StopMovement();
+		DetachFromControllerPendingDestroy();
+	}
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+
+	PlayDeathAnimationAndWait();
+}
+
+void ASEnemy::PlayDeathAnimationAndWait()
+{
+	if (!DeathMontage || !GetMesh() || !GetMesh()->GetAnimInstance())
+	{
+		Destroy();
+		return;
+	}
+
+	float DeathAnimDuration = GetMesh()->GetAnimInstance()->Montage_Play(DeathMontage);
+	if (DeathAnimDuration > 0)
+	{
+		// Schedule destruction after the animation finishes
+		GetWorldTimerManager().SetTimer(DeathTimerHandle, this, &ASEnemy::DestroyEnemy, DeathAnimDuration, false);
+	}
+	else
+	{
+		// Fallback: If animation fails to play, destroy immediately
+		Destroy();
+	}
+}
+
+void ASEnemy::DestroyEnemy()
+{
+	DropLoot();
+
+	Destroy();
+}
+
+void ASEnemy::DropLoot()
+{
+	float RNG = FMath::RandRange(0, 100);
 
 	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
 	if (IsValid(GameInstance))
@@ -37,7 +83,6 @@ void ASEnemy::StartDeath(bool IsDead, AActor* DeadActor)
 		// TODO: Check if is still same playthrough and right floor
 
 		TSubclassOf<AActor> InheritedAbility = GameInstance->GetInheritedAbility();
-
 		if (IsValid(InheritedAbility))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Inheriting Ability From Enemy"));
@@ -47,7 +92,6 @@ void ASEnemy::StartDeath(bool IsDead, AActor* DeadActor)
 
 			GetWorld()->SpawnActor<AActor>(InheritedAbility, GetActorLocation(), GetActorRotation(), SpawnParams);
 
-			Destroy();
 			return;
 		}
 	}
@@ -61,6 +105,4 @@ void ASEnemy::StartDeath(bool IsDead, AActor* DeadActor)
 
 		ASInteractableObject* Ability = GetWorld()->SpawnActor<ASInteractableObject>(LootPool[rand], GetActorLocation(), GetActorRotation(), SpawnParams);
 	}
-
-	Destroy();
 }

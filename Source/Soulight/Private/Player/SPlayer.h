@@ -338,6 +338,15 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "VFX")
 	void CameraFade_BlueprintEvent(const float& Duration);
 
+	UFUNCTION(BlueprintCallable)
+	void SetUseCustomHealthPosition(bool UseCustomPosition);
+
+	UFUNCTION(BlueprintCallable)
+	void SetFullHealthPosition(const FVector& NewPosition);
+
+	UFUNCTION(BlueprintCallable)
+	void SetEmptyHealthPosition(const FVector& NewPosition);
+
 private:
 	///////////////////////////////
 	/*         Camera           */
@@ -360,6 +369,15 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	class UStaticMeshComponent* MinimapPlayerIcon;
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	FVector FullHealthCameraPosition;
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	FVector EmptyHealthCameraPosition;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	bool bUseSceneComponentsHealthPositionOnStart = true;
 
 	FTimerHandle CameraTimerHandle;
 	float CameraMoveSpeed = 5.0f;

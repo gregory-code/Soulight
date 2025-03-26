@@ -241,9 +241,35 @@ void ASPlayer::BeginPlay()
 	TutorialOverlapSphere->OnComponentBeginOverlap.AddDynamic(this, &ASPlayer::OnTutorialSphereBeginOverlap);
 	TutorialOverlapSphere->OnComponentBeginOverlap.AddDynamic(this, &ASPlayer::OnTutorialSphereEndOverlap);
 
+	if (bUseSceneComponentsHealthPositionOnStart)
+	{
+		FullHealthCameraPosition = FullHealthView->GetRelativeLocation();
+		EmptyHealthCameraPosition = EmptyHealthView->GetRelativeLocation();
+	}
+
+	HealthUpdated(1.f);
+
 	LampLight->SetIntensity(LightIntensity);
 }
 
+void ASPlayer::SetUseCustomHealthPosition(bool UseCustomPosition)
+{
+	bUseSceneComponentsHealthPositionOnStart = UseCustomPosition;
+}
+
+void ASPlayer::SetFullHealthPosition(const FVector& NewPosition)
+{
+	FullHealthCameraPosition = NewPosition;
+
+	HealthUpdated(Health/MaxHealth);
+}
+
+void ASPlayer::SetEmptyHealthPosition(const FVector& NewPosition)
+{
+	EmptyHealthCameraPosition = NewPosition;
+
+	HealthUpdated(Health / MaxHealth);
+}
 
 void ASPlayer::PawnClientRestart()
 {
@@ -630,6 +656,8 @@ void ASPlayer::HUD()
 	PlayerController->GameplayUIState(bHUDEnabled);
 }
 
+
+
 void ASPlayer::Settings()
 {
 
@@ -756,7 +784,7 @@ void ASPlayer::HealthUpdated(const float newHealth)
 		PlayerController->SetHealthUI(Health, MaxHealth);
 	}
 
-	FVector interpolatedPos = FMath::Lerp(EmptyHealthView->GetRelativeLocation(), FullHealthView->GetRelativeLocation(), newHealth);
+	FVector interpolatedPos = FMath::Lerp(EmptyHealthCameraPosition, FullHealthCameraPosition, newHealth);
 	MoveCameraToLocalOffset(interpolatedPos);
 }
 

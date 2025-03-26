@@ -27,80 +27,151 @@ public:
 	virtual void CharacterTakeDamage(float Damage, AActor* DamageInstigator, const float& Knockback) override;
 
 	UFUNCTION(BlueprintCallable)
-		bool GetHeadRaised() const { return bHeadRaised; }
+	bool GetHeadRaised() const { return bHeadRaised; }
 
 	UFUNCTION(BlueprintCallable)
-		bool GetTransitioning() const { return bTransitioning; }
+	bool GetTransitioning() const { return bTransitioning; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetRightHandHitboxEnabled(bool ActiveState);
+
+	UFUNCTION(BlueprintCallable)
+	void SetLeftHandHitboxEnabled(bool ActiveState);
 
 	UFUNCTION()
-		bool GetIsDead();
+	bool GetIsDead();
 
 	UFUNCTION(BlueprintCallable)
-		void RaiseHead();
+	void RaiseHead();
 
 	UFUNCTION(BlueprintCallable)
-		void LowerHead();
+	void LowerHead();
 
 protected:
+	void PlayMontage(UAnimMontage* MontageToPlay);
+	void StopAllMontages();
+
 	UFUNCTION()
 	void LateSetup();
 
 	bool InRange(const FVector& CurrentLocation, const FVector& PlayerLocation) const;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Hurtbox")
-		class UBoxComponent* HeadHurtbox;
+	class UBoxComponent* HeadHurtbox;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Hitbox")
-		class UBoxComponent* LeftHandHitbox;
+	class UBoxComponent* LeftHandHitbox;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Hitbox")
-		class UBoxComponent* RightHandHitbox;
+	class UBoxComponent* RightHandHitbox;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		bool bTransitioning = false;
+	bool bTransitioning = false;
+
+	UFUNCTION()
+	void RightHandOverlapBegin(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult
+	);
+
+	UFUNCTION()
+	void RightHandOverlapEnd(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex
+	);
+
+	UFUNCTION()
+	void LeftHandOverlapBegin(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult
+	);
+
+	UFUNCTION()
+	void LeftHandOverlapEnd(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex
+	);
+
+	void DealDamage(class ASCharacterBase* TargetCharacter);
+
+	bool bHitOnce = false;
 
 private:
-	class ACharacter* PlayerRefer;
+	// probably not the best approach but this is easier for me
+	bool bPhaseTwo = false;
+	bool bPhaseThree = false;
 
-	FVector NewPlayerLocation;
-
-	void SelectAttack();
-	UPROPERTY(EditDefaultsOnly, Category = "Attack Animations")
-	TArray<UAnimMontage*> AttackAnimations;
+	int32 MovesTillNextHeadMovement = 3;
 
 	void CheckPhaseState();
 
 	UFUNCTION()
 	void DragonTransitioningState();
+
 	FTimerHandle TransitionTimerHandle;
 	const float TransitionDuration = 5.0f;
 
-	// probably not the best approach but this is easier for me
-	bool bPhaseTwo = false;
-	bool bPhaseThree = false;
+	void SelectAttack();
+
+	UFUNCTION()
+	void WaitForNextAttack();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Location")
-		FVector LeftStagePosition;
+	FVector LeftStagePosition;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Location")
-		FVector RightStagePosition;
+	FVector RightStagePosition;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Location")
-		FVector CenterStagePosition;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Hitbox")
-		FName LeftHandSocketName;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Hitbox")
-		FName RightHandSocketName;
+	FVector CenterStagePosition;
 
 	UPROPERTY()
-		bool bHeadRaised = false;
+	bool bHeadRaised = false;
+
+	FTimerHandle AttackResetTimer;
+	bool bCanAttack = true;
+
+private:
+	class ACharacter* PlayerTarget;
+
+	FVector NewPlayerLocation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UAnimMontage* StartMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UAnimMontage* EmergeMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UAnimMontage* DigDownMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	TArray<UAnimMontage*> RangedAttackAnimations;
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UAnimMontage* ClawAttackAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Hitbox")
+	FName LeftHandSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Hitbox")
+	FName RightHandSocketName;
 
 	UPROPERTY()
-		class USHealthbar* HealthBar;
+	class USHealthbar* HealthBar;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
-		TSubclassOf<class UUserWidget> HealthBarWidget;
+	TSubclassOf<class UUserWidget> HealthBarWidget;
 
 };

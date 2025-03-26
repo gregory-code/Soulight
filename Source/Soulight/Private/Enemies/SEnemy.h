@@ -25,6 +25,16 @@ private:
 	UFUNCTION()
 	virtual void StartDeath(bool IsDead, AActor* DeadActor);
 
+	UFUNCTION()
+	void PlayDeathAnimationAndWait();
+
+	UFUNCTION()
+	void DestroyEnemy();
+
+	void DropLoot();
+
+	FTimerHandle DeathTimerHandle;
+
 protected:
 	UPROPERTY(VisibleDefaultsOnly, Category = "AI")
 	class UAIPerceptionStimuliSourceComponent* AIPerceptionSourceComp;

@@ -44,7 +44,7 @@ void USAnimNotify_Attack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequence
             if (AActor* HitActor = Result.GetActor())
             {
                 ASCharacterBase* HitCharacter = Cast<ASCharacterBase>(HitActor);
-                if (!IsValid(HitCharacter)) continue;
+                if (!IsValid(HitCharacter) || HitCharacter == Character) continue;
 
                 Character->OnDamageDealt.Broadcast(HitCharacter);
 
